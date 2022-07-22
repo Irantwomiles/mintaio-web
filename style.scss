@@ -1,0 +1,59 @@
+@import url('https://fonts.googleapis.com/css2?family=Arimo&display=swap');
+
+$background: #111827;
+$background-sidebar: #1F2937;
+$background-input: #374151;
+$border-color: #4B5563;
+$icon-color: #9CA3AF;
+$green: #45d39d;
+$yellow: #ffc76f;
+$red: #ff4949;
+
+* {
+  font-family: 'Arimo', sans-serif;
+}
+
+body {
+  background-color: $background !important;
+}
+
+input {
+  background-color: $background-input;
+  border: none;
+
+  border-radius: 0.5rem;
+}
+
+.navbar {
+  background-color: $background-input !important;
+
+  border-bottom: 1px solid $border-color;
+
+  a {
+    color: white !important;
+  }
+}
+
+.sidebar {
+  background-color: $background-sidebar;
+  border-right: 1px solid $border-color;
+
+  .sidebar-item {
+    border-radius: 0.5rem;
+    transition: background-color 200ms ease-in;
+
+    a, i {
+      color: $icon-color;
+    }
+
+    &:hover {
+      background-color: $background-input;
+    }
+
+  }
+
+}
+
+.size-2 {
+  font-size: 1.3rem;
+}
