@@ -1,6 +1,7 @@
 import {render} from 'preact';
 import {html} from 'htm/preact';
 
+import './utils/main.js';
 import WalletManager from "./utils/wallet_manager.js";
 
 import App from './components/App.js';

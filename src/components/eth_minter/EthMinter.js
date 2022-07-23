@@ -1,6 +1,5 @@
 import {html} from 'htm/preact';
 import {useEffect, useState, useRef} from "preact/compat";
-import Web3Utils from "../../utils/web3_utils.js";
 import {Dropdown} from "bootstrap";
 import SidebarNav from '../SidebarNav.js';
 
@@ -33,21 +32,6 @@ function EthMinter() {
     const [mintDropdown, setMintDropdown] = useState(null);
     const [readDropdown, setReadDropdown] = useState(null);
 
-    const handleSetProvider = () => {
-        if(provider.length === 0) {
-            return;
-        }
-
-        if(typeof window.web3_utils === 'undefined') {
-            window.web3_utils = new Web3Utils(provider)
-        } else {
-            window.web3_utils.update(provider);
-        }
-
-        window.web3_utils.web3.eth.getBalance('0x9Cf22279CAB9046420Ec4875aed6c2972A557043').then((balance) => console.log(balance));
-
-    }
-
     const handleGetContractInfo = () => {
         /*if(typeof window.web3_utils === 'undefined') {
             console.log("Must set a web3 provider before doing anything.");
@@ -63,8 +47,6 @@ function EthMinter() {
 
         setMintMethods(contractInfo.mintMethods);
         setReadMethods(contractInfo.readMethods);
-
-        console.log(contractInfo);
     }
 
     useEffect(() => {
@@ -75,8 +57,6 @@ function EthMinter() {
     }, []);
 
     useEffect(() => {
-
-        console.log("mintMethod", mintMethod);
 
         if(mintMethod === null) {
             setArgs([]);
@@ -92,84 +72,147 @@ function EthMinter() {
 
     }, [mintMethod]);
 
+    // useEffect(() => {
+    //
+    //     if(typeof window.mainState !== 'undefined') {
+    //
+    //         // window.mainState.authStream.subscribe((data) => {
+    //         //     console.log("authData", data);
+    //         // })
+    //
+    //     }
+    //
+    // }, [window.mainState]);
+
     return html`
     <div ref=${globalRef} class="d-flex">
         
-        <${SidebarNav} />
+        <${SidebarNav} page="eth-tasks" />
         
-        <div>
-                    
-            <div>
-                <div class="text-white">Web3 Provider</div>
-                <input value=${provider} onchange=${(e) => {setProvider(e.target.value)}} />
-                <button class="btn" onclick=${handleSetProvider}>Set Provider</button>
-            </div>
+        <div class="p-3">
             
             <div>
-                <div>Contract Address</div>
-                <input value=${contractAddress} onchange=${(e) => {setContractAddress(e.target.value)}} />
-                <button onclick=${handleGetContractInfo}>Get Info</button>
-            </div>
-    
-            <div>
-                <div>ABI</div>
-                <textarea value=${abi} onchange=${(e) => {setAbi(e.target.value)}} />
-            </div>
-            
-            <div>
-                <div>Private Key</div>
-                <input value=${privateKey} onchange=${(e) => {setPrivateKey(e.target.value)}} />
-            </div>
-            <div>
-                <div>Price</div>
-                <input value=${price} onchange=${(e) => {setPrice(e.target.value)}} />
-            </div>
-            <div>
-                <div>Amount</div>
-                <input value=${amount} onchange=${(e) => {setAmount(e.target.value)}} />
-            </div>
-            <div>
-                <div>Max Gas</div>
-                <input value=${maxGas} onchange=${(e) => {setMaxGas(e.target.value)}} />
-            </div>
-            <div>
-                <div>Priority Fee</div>
-                <input value=${gasPriority} onchange=${(e) => {setGasPriority(e.target.value)}} />
-            </div>
-            <div>
-                <div>Gas Limit</div>
-                <input value=${gasLimit} onchange=${(e) => {setGasLimit(e.target.value)}} />
-            </div>
-            <div>
-                <div class="dropdown">
-                    <button class="btn btn-secondary dropdown-toggle" type="button" id="mint-dropdown" data-bs-toggle="dropdown" aria-expanded="false" onclick=${() => {mintDropdown.show()}}>
-                        ${mintMethod === null ? 'Select a Function' : mintMethod.name}
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="dropdown">
-                        ${
-                            mintMethods.length === 0 ? '' :
-                                    mintMethods.map((mint) => (
-                                            html`
+                <div class="title">GENERAL INFORMATION <i class="fa-solid fa-keyboard ms-1"></i></div>
+                
+                <div class="d-flex align-items-center mt-2">
+                    <div class="dropdown me-2">
+
+                        <div class="label">Wallet</div>
+                        <button class="button-dropdown dropdown-toggle" type="button" id="mint-dropdown" data-bs-toggle="dropdown" aria-expanded="false" onclick=${() => {mintDropdown.show()}}>
+                            ${mintMethod === null ? 'Select one or more Wallets' : mintMethod.name}
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdown">
+                            ${
+                                    mintMethods.length === 0 ? '' :
+                                            mintMethods.map((mint) => (
+                                                    html`
                                                 <li class="dropdown-item" onclick=${() => {setMintMethod(mint)}}>${mint.name}</li>
                                             `
-                                    ))
-                        }
-                    </ul>
+                                            ))
+                            }
+                        </ul>
+                    </div>
+                    
+                    <div class=" ms-2">
+                        <div class="label">RPC</div>
+                        <input class="input" value=${contractAddress} onchange=${(e) => {setContractAddress(e.target.value)}} value="" placeholder="RPC Endpoint" />
+                    </div>
                 </div>
             </div>
-            <div>
-                <div>Args</div>
-                ${
-                    args.length === 0 ? '' :
-                            args.map((arg) => (
-                                html`
-                                <div>
-                                    <div>${arg.name}</div>
-                                    <input placeholder=${args.name} />
-                                </div>
-                                `
-                            ))
-                }
+            
+            <hr />
+            
+            <div class="mt-3">
+                <div class="title">CONTRACT INFORMATION <i class="fa-solid fa-file-contract ms-1"></i></div>
+
+                <div class="mt-2">
+                    <div class="label">Contract Address</div>
+                    <input class="input me-2" value=${contractAddress} onchange=${(e) => {setContractAddress(e.target.value)}} placeholder="0x123abc..." />
+                    <button class="button-primary ms-2" onclick=${handleGetContractInfo}>Get ABI</button>
+                </div>
+
+                <div class="mt-3">
+                    <div class="dropdown">
+
+
+                        <div class="label">Mint Function</div>
+                        <button class="button-dropdown dropdown-toggle" type="button" id="mint-dropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false" onclick=${() => {
+                            mintDropdown.show()
+                        }}>
+                            ${mintMethod === null ? 'Select a Mint Function' : mintMethod.name}
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdown">
+                            ${
+                                    mintMethods.length === 0 ? '' :
+                                            mintMethods.map((mint) => (
+                                                    html`
+                                                        <li class="dropdown-item" onclick=${() => {
+                                                            setMintMethod(mint)
+                                                        }}>${mint.name}
+                                                        </li>
+                                                    `
+                                            ))
+                            }
+                        </ul>
+                    </div>
+
+                    <div>
+                        <div class="${args.length === 0 ? 'd-none' : 'label'}">Mint Function Arguments</div>
+                        ${
+                                args.length === 0 ? '' :
+                                        args.map((arg) => (
+                                                html`
+                                                    <div>
+                                                        <div>${arg.name}</div>
+                                                        <input placeholder=${args.name}/>
+                                                    </div>
+                                                `
+                                        ))
+                        }
+                    </div>
+                </div>
+                
+                <div class="d-flex mt-3">
+                    <div class="me-2">
+                        <div class="label">Price</div>
+                        <input class="input" value=${price} onchange=${(e) => {setPrice(e.target.value)}} placeholder="0.0" />
+                    </div>
+                    <div class="ms-2">
+                        <div class="label">Amount</div>
+                        <input class="input" value=${amount} onchange=${(e) => {setAmount(e.target.value)}} placeholder="0" />
+                    </div> 
+                </div>
+
+                
+                
+            </div>
+
+            <hr />
+            
+            <div class="mt-3">
+                <div class="title">GAS SETTINGS <i class="fa-solid fa-gas-pump ms-1"></i></div>
+                <div class="d-flex mt-3">
+                    <div class="me-2">
+                        <div class="label">Max Gas</div>
+                        <input class="input" value=${maxGas} onchange=${(e) => {setMaxGas(e.target.value)}} placeholder="100" />
+                    </div>
+                    <div class="ms-2 me-2">
+                        <div class="label">Priority Fee</div>
+                        <input class="input" value=${gasPriority} onchange=${(e) => {setGasPriority(e.target.value)}} placeholder="10" />
+                    </div>
+                    <div class="ms-2">
+                        <div class="label">Gas Limit</div>
+                        <input class="input" value=${gasLimit} onchange=${(e) => {setGasLimit(e.target.value)}} placeholder="AUTO" />
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+            
+            <div class="d-flex justify-content-end">
+                <button class="button-outline-cancel me-2">Cancel</button>
+                <button class="button-primary">Create Task</button>
             </div>
 
         </div>
