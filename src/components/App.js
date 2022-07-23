@@ -7,13 +7,13 @@ import EthMinter from "./eth_minter/EthMinter.js";
 import Nav from "./Nav.js";
 import Settings from "./Settings";
 
-function App() {
+function App({state}) {
     return html`
     <div>
         <${Nav} />
         <${Router}>
-            <${Wallets} path="/wallets" />
-            <${EthMinter} path="/eth-tasks" />
+            <${Wallets} state=${state} path="/wallets" />
+            <${EthMinter} state=${state} path="/eth-tasks" />
             <${Settings} path="/settings" />
         </${Router}>
     </div>

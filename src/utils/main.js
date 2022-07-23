@@ -12,15 +12,14 @@ class Main {
 
             try {
                 this.globalWeb3 = new Web3(rpc);
-                console.log("Setup globalWeb3 instance");
             } catch(e) {
                 console.log(e);
             }
 
         }
+
+        console.log("Main state initiated.");
     }
 }
 
-if(typeof window.mainState === 'undefined') {
-    window.mainState = new Main();
-}
+export default Main;

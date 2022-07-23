@@ -3,19 +3,21 @@ import {useEffect, useState, useRef} from "preact/compat";
 import {Dropdown} from "bootstrap";
 import SidebarNav from '../SidebarNav.js';
 
-function EthMinter() {
+function EthMinter({state}) {
 
     /*
     wss://eth-mainnet.g.alchemy.com/v2/Q2Ntju4GCSIEphdaYNmBjweqQsfew2ws
     contract: 0x4a8C9D751EEAbc5521A68FB080DD7E72E46462aF
-
      */
 
     const globalRef = useRef();
 
+    const [wallets, setWallets] = useState([]);
+    const [tasks, setTasks] = useState([]);
+
+    const [selectedWallets, setSelectedWallets] = useState([]);
     const [provider, setProvider] = useState("");
     const [contractAddress, setContractAddress] = useState("");
-    const [privateKey, setPrivateKey] = useState("");
     const [price, setPrice] = useState("");
     const [amount, setAmount] = useState("");
     const [maxGas, setMaxGas] = useState("");
@@ -29,6 +31,7 @@ function EthMinter() {
     const [mintMethods, setMintMethods] = useState([]);
     const [readMethods, setReadMethods] = useState([]);
 
+    const [walletsDropdown, setWalletsDropdown] = useState(null);
     const [mintDropdown, setMintDropdown] = useState(null);
     const [readDropdown, setReadDropdown] = useState(null);
 
@@ -49,8 +52,18 @@ function EthMinter() {
         setReadMethods(contractInfo.readMethods);
     }
 
+    const addWallet = (wallet) => {
+        if(selectedWallets.find(w => w.account.address === wallet.account.address)) {
+
+            return;
+        }
+
+        setSelectedWallets([...selectedWallets, wallet]);
+    }
+
     useEffect(() => {
 
+        setWalletsDropdown(new Dropdown(globalRef.current.querySelector('#wallets-dropdown'), {}));
         setMintDropdown(new Dropdown(globalRef.current.querySelector('#mint-dropdown'), {}));
         //setReadDropdown(new Dropdown(globalRef.current.querySelector('#read-dropdown'), {}));
 
@@ -72,17 +85,26 @@ function EthMinter() {
 
     }, [mintMethod]);
 
-    // useEffect(() => {
-    //
-    //     if(typeof window.mainState !== 'undefined') {
-    //
-    //         // window.mainState.authStream.subscribe((data) => {
-    //         //     console.log("authData", data);
-    //         // })
-    //
-    //     }
-    //
-    // }, [window.mainState]);
+    useEffect(() => {
+
+        if(state === null) {
+            return;
+        }
+
+        const walletsStream = state.walletsStream.subscribe((data) => {
+            setWallets(data);
+        })
+
+        const tasksStream = state.ethTasksStream.subscribe((data) => {
+            setTasks(data);
+        })
+
+        return () => {
+            walletsStream.unsubscribe();
+            tasksStream.unsubscribe();
+        }
+
+    }, [state]);
 
     return html`
     <div ref=${globalRef} class="d-flex">
@@ -97,16 +119,16 @@ function EthMinter() {
                 <div class="d-flex align-items-center mt-2">
                     <div class="dropdown me-2">
 
-                        <div class="label">Wallet</div>
-                        <button class="button-dropdown dropdown-toggle" type="button" id="mint-dropdown" data-bs-toggle="dropdown" aria-expanded="false" onclick=${() => {mintDropdown.show()}}>
-                            ${mintMethod === null ? 'Select one or more Wallets' : mintMethod.name}
+                        <div class="label">Wallets</div>
+                        <button class="button-dropdown dropdown-toggle" type="button" id="wallets-dropdown" data-bs-toggle="dropdown" aria-expanded="false" onclick=${() => {walletsDropdown.show()}}>
+                            Select one or more Wallets
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="dropdown">
                             ${
-                                    mintMethods.length === 0 ? '' :
-                                            mintMethods.map((mint) => (
+                                    wallets.length === 0 ? '' :
+                                            wallets.map((w) => (
                                                     html`
-                                                <li class="dropdown-item" onclick=${() => {setMintMethod(mint)}}>${mint.name}</li>
+                                                <li class="dropdown-item" onclick=${() => {addWallet(w)}}>${w.name}</li>
                                             `
                                             ))
                             }
@@ -117,6 +139,10 @@ function EthMinter() {
                         <div class="label">RPC</div>
                         <input class="input" value=${contractAddress} onchange=${(e) => {setContractAddress(e.target.value)}} value="" placeholder="RPC Endpoint" />
                     </div>
+                </div>
+                
+                <div>
+                    
                 </div>
             </div>
             

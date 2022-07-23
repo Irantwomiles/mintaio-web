@@ -1,9 +1,8 @@
 import {render} from 'preact';
 import {html} from 'htm/preact';
 
-import './utils/main.js';
-import WalletManager from "./utils/wallet_manager.js";
-
+import Main from "./utils/main";
+import Wallet from './utils/wallet'
 import App from './components/App.js';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -11,8 +10,20 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import '@popperjs/core';
 import '../style.scss';
 
-render(html`<${App}/>`, document.getElementById('root'));
+const mainState = new Main();
 
-if(typeof window.walletManager === 'undefined') {
-    window.walletManager = new WalletManager();
+if(localStorage.getItem("wallets") === null) {
+    localStorage.setItem("wallets", JSON.stringify([]));
+} else {
+
+    const encryptedWallets = JSON.parse(localStorage.getItem("wallets"));
+    const _wallets = [];
+
+    for(const w of encryptedWallets) {
+        console.log("Wallet:", w);
+        _wallets.push(new Wallet(w.name, w.account));
+    }
+    mainState.walletsStream.next(_wallets);
 }
+
+render(html`<${App} state=${mainState} />`, document.getElementById('root'));

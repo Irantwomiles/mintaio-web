@@ -166,7 +166,8 @@ input {
   border-radius: 0.5rem;
   background-color: $background-sidebar;
   transition: transform 200ms ease-in;
-
+  min-width: 20rem;
+  max-width: 20rem;
   &:hover {
     transform: scale(1.02);
   }
@@ -215,4 +216,34 @@ input {
 
 hr {
   color: $light-gray;
+}
+
+.toast-success {
+  background-color: $background-sidebar;
+  color: $green;
+
+  i {
+    color: $light-gray;
+    transition: color 200ms ease-in;
+
+    &:hover {
+      color: $red;
+      cursor: pointer;
+    }
+  }
+}
+
+.dropdown-menu {
+  background-color: $button-gray-background;
+
+  .dropdown-item {
+    cursor: pointer;
+
+    color: $light-gray;
+
+    &:hover {
+      background-color: lighten($button-gray-background, 5%);
+    }
+
+  }
 }
