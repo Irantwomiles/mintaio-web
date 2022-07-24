@@ -11744,4 +11744,15 @@ hr {
   cursor: pointer;
 }
 
+.task {
+  background-color: #2a2b30;
+  border-radius: .5rem;
+  padding: 1rem;
+}
+
+.task .actions {
+  background-color: #393a3f;
+  border-radius: .5rem;
+}
+
 /*# sourceMappingURL=index.ab0485ab.css.map */

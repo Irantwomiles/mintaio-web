@@ -313,3 +313,14 @@ hr {
     }
   }
 }
+
+.task {
+  background-color: $background-sidebar;
+  border-radius: 0.5rem;
+  padding: 1rem 1rem;
+
+  .actions {
+    background-color: $button-gray-background;
+    border-radius: 0.5rem;
+  }
+}

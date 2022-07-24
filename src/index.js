@@ -36,7 +36,8 @@ if(localStorage.getItem("eth-tasks") === null) {
     const _tasks = [];
 
     for(const t of tasks) {
-        //const task = new Task();
+        const task = new Task(t.provider, t.contractAddress, t.wallet, t.price, t.amount, t.maxGas, t.gasPriority, t.gasLimit, t.functionName, t.args, mainState.getContractAbi(t.contractAddress, t.network));
+        _tasks.push(task);
     }
     mainState.ethTasksStream.next(_tasks);
 }

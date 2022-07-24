@@ -47,6 +47,8 @@ class Main {
     async getContractAbi(contract, network) {
         let output = this.abi.find(a => a.contractAddress === contract);
 
+        console.log("output", output);
+
         if(typeof output === 'undefined') {
             let abi = await this.fetchContractAbi(contract, network);
 
@@ -61,7 +63,7 @@ class Main {
 
             localStorage.setItem('abi-list', JSON.stringify(this.abi));
 
-            return abi.abi;
+            return abi;
         }
 
         return output.abi;
@@ -81,6 +83,8 @@ class Main {
 
         let methods = null;
         const valid_json = this.validJson(abi);
+
+        console.log(abi);
 
         if(methods === null && !valid_json) {
             console.log("no methods found and the abi was invalid");

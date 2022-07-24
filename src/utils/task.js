@@ -40,6 +40,7 @@ class Task {
         this.functionName = functionName;
         this.args = args;
         this.abi = abi;
+        this.network = 'mainnet';
 
         this.contractReadMethod = "";
 
@@ -48,8 +49,7 @@ class Task {
         this.startMode = 'MANUAL'; // MANUAL, AUTOMATIC, BLOCK_TIME
 
         this.active = false;
-
-        this.save();
+        this.status = 'Inactive';
     }
 
     async sendTransaction(contractAddress, privateKey, mintMethod, price, amount, gasLimit, maxGas, gasPriority, args, abi) {

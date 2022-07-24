@@ -4,6 +4,10 @@ import {Dropdown, Modal} from "bootstrap";
 import SidebarNav from '../SidebarNav.js';
 import Task from '../../utils/task';
 
+function shortenAddress(address) {
+    return address.slice(0, 5) + "..." + address.slice(address.length - 6);
+}
+
 function EthMinter({state}) {
 
     /*
@@ -32,6 +36,7 @@ function EthMinter({state}) {
     const [mintMethods, setMintMethods] = useState([]);
     const [readMethods, setReadMethods] = useState([]);
 
+    const [groupsDropdown, setGroupsDropdown] = useState(null);
     const [networksDropdown, setNetworksDropdown] = useState(null);
     const [walletsDropdown, setWalletsDropdown] = useState(null);
     const [mintDropdown, setMintDropdown] = useState(null);
@@ -39,6 +44,7 @@ function EthMinter({state}) {
 
     const [loadingAbi, setLoadingAbi] = useState(false);
     const [groups, setGroups] = useState([]);
+    const [selectedGroup, setSelectedGroup] = useState([]);
 
     const [newTaskModal, setNewTaskModal] = useState(null);
 
@@ -71,7 +77,6 @@ function EthMinter({state}) {
 
     const addWallet = (wallet) => {
         if (selectedWallets.find(w => w.account.address === wallet.account.address)) {
-
             return;
         }
 
@@ -87,27 +92,27 @@ function EthMinter({state}) {
     const handleCreateTasks = () => {
 
         if (selectedWallets.length === 0) {
-
             return;
         }
 
         if (provider.length === 0 || contractAddress.length === 0) {
-
             return;
         }
 
         let _tasks = [];
         for (const w of selectedWallets) {
-            const task = new Task(provider, contractAddress, w, price, amount, maxGas, gasPriority, gasLimit, mintMethod, args, abi);
+            const task = new Task(provider, contractAddress, w.account.address, price, amount, maxGas, gasPriority, gasLimit, mintMethod, args, abi);
+            task.taskGroup = selectedGroup;
+
             _tasks.push(task);
         }
 
         state.ethTasksStream.next(_tasks);
-
     }
 
     useEffect(() => {
 
+        setGroupsDropdown(new Dropdown(globalRef.current.querySelector('#groups-dropdown'), {}));
         setNetworksDropdown(new Dropdown(globalRef.current.querySelector('#networks-dropdown'), {}));
         setWalletsDropdown(new Dropdown(globalRef.current.querySelector('#wallets-dropdown'), {}));
         setMintDropdown(new Dropdown(globalRef.current.querySelector('#mint-dropdown'), {}));
@@ -149,6 +154,7 @@ function EthMinter({state}) {
 
         const tasksStream = state.ethTasksStream.subscribe((data) => {
             setTasks(data);
+            console.log("tasks", data);
         })
 
         return () => {
@@ -197,13 +203,28 @@ function EthMinter({state}) {
 
                 <hr />
                 
-                <div class="task">
-                    <div class="title">0x123abc...123</div>
-                    <i class="fa-solid fa-wallet"></i>
-                    <div>Status: Success</div>
-                </div>
-                
+                ${
+                    tasks.map((t) => (
+                        html`
+                            <div class="task d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="title">${shortenAddress(t.contractAddress)}</div>
+                                    <div class="label"><i class="fa-solid fa-wallet"></i> ${wallets.find(w => w.account.address === t.wallet).name}</div>
+                                </div>
 
+                                <div class="label">${t.network}</div>
+
+                                <div class="label">Status: ${t.status}</div>
+
+                                <div class="actions p-2">
+                                    <i class="fa-solid fa-circle-play me-2"></i>
+                                    <i class="fa-solid fa-circle-stop"></i>
+                                </div>
+
+                            </div>
+                        `
+                    ))
+                }
 
             </div>
 
@@ -281,17 +302,22 @@ function EthMinter({state}) {
 
                                         <div class="label">Group</div>
                                         <button class="button-dropdown dropdown-toggle" type="button"
-                                                id="networks-dropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                                                id="groups-dropdown" data-bs-toggle="dropdown" aria-expanded="false"
                                                 onclick=${() => {
-                                                    networksDropdown.show()
+                                                    groupsDropdown.show()
                                                 }}>
-                                            ${network}
+                                            ${selectedGroup.length > 0 ? selectedGroup : "Select a Group"}
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="dropdown">
-                                            <li class="dropdown-item" onclick=${() => {
-                                                setNetwork('mainnet')
-                                            }}>Mainnet
-                                            </li>
+                                            ${groups.map(g => (
+                                                html`
+                                                    <li class="dropdown-item" onclick=${() => {
+                                                        setSelectedGroup(g)
+                                                    }}>${g}
+                                                    </li>
+                                                `
+                                            ))}
+                                            
                                             
                                         </ul>
                                     </div>
