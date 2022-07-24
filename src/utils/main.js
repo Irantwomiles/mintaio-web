@@ -6,7 +6,13 @@ class Main {
         this.globalWeb3 = null;
         this.walletsStream = new BehaviorSubject([]);
         this.ethTasksStream = new BehaviorSubject([]);
+
         this.abi = [];
+        this.wallets = [];
+
+        this.walletsStreamSub = this.walletsStream.subscribe((data) => {
+            this.wallets = data;
+        })
 
         if(localStorage.getItem("abi-list") !== null) {
             this.abi = JSON.parse(localStorage.getItem("abi-list"));
@@ -32,11 +38,17 @@ class Main {
         console.log("Main state initiated.");
     }
 
-    async getContractAbi(contract) {
+    updateWalletsBalance() {
+
+
+
+    }
+
+    async getContractAbi(contract, network) {
         let output = this.abi.find(a => a.contractAddress === contract);
 
         if(typeof output === 'undefined') {
-            let abi = await this.fetchContractAbi(contract);
+            let abi = await this.fetchContractAbi(contract, network);
 
             if(abi === null) {
                 return null;
@@ -55,8 +67,8 @@ class Main {
         return output.abi;
     }
 
-    async fetchContractAbi(contract) {
-        let data = await fetch(`http://api.etherscan.io/api?module=contract&action=getabi&address=${contract}&apikey=${localStorage.getItem('etherscan-api')}`);
+    async fetchContractAbi(contract, network) {
+        let data = await fetch(`http://api${network === 'mainnet' ? '' : `-${network}`}.etherscan.io/api?module=contract&action=getabi&address=${contract}&apikey=${localStorage.getItem('etherscan-api')}`);
         if(data.status === 200) {
             let abi = await data.json();
             return abi.result;

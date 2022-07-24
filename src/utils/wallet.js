@@ -5,12 +5,23 @@ class Wallet {
         this.balance = -1;
     }
 
-    getBalance(web3) {
+    /**
+     * Update the balance of a Wallet
+     * @param state
+     */
+    getBalance(state) {
 
-        if(web3 === null) return;
+        if(state.globalWeb3 === null) return;
 
-        web3.eth.getBalance(this.account.address).then((balance) => {
-            this.balance = Number.parseFloat(web3.utils.fromWei(balance, 'ether')).toFixed(2);
+        state.globalWeb3.eth.getBalance(this.account.address).then((balance) => {
+            this.balance = Number.parseFloat(state.globalWeb3.utils.fromWei(balance, 'ether')).toFixed(2);
+
+            // We have to do it this way, because the Components state will not update unless we re-push a new value
+            // to our global rxjs state.
+            let _wallets = state.wallets.filter(w => w.account.address !== this.account.address);
+            _wallets.push(this);
+
+            state.walletsStream.next(_wallets);
         })
     }
 
