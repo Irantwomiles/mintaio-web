@@ -18,10 +18,10 @@ function EthMinter({state}) {
     const [selectedWallets, setSelectedWallets] = useState([]);
     const [provider, setProvider] = useState("");
     const [contractAddress, setContractAddress] = useState("");
-    const [price, setPrice] = useState("");
-    const [amount, setAmount] = useState("");
-    const [maxGas, setMaxGas] = useState("");
-    const [gasPriority, setGasPriority] = useState("");
+    const [price, setPrice] = useState(0);
+    const [amount, setAmount] = useState(0);
+    const [maxGas, setMaxGas] = useState(0);
+    const [gasPriority, setGasPriority] = useState(0);
     const [gasLimit, setGasLimit] = useState("");
     const [mintMethod, setMintMethod] = useState(null);
     const [args, setArgs] = useState([]);
@@ -63,11 +63,35 @@ function EthMinter({state}) {
         setSelectedWallets([...selectedWallets, wallet]);
     }
 
+    const handleInput = (e, index) => {
+        let values = [...args];
+        values[index].value = e.target.value;
+        setArgs(values);
+    }
+
+    const handleCreateTasks = () => {
+
+        if(selectedWallets.length === 0) {
+
+            return;
+        }
+
+        if(provider.length === 0 || contractAddress.length === 0) {
+
+            return;
+        }
+
+
+
+    }
+
     useEffect(() => {
 
         setWalletsDropdown(new Dropdown(globalRef.current.querySelector('#wallets-dropdown'), {}));
         setMintDropdown(new Dropdown(globalRef.current.querySelector('#mint-dropdown'), {}));
         //setReadDropdown(new Dropdown(globalRef.current.querySelector('#read-dropdown'), {}));
+
+        setProvider(localStorage.getItem('globalRpc'));
 
     }, []);
 
@@ -139,7 +163,7 @@ function EthMinter({state}) {
                     
                     <div class=" ms-2">
                         <div class="label">RPC</div>
-                        <input class="input" value=${contractAddress} onchange=${(e) => {setContractAddress(e.target.value)}} value="" placeholder="RPC Endpoint" />
+                        <input class="input" value=${provider} onchange=${(e) => {setProvider(e.target.value)}} placeholder="RPC Endpoint" />
                     </div>
                 </div>
                 
@@ -162,7 +186,7 @@ function EthMinter({state}) {
                 <div class="mt-2">
                     <div class="label">Contract Address</div>
                     <input class="input me-2" value=${contractAddress} onchange=${(e) => {setContractAddress(e.target.value)}} placeholder="0x123abc..." />
-                    <button class="button-primary ms-2" onclick=${handleGetContractInfo}>Get ABI</button>
+                    <button class="button-secondary ms-2" onclick=${handleGetContractInfo}>Get ABI</button>
                 </div>
 
                 <div class="mt-3">
@@ -192,11 +216,11 @@ function EthMinter({state}) {
                     <div class="${args.length === 0 ? 'd-none' : 'd-flex flex-wrap mt-3'}">
                         ${
                                 args.length === 0 ? '' :
-                                        args.map((arg) => (
+                                        args.map((arg, index) => (
                                                 html`
                                                     <div class="me-2">
                                                         <div class="label">${arg.name}</div>
-                                                        <input class="input" placeholder=${arg.name} />
+                                                        <input class="input" onchange=${(e) => {handleInput(e, index)}} placeholder=${arg.name} />
                                                     </div>
                                                 `
                                         ))
@@ -207,15 +231,15 @@ function EthMinter({state}) {
                 <div class="d-flex mt-3">
                     <div class="me-2">
                         <div class="label">Price</div>
-                        <input class="input" value=${price} onchange=${(e) => {setPrice(e.target.value)}} placeholder="0.0" />
+                        <input class="input" type="number" step="0.0001" min="0" value=${price} onchange=${(e) => {setPrice(e.target.value)}} placeholder="0.0" />
                     </div>
                     <div class="ms-2">
                         <div class="label">Amount</div>
-                        <input class="input" value=${amount} onchange=${(e) => {setAmount(e.target.value)}} placeholder="0" />
+                        <input class="input" type="number" step="1" min="1" value=${amount} onchange=${(e) => {setAmount(e.target.value)}} placeholder="0" />
                     </div> 
                 </div>
 
-                
+                <div class="label mt-3 fw-bold">Total cost (gas not included): <span class="label fw-normal">${Number.parseFloat(`${price * amount}`).toFixed(4)} <i class="fa-brands fa-ethereum icon-color"></i></span></div>
                 
             </div>
 
@@ -226,11 +250,11 @@ function EthMinter({state}) {
                 <div class="d-flex mt-3">
                     <div class="me-2">
                         <div class="label">Max Gas</div>
-                        <input class="input" value=${maxGas} onchange=${(e) => {setMaxGas(e.target.value)}} placeholder="100" />
+                        <input class="input" type="number" step="1" min="1" value=${maxGas} onchange=${(e) => {setMaxGas(e.target.value)}} placeholder="100" />
                     </div>
                     <div class="ms-2 me-2">
                         <div class="label">Priority Fee</div>
-                        <input class="input" value=${gasPriority} onchange=${(e) => {setGasPriority(e.target.value)}} placeholder="10" />
+                        <input class="input" type="number" step="1" min="1" value=${gasPriority} onchange=${(e) => {setGasPriority(e.target.value)}} placeholder="10" />
                     </div>
                     <div class="ms-2">
                         <div class="label">Gas Limit</div>
@@ -243,7 +267,7 @@ function EthMinter({state}) {
             
             <div class="d-flex justify-content-end">
                 <button class="button-outline-cancel me-2">Cancel</button>
-                <button class="button-primary">Create Task</button>
+                <button class="button-primary" onclick=${handleCreateTasks}>Create Task</button>
             </div>
 
         </div>
