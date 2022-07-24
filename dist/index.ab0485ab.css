@@ -11507,6 +11507,13 @@ input {
   color: #a1a1a1;
 }
 
+.selected-wallet {
+  color: #a1a1a1;
+  background-color: #393a3f;
+  border-radius: .5rem;
+  padding: .2rem .4rem;
+}
+
 .button-dropdown {
   color: #a1a1a1;
   background-color: #393a3f;
@@ -11635,6 +11642,16 @@ input {
   cursor: pointer;
 }
 
+.wallet .icon-color-unlock {
+  color: #a1a1a1;
+  transition: color .2s ease-in;
+}
+
+.wallet .icon-color-unlock:hover {
+  color: #d7ba5a;
+  cursor: pointer;
+}
+
 .modal-content {
   background-color: #313237;
 }
@@ -11666,6 +11683,21 @@ hr {
   cursor: pointer;
 }
 
+.toast-error {
+  color: #f58686;
+  background-color: #2a2b30;
+}
+
+.toast-error i {
+  color: #a1a1a1;
+  transition: color .2s ease-in;
+}
+
+.toast-error i:hover {
+  color: #f58686;
+  cursor: pointer;
+}
+
 .dropdown-menu {
   background-color: #393a3f;
 }
@@ -11677,6 +11709,20 @@ hr {
 
 .dropdown-menu .dropdown-item:hover {
   background-color: #45464c;
+}
+
+.loading-icon {
+  animation: rotation 2s linear infinite;
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /*# sourceMappingURL=index.ab0485ab.css.map */

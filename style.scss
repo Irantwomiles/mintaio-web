@@ -10,6 +10,7 @@ $icon-color: #1F243D;
 $green: #49a58b;
 $blue: #3674e0;
 $red: #f58686;
+$yellow: #d7ba5a;
 
 * {
   font-family: 'Arimo', sans-serif;
@@ -71,6 +72,13 @@ input {
 
 .label {
   color: $light-gray;
+}
+
+.selected-wallet {
+  background-color: $button-gray-background;
+  color: $light-gray;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.5rem;
 }
 
 .button-dropdown {
@@ -200,6 +208,16 @@ input {
     }
   }
 
+  .icon-color-unlock {
+    color: $light-gray;
+    transition: color 200ms ease-in;
+
+    &:hover {
+      color: $yellow;
+      cursor: pointer;
+    }
+  }
+
 }
 
 .modal-content {
@@ -233,6 +251,21 @@ hr {
   }
 }
 
+.toast-error {
+  background-color: $background-sidebar;
+  color: $red;
+
+  i {
+    color: $light-gray;
+    transition: color 200ms ease-in;
+
+    &:hover {
+      color: $red;
+      cursor: pointer;
+    }
+  }
+}
+
 .dropdown-menu {
   background-color: $button-gray-background;
 
@@ -245,5 +278,19 @@ hr {
       background-color: lighten($button-gray-background, 5%);
     }
 
+  }
+}
+
+.loading-icon {
+  animation: rotation 2s infinite linear;
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
   }
 }

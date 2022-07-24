@@ -15,11 +15,14 @@ function Wallets({state}) {
     const [wallets, setWallets] = useState([]);
 
     const [walletCreateModal, setWalletCreateModal] = useState(null);
+    const [unlockWalletModal, setUnlockWalletModal] = useState(null);
     const [toast, setToast] = useState(null);
 
     const [name, setName] = useState("");
     const [password, setPassword] = useState("");
     const [privateKey, setPrivateKey] = useState("");
+
+    const [unlockWallet, setUnlockWallet] = useState(null);
 
     const [toastInfo, setToastInfo] = useState({
         message: 'This is my Toast message here This is my Toast message here This is my Toast message here This is my Toast message here!',
@@ -27,6 +30,16 @@ function Wallets({state}) {
     })
 
     const handleAddWallet = () => {
+
+        if(state === null) {
+            setToastInfo({
+                message: 'There was an error, please refresh your page.',
+                class: 'toast-error'
+            })
+
+            toast.show();
+            return;
+        }
 
         if(state.globalWeb3 === null) {
             setToastInfo({
@@ -94,9 +107,82 @@ function Wallets({state}) {
 
     }
 
+    const handleUnlockWallet = () => {
+
+        if(state === null) {
+            setToastInfo({
+                message: 'There was an error, please refresh your page.',
+                class: 'toast-error'
+            });
+
+            toast.show();
+            unlockWalletModal.hide();
+            return;
+        }
+
+        if(state.globalWeb3 === null) {
+            setToastInfo({
+                message: 'There was an error, please refresh your page.',
+                class: 'toast-error'
+            });
+
+            toast.show();
+            unlockWalletModal.hide();
+            return;
+        }
+
+        if(unlockWallet === null) {
+            unlockWalletModal.hide();
+            return;
+        }
+
+        if(!unlockWallet.isLocked()) {
+            unlockWalletModal.hide();
+            return;
+        }
+
+        try {
+
+            const unlocked = unlockWallet.unlock(state.globalWeb3, password);
+
+            if(unlocked) {
+                setToastInfo({
+                    message: 'Wallet Unlocked.',
+                    class: 'toast-success'
+                })
+
+                toast.show();
+                unlockWalletModal.hide();
+                return;
+            }
+
+            setToastInfo({
+                message: 'Could not unlock wallet.',
+                class: 'toast-error'
+            })
+
+            toast.show();
+            unlockWalletModal.hide();
+            return;
+
+        } catch(e) {
+        }
+
+    }
+
+    const handleOpenUnlockWallet = (w) => {
+
+        setUnlockWallet(w);
+
+        setPassword("");
+        unlockWalletModal.show();
+    }
+
     useEffect(() => {
         setToast(Toast.getOrCreateInstance(globalRef.current.querySelector('#message-toast')));
+
         setWalletCreateModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#new-wallet-modal')));
+        setUnlockWalletModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#unlock-wallet-modal')));
     }, []);
 
     useEffect(() => {
@@ -138,7 +224,9 @@ function Wallets({state}) {
                                     <div class="m-2 p-2">
                                         <div class="top d-flex justify-content-between mb-3">
                                             <div class="name pe-5">${w.name}</div>
-                                            <div class="balance ps-5">0.123 <i class="fa-brands fa-ethereum icon-color"></i>
+                                            <div class="balance ps-5">
+                                                ${w.balance === -1 ? html`<i class="fa-solid fa-spinner loading-icon"></i>` : 
+                                                        html`${w.balance} <i class="fa-brands fa-ethereum icon-color"></i>`}
                                             </div>
                                         </div>
 
@@ -147,7 +235,8 @@ function Wallets({state}) {
                                         <div class="d-flex justify-content-between align-items-center">
                                             <button class="button-outline-primary">Export</button>
                                             <div>
-                                                <i class="fa-solid fa-lock me-2 icon-color-delete"></i>
+                                                ${w.isLocked() ? html`<i className="fa-solid fa-lock me-2 icon-color-unlock" onclick=${() => {handleOpenUnlockWallet(w)}}></i>` : ''}
+                                                
                                                 <i class="fa-solid fa-trash-can icon-color-delete"></i>
                                             </div>
                                         </div>
@@ -157,8 +246,8 @@ function Wallets({state}) {
                         ))
                     }
                 </div>
-
             </div>
+            
             <div id="message-toast" class="toast align-items-center ${toastInfo.class} end-0 top-0 m-3" style="position: absolute" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="d-flex align-items-center justify-content-between py-3 mx-2">
                     <div class="toast-body">
@@ -198,6 +287,30 @@ function Wallets({state}) {
                     </div>
                 </div>
             </div>
+            
+            <div id="unlock-wallet-modal" class="modal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title title">Unlock Wallet</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+  
+                            <div class="mt-2">
+                                <div class="label">Password</div>
+                                <input type="password" class="input w-75" placeholder="Wallet Password" value=${password} onchange=${(e) => {setPassword(e.target.value)}} />
+                            </div>
+                          
+                        </div>
+                        <div class="modal-footer">
+                            <button class="button-outline-cancel" data-bs-dismiss="modal">Cancel</button>
+                            <button class="button-primary" onclick=${handleUnlockWallet}>Unlock</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         </div>
         
 

@@ -20,8 +20,8 @@ if(localStorage.getItem("wallets") === null) {
     const _wallets = [];
 
     for(const w of encryptedWallets) {
-        console.log("Wallet:", w);
-        _wallets.push(new Wallet(w.name, w.account));
+        const wallet = new Wallet(w.name, w.account);
+        _wallets.push(wallet);
     }
     mainState.walletsStream.next(_wallets);
 }

@@ -14,7 +14,7 @@ function App({state}) {
         <${Router}>
             <${Wallets} state=${state} path="/wallets" />
             <${EthMinter} state=${state} path="/eth-tasks" />
-            <${Settings} path="/settings" />
+            <${Settings} state=${state} path="/settings" />
         </${Router}>
     </div>
     `

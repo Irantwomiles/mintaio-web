@@ -35,13 +35,15 @@ function EthMinter({state}) {
     const [mintDropdown, setMintDropdown] = useState(null);
     const [readDropdown, setReadDropdown] = useState(null);
 
-    const handleGetContractInfo = () => {
-        /*if(typeof window.web3_utils === 'undefined') {
-            console.log("Must set a web3 provider before doing anything.");
-            return;
-        }*/
+    const handleGetContractInfo = async () => {
 
-        const contractInfo = window.web3_utils.getContractMethods(abi);
+        let abi = await state.getContractAbi(contractAddress);
+
+        if(abi === null) {
+            console.log("error occurred while getting abi");
+        }
+
+        const contractInfo = state.getContractMethods(abi);
 
         if(contractInfo === null) {
             console.log("Could not get contract info.");
@@ -126,7 +128,7 @@ function EthMinter({state}) {
                         <ul class="dropdown-menu" aria-labelledby="dropdown">
                             ${
                                     wallets.length === 0 ? '' :
-                                            wallets.map((w) => (
+                                            wallets.filter(w => !w.isLocked()).map((w) => (
                                                     html`
                                                 <li class="dropdown-item" onclick=${() => {addWallet(w)}}>${w.name}</li>
                                             `
@@ -141,8 +143,14 @@ function EthMinter({state}) {
                     </div>
                 </div>
                 
-                <div>
-                    
+                <div class="d-flex flex-wrap mt-2">
+                    ${
+                        selectedWallets.map(w => (
+                            html`
+                            <div class="selected-wallet me-1">${w.name}</div>
+                            `
+                        ))
+                    }
                 </div>
             </div>
             
@@ -159,8 +167,6 @@ function EthMinter({state}) {
 
                 <div class="mt-3">
                     <div class="dropdown">
-
-
                         <div class="label">Mint Function</div>
                         <button class="button-dropdown dropdown-toggle" type="button" id="mint-dropdown"
                                 data-bs-toggle="dropdown" aria-expanded="false" onclick=${() => {
@@ -183,15 +189,14 @@ function EthMinter({state}) {
                         </ul>
                     </div>
 
-                    <div>
-                        <div class="${args.length === 0 ? 'd-none' : 'label'}">Mint Function Arguments</div>
+                    <div class="${args.length === 0 ? 'd-none' : 'd-flex flex-wrap mt-3'}">
                         ${
                                 args.length === 0 ? '' :
                                         args.map((arg) => (
                                                 html`
-                                                    <div>
-                                                        <div>${arg.name}</div>
-                                                        <input placeholder=${args.name}/>
+                                                    <div class="me-2">
+                                                        <div class="label">${arg.name}</div>
+                                                        <input class="input" placeholder=${arg.name} />
                                                     </div>
                                                 `
                                         ))

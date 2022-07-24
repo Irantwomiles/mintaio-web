@@ -6,6 +6,13 @@ class Main {
         this.globalWeb3 = null;
         this.walletsStream = new BehaviorSubject([]);
         this.ethTasksStream = new BehaviorSubject([]);
+        this.abi = [];
+
+        if(localStorage.getItem("abi-list") !== null) {
+            this.abi = JSON.parse(localStorage.getItem("abi-list"));
+        } else {
+            localStorage.setItem("abi-list", JSON.stringify(this.abi));
+        }
 
         if(localStorage.getItem("globalRpc") !== null) {
             const rpc = localStorage.getItem("globalRpc");
@@ -18,7 +25,80 @@ class Main {
 
         }
 
+        if(localStorage.getItem("etherscan-api") === null) {
+            localStorage.setItem("etherscan-api", "");
+        }
+
         console.log("Main state initiated.");
+    }
+
+    async getContractAbi(contract) {
+        let output = this.abi.find(a => a.contractAddress === contract);
+
+        if(typeof output === 'undefined') {
+            let abi = await this.fetchContractAbi(contract);
+
+            if(abi === null) {
+                return null;
+            }
+
+            this.abi.push({
+                contractAddress: contract,
+                abi: abi
+            })
+
+            localStorage.setItem('abi-list', JSON.stringify(this.abi));
+
+            return abi.abi;
+        }
+
+        return output.abi;
+    }
+
+    async fetchContractAbi(contract) {
+        let data = await fetch(`http://api.etherscan.io/api?module=contract&action=getabi&address=${contract}&apikey=${localStorage.getItem('etherscan-api')}`);
+        if(data.status === 200) {
+            let abi = await data.json();
+            return abi.result;
+        }
+
+        return null;
+    }
+
+    getContractMethods(abi) {
+
+        let methods = null;
+        const valid_json = this.validJson(abi);
+
+        if(methods === null && !valid_json) {
+            console.log("no methods found and the abi was invalid");
+            return null;
+        } else if(methods === null && valid_json) {
+            methods = JSON.parse(abi);
+        }
+
+        let payable_methods = [];
+        let view_methods = [];
+
+        for(const m of methods) {
+            if((m.stateMutability === 'payable' && m.type === 'function') || (m.stateMutability === 'nonpayable' && m.type === 'function')) {
+                payable_methods.push(m);
+            } else if(m.stateMutability === 'view') {
+                view_methods.push(m);
+            }
+        }
+
+        return {mintMethods: payable_methods, readMethods: view_methods};
+    }
+
+    validJson(json) {
+        try {
+            JSON.parse(json);
+        } catch {
+            return false;
+        }
+
+        return true;
     }
 }
 

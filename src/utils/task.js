@@ -83,40 +83,9 @@ class Task {
         }
     }
 
-    getContractMethods(abi) {
-
-        let methods = null;
-        const valid_json = this.validJson(abi);
-
-        if(methods === null && !valid_json) {
-            console.log("no methods found and the abi was invalid");
-            return null;
-        } else if(methods === null && valid_json) {
-            methods = JSON.parse(abi);
-        }
-
-        let payable_methods = [];
-        let view_methods = [];
-
-        for(const m of methods) {
-            if((m.stateMutability === 'payable' && m.type === 'function') || (m.stateMutability === 'nonpayable' && m.type === 'function')) {
-                payable_methods.push(m);
-            } else if(m.stateMutability === 'view') {
-                view_methods.push(m);
-            }
-        }
-
-        return {mintMethods: payable_methods, readMethods: view_methods};
+    fetchAbi(contract) {
+        fetch(`http://api.etherscan.io/api?module=contract&action=getabi&address=${contract}`).then((data) => {
+            console.log("ABI:", data);
+        })
     }
-
-    validJson(json) {
-        try {
-            JSON.parse(json);
-        } catch {
-            return false;
-        }
-
-        return true;
-    }
-
 }
