@@ -143,7 +143,7 @@ function Wallets({state}) {
 
         try {
 
-            const unlocked = unlockWallet.unlock(state.globalWeb3, password);
+            const unlocked = state.unlockWallet(unlockWallet.account.address, password);
 
             if(unlocked) {
                 setToastInfo({
@@ -166,6 +166,7 @@ function Wallets({state}) {
             return;
 
         } catch(e) {
+            console.log("error:", e);
         }
 
     }
@@ -192,6 +193,7 @@ function Wallets({state}) {
         }
 
         const walletsStream = state.walletsStream.subscribe((data) => {
+            console.log("Update for Wallets", data);
             setWallets(data);
         })
 

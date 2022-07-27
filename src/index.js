@@ -25,6 +25,8 @@ if(localStorage.getItem("wallets") === null) {
         wallet.getBalance(mainState)
         _wallets.push(wallet);
     }
+
+    mainState.wallets = _wallets;
     mainState.walletsStream.next(_wallets);
 }
 
@@ -36,9 +38,30 @@ if(localStorage.getItem("eth-tasks") === null) {
     const _tasks = [];
 
     for(const t of tasks) {
-        const task = new Task(t.provider, t.contractAddress, t.wallet, t.price, t.amount, t.maxGas, t.gasPriority, t.gasLimit, t.functionName, t.args, mainState.getContractAbi(t.contractAddress, t.network));
-        _tasks.push(task);
+
+        const wallet = mainState.wallets.find((w, index) => {
+            const _address = `${w.account.address.includes('0x') ? '' : '0x'}${w.account.address}`;
+            const _tAddress = `${t.wallet.includes('0x') ? '' : '0x'}${t.wallet}`;
+
+            return _tAddress.toLowerCase() === _address.toLowerCase();
+        });
+
+        if(typeof wallet !== 'undefined') {
+            console.log("Creating task");
+
+            mainState.getContractAbi(t.contractAddress, t.network).then((abi) => {
+                const task = new Task(t.provider, t.contractAddress, wallet, t.price, t.amount, t.maxGas, t.gasPriority, t.gasLimit, t.functionName, t.args, abi);
+
+                task.network = t.network;
+
+                task.save();
+                _tasks.push(task);
+            }).catch(console.log)
+
+        }
+
     }
+    // mainState.ethTasks = _tasks;
     mainState.ethTasksStream.next(_tasks);
 }
 

@@ -32,6 +32,7 @@ class Task {
 
         this.contractAddress = contractAddress;
         this.wallet = wallet;
+        this.privateKey = '';
         this.price = price ;
         this.amount = amount;
         this.maxGas = maxGas;
@@ -52,42 +53,62 @@ class Task {
         this.status = 'Inactive';
     }
 
-    async sendTransaction(contractAddress, privateKey, mintMethod, price, amount, gasLimit, maxGas, gasPriority, args, abi) {
+    async sendTransaction(state) {
 
         let finalGasLimit = 0;
-        let finalCost = Number.parseFloat(`${price * amount}`).toFixed(3);
+        let finalCost = Number.parseFloat(`${this.price * this.amount}`).toFixed(3);
+
+        if(this.wallet === null) {
+            return;
+        }
+
+        if(!this.wallet.account.hasOwnProperty('privateKey')) {
+            return;
+        }
 
         try {
-            const account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
-            const contract = new this.web3.eth.Contract(JSON.parse(abi), contractAddress);
-            const nonce = this.web3.eth.getTransactionCount(account.address, 'latest');
+            const account = this.web3.eth.accounts.privateKeyToAccount(this.wallet.account.privateKey);
+            const contract = new this.web3.eth.Contract(JSON.parse(this.abi), this.contractAddress);
+            const nonce = await this.web3.eth.getTransactionCount(account.address, 'latest');
 
-            if(gasLimit === 'AUTO') {
-                const _gasLimit = await contract.methods[mintMethod](...args).estimateGas({from: account.address, value: `${price}`});
+            if(this.gasLimit === 'AUTO') {
+                const _gasLimit = await contract.methods[this.functionName.name](...this.args).estimateGas(
+                    {
+                        from: account.address,
+                        value: `${this.web3.utils.toWei(`${finalCost}`, 'ether')}`
+                    });
                 finalGasLimit = _gasLimit;
             } else {
-                finalGasLimit = gasLimit;
+                finalGasLimit = this.gasLimit;
             }
 
-            const data = contract.methods[mintMethod](...args).encodeABI();
+            const data = contract.methods[this.functionName.name](...this.args).encodeABI();
             const tx = {
-                from: account.address,
-                to: contractAddress,
-                value: `${this.web3.utils.toWei(`${finalCost}`), 'ether'}`,
+                from: this.wallet.account.address,
+                to: this.contractAddress,
+                value: `${this.web3.utils.toWei(`${finalCost}`, 'ether')}`,
                 nonce: nonce,
-                maxFeePerGas: `${this.web3.utils.toWei(`${maxGas}`), 'gwei'}`,
-                maxPriorityFeePerGas: `${this.web3.utils.toWei(`${gasPriority}`), 'gwei'}`,
+                maxFeePerGas: `${this.web3.utils.toWei(`${this.maxGas}`, 'gwei')}`,
+                maxPriorityFeePerGas: `${this.web3.utils.toWei(`${this.gasPriority}`,  'gwei')}`,
                 gasLimit: Number.parseInt(finalGasLimit),
                 data: data
             };
 
-            const sign = await this.web3.eth.accounts.signTransaction(tx, privateKey);
+            console.log(tx);
+
+            const sign = await this.web3.eth.accounts.signTransaction(tx, this.wallet.account.privateKey);
 
             return this.web3.eth.sendSignedTransaction(sign.rawTransaction);
 
         } catch(e) {
             console.log("error:", e);
         }
+    }
+
+    async start() {
+        const data = await this.sendTransaction();
+
+        console.log("output data:", data);
     }
 
     fetchAbi(contract) {
@@ -119,11 +140,11 @@ class Task {
             args: this.args,
             contractReadMethod: this.contractReadMethod,
             taskGroup: this.taskGroup,
-            startMode: this.startMode
+            startMode: this.startMode,
+            network: this.network
         });
 
         localStorage.setItem('eth-tasks', JSON.stringify(_tasks));
-
     }
 }
 

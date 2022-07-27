@@ -35,6 +35,7 @@ class Wallet {
             this.account = _account;
             return true;
         } catch(e) {
+            console.log("error", e);
         }
 
         return false;

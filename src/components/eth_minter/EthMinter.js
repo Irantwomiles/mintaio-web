@@ -99,12 +99,30 @@ function EthMinter({state}) {
             return;
         }
 
-        let _tasks = [];
+        const _args = [];
+
+        for(const a of args) {
+            _args.push(a.value);
+        }
+
+        let _tasks = [...tasks];
         for (const w of selectedWallets) {
-            const task = new Task(provider, contractAddress, w.account.address, price, amount, maxGas, gasPriority, gasLimit, mintMethod, args, abi);
+
+            const task = new Task(provider, contractAddress, w, price, amount, maxGas, gasPriority, gasLimit, mintMethod, _args, abi);
             task.taskGroup = selectedGroup;
+            task.network = network;
+
+            const _wallet = wallets.find(w => w.account.address === task.wallet.account.address);
+
+            if(typeof _wallet !== 'undefined') {
+                if(!_wallet.isLocked()) {
+                    task.privateKey = _wallet.account.privateKey;
+                    console.log("found private key");
+                }
+            }
 
             _tasks.push(task);
+            task.save();
         }
 
         state.ethTasksStream.next(_tasks);
@@ -121,7 +139,6 @@ function EthMinter({state}) {
         setNewTaskModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')));
 
         setProvider(localStorage.getItem('globalRpc'));
-
         setGroups(JSON.parse(localStorage.getItem('eth-groups')));
 
     }, []);
@@ -144,6 +161,8 @@ function EthMinter({state}) {
 
     useEffect(() => {
 
+        console.log("state", state);
+
         if (state === null) {
             return;
         }
@@ -153,8 +172,8 @@ function EthMinter({state}) {
         })
 
         const tasksStream = state.ethTasksStream.subscribe((data) => {
+            console.log(data);
             setTasks(data);
-            console.log("tasks", data);
         })
 
         return () => {
@@ -206,18 +225,25 @@ function EthMinter({state}) {
                 ${
                     tasks.map((t) => (
                         html`
-                            <div class="task d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="title">${shortenAddress(t.contractAddress)}</div>
-                                    <div class="label"><i class="fa-solid fa-wallet"></i> ${wallets.find(w => w.account.address === t.wallet).name}</div>
+                            <div class="task d-flex justify-content-between align-items-center mt-2">
+                                <div class="col-4">
+                                    <div class="title">${t.contractAddress}</div>
+                                    <div class="label">
+                                        <i class="fa-solid fa-wallet me-2"></i>
+                                        <span class="me-4">${t.wallet.name}</span>
+                                        ${t.wallet.account.hasOwnProperty('privateKey') ? 
+                                                html`<i class="fa-solid fa-unlock icon-green"></i>`: 
+                                            html`<i class="fa-solid fa-lock icon-red"></i>`
+                                         }
+                                    </div>
                                 </div>
 
-                                <div class="label">${t.network}</div>
+                                <div class="label col-2">${t.network}</div>
 
-                                <div class="label">Status: ${t.status}</div>
+                                <div class="label col-2">Status: ${t.status}</div>
 
-                                <div class="actions p-2">
-                                    <i class="fa-solid fa-circle-play me-2"></i>
+                                <div class="actions p-2 col-1">
+                                    <i class="fa-solid fa-circle-play me-2" onclick=${() => {t.start()}}></i>
                                     <i class="fa-solid fa-circle-stop"></i>
                                 </div>
 

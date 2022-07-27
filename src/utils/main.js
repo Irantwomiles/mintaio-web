@@ -9,9 +9,14 @@ class Main {
 
         this.abi = [];
         this.wallets = [];
+        this.ethTasks = [];
 
         this.walletsStreamSub = this.walletsStream.subscribe((data) => {
             this.wallets = data;
+        })
+
+        this.walletsStreamSub = this.ethTasksStream.subscribe((data) => {
+            this.tasks = data;
         })
 
         if(localStorage.getItem("abi-list") !== null) {
@@ -39,7 +44,6 @@ class Main {
     }
 
     updateWalletsBalance() {
-
 
 
     }
@@ -115,6 +119,32 @@ class Main {
         }
 
         return true;
+    }
+
+    unlockWallet(address, password) {
+        const _wallet = this.wallets.find(w => w.account.address === address);
+
+        // if wallet doesn't exist, just remove it.
+        if(typeof _wallet === 'undefined') {
+            const _wallets = this.wallets.filter(w => w.account.address !== address)
+            this.walletsStream.next(_wallets);
+            return false;
+        }
+
+        const unlocked = _wallet.unlock(this.globalWeb3, password);
+
+        if(unlocked) {
+            for(const t of this.tasks) {
+                if(t.wallet === _wallet.account.address) {
+                    t.privateKey = _wallet.account.privateKey;
+                }
+            }
+        }
+
+        this.walletsStream.next(this.wallets);
+        this.ethTasksStream.next(this.tasks);
+
+        return unlocked;
     }
 }
 
