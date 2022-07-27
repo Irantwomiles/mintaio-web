@@ -8,6 +8,21 @@ function shortenAddress(address) {
     return address.slice(0, 5) + "..." + address.slice(address.length - 6);
 }
 
+function groupToKey(arr, key) {
+    let obj = {};
+
+    for (const i of arr) {
+        if (obj.hasOwnProperty(i[key])) {
+            obj[i[key]].push(i);
+        } else {
+            obj[i[key]] = [];
+            obj[i[key]].push(i);
+        }
+    }
+
+    return obj;
+}
+
 function EthMinter({state}) {
 
     /*
@@ -50,6 +65,7 @@ function EthMinter({state}) {
     const [newTaskModal, setNewTaskModal] = useState(null);
     const [createGroupModal, setCreateGroupModal] = useState(null);
 
+    const [groupedTasks, setGroupedTasks] = useState(null);
 
     const handleGetContractInfo = async () => {
 
@@ -104,7 +120,7 @@ function EthMinter({state}) {
 
         const _args = [];
 
-        for(const a of args) {
+        for (const a of args) {
             _args.push(a.value);
         }
 
@@ -117,8 +133,8 @@ function EthMinter({state}) {
 
             const _wallet = wallets.find(w => w.account.address === task.wallet.account.address);
 
-            if(typeof _wallet !== 'undefined') {
-                if(!_wallet.isLocked()) {
+            if (typeof _wallet !== 'undefined') {
+                if (!_wallet.isLocked()) {
                     task.privateKey = _wallet.account.privateKey;
                     console.log("found private key");
                 }
@@ -133,9 +149,9 @@ function EthMinter({state}) {
 
     const handleCreateGroup = () => {
 
-        if(group.length === 0) return;
+        if (group.length === 0) return;
 
-        if(groups.includes(group)) return;
+        if (groups.includes(group)) return;
 
         setGroups([...groups, group]);
         setGroup("");
@@ -187,8 +203,8 @@ function EthMinter({state}) {
         })
 
         const tasksStream = state.ethTasksStream.subscribe((data) => {
-            console.log(data);
             setTasks(data);
+            setGroupedTasks(groupToKey(data, 'taskGroup'));
         })
 
         return () => {
@@ -210,83 +226,113 @@ function EthMinter({state}) {
             <div class="p-3 w-100">
 
                 <div>
-                    <button class="button-primary fw-bold" onclick=${() => {newTaskModal.show()}}><i class="fa-solid fa-plus"></i> New Task</button>
-                    <button class="button-secondary fw-bold ms-3"><i class="fa-solid fa-arrow-up"></i> Start All</button>
+                    <button class="button-primary fw-bold" onclick=${() => {
+                        newTaskModal.show()
+                    }}><i class="fa-solid fa-plus"></i> New Task
+                    </button>
+                    <button class="button-secondary fw-bold ms-3"><i class="fa-solid fa-arrow-up"></i> Start All
+                    </button>
                 </div>
 
-                <hr />
+                <hr/>
 
                 <div class="d-flex">
 
                     <div class="create-group d-flex align-items-center px-2 me-2">
-                        <div class="text-center" onclick=${() => {createGroupModal.show()}}>
+                        <div class="text-center" onclick=${() => {
+                            createGroupModal.show()
+                        }}>
                             <div>Create Group</div>
                             <i class="fa-solid fa-circle-plus"></i>
                         </div>
                     </div>
-                    
-                ${
-                        groups.length > 0 ?
-                            html`
-                                ${
-                                    groups.map(g => (
-                                        html`
-                                            <div class="group me-2">
-                                                <div class="title m-2">${g}</div>
-                                                <div class="d-flex align-items-center justify-content-between  m-2">
-                                                    <div class="label">${tasks.filter(t => t.taskGroup === g).length} Task(s)</div>
-                                                    <i class="fa-solid fa-circle-play"></i>
-                                                </div>
-                                            </div>
-                                        `
-                                    ))
-                                }
-                            `
 
-                        : ''
-                }
+                    ${
+                            groups.length > 0 ?
+                                    html`
+                                        ${
+                                                groups.map(g => (
+                                                        html`
+                                                            <div class="group me-2">
+                                                                <div class="title m-2">${g}</div>
+                                                                <div class="d-flex align-items-center justify-content-between  m-2">
+                                                                    <div class="label">
+                                                                        ${tasks.filter(t => t.taskGroup === g).length}
+                                                                        Task(s)
+                                                                    </div>
+                                                                    <i class="fa-solid fa-circle-play"></i>
+                                                                </div>
+                                                            </div>
+                                                        `
+                                                ))
+                                        }
+                                    `
+
+                                    : ''
+                    }
 
                 </div>
-                    
-                <hr />
-                
+
                 ${
-                    tasks.map((t) => (
-                        html`
-                            <div class="task d-flex justify-content-between align-items-center mt-2">
-                                <div class="col-4">
-                                    <div class="title">${t.contractAddress}</div>
-                                    <div class="label">
-                                        <i class="fa-solid fa-wallet me-2"></i>
-                                        <span class="me-4">${t.wallet.name}</span>
-                                        ${t.wallet.account.hasOwnProperty('privateKey') ? 
-                                                html`<i class="fa-solid fa-unlock icon-green"></i>`: 
-                                            html`<i class="fa-solid fa-lock icon-red"></i>`
-                                         }
-                                    </div>
-                                </div>
 
-                                <div class="label col-1">
-                                    ${Number.parseFloat(`${t.price * t.amount}`).toFixed(3)} 
-                                    <i class="fa-brands fa-ethereum icon-color mx-1"></i> 
-                                        (x${t.amount})
-                                </div>
-                                <div class="label col-1"><i class="fa-solid fa-gas-pump"></i> ${t.maxGas} + ${t.gasPriority}</div>
+                        groupedTasks === null ? '' :
 
-                                <div class="label col-2">${t.network}</div>
+                                Object.keys(groupedTasks).map(k => (
+                                    html`
+                                        <hr/>
+                                        <div class="title mt-3">${k}</div>
+                                        ${
+                                            groupedTasks[k].map((t) => (
+                                                html`
+                                                    <div class="task d-flex justify-content-between align-items-center mt-2">
+                                                        <div class="col-4">
+                                                            <div class="title">
+                                                                ${t.contractAddress}
+                                                            </div>
+                                                            <div class="label">
+                                                                <i class="fa-solid fa-wallet me-2"></i>
+                                                                <span class="me-4">${t.wallet.name}</span>
+                                                                ${t.wallet.account.hasOwnProperty('privateKey') ?
+                                                                        html`
+                                                                            <i class="fa-solid fa-unlock icon-green"></i>` :
+                                                                        html`<i class="fa-solid fa-lock icon-red"></i>`
+                                                                }
+                                                            </div>
+                                                        </div>
+    
+                                                        <div class="label col-1">
+                                                            ${Number.parseFloat(`${t.price * t.amount}`).toFixed(3)}
+                                                            <i class="fa-brands fa-ethereum icon-color mx-1"></i>
+                                                                (x${t.amount})
+                                                        </div>
+                                                        <div class="label col-1"><i class="fa-solid fa-gas-pump me-1"></i>
+                                                            ${t.maxGas} + ${t.gasPriority}
+                                                        </div>
+    
+                                                        <div class="label col-2">${t.network}</div>
+    
+    
+                                                        <div class="label col-2">Status: <span
+                                                                style="color: ${t.status.color}">${t.status.message}</span>
+                                                        </div>
+    
+                                                        <div class="actions p-2 col-1 text-center">
+                                                            <i class="fa-solid fa-circle-play me-2 icon-color"
+                                                               onclick=${() => {
+                                                                   t.start(state)
+                                                               }}></i>
+                                                            <i class="fa-solid fa-circle-stop me-2 icon-color"></i>
+                                                            <i class="fa-solid fa-trash icon-color"></i>
+                                                        </div>
+    
+                                                    </div>
+                                                `
+                                            ))
+                                        }
+                                        `
+                                ))
 
-                                
-                                <div class="label col-2">Status: <span style="color: ${t.status.color}">${t.status.message}</span></div>
 
-                                <div class="actions p-2 col-1 text-center">
-                                    <i class="fa-solid fa-circle-play me-2 icon-color" onclick=${() => {t.start(state)}}></i>
-                                    <i class="fa-solid fa-circle-stop me-2 icon-color"></i>
-                                    <i class="fa-solid fa-trash icon-color"></i>
-                                </div>
-
-                            </div>
-                        `
-                    ))
                 }
 
             </div>
@@ -373,18 +419,18 @@ function EthMinter({state}) {
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="dropdown">
                                             ${groups.map(g => (
-                                                html`
-                                                    <li class="dropdown-item" onclick=${() => {
-                                                        setSelectedGroup(g)
-                                                    }}>${g}
-                                                    </li>
-                                                `
+                                                    html`
+                                                        <li class="dropdown-item" onclick=${() => {
+                                                            setSelectedGroup(g)
+                                                        }}>${g}
+                                                        </li>
+                                                    `
                                             ))}
-                                            
-                                            
+
+
                                         </ul>
                                     </div>
-                                    
+
                                 </div>
 
                                 <div class="d-flex flex-wrap mt-2">
@@ -403,7 +449,7 @@ function EthMinter({state}) {
                             <div class="mt-3">
                                 <div class="title">CONTRACT INFORMATION <i class="fa-solid fa-file-contract ms-1"></i>
                                 </div>
-                                
+
                                 <div class="label mt-2">Contract Address</div>
                                 <div class="d-flex">
                                     <input class="input me-1 flex-grow-1" value=${contractAddress} onchange=${(e) => {
@@ -516,22 +562,25 @@ function EthMinter({state}) {
             </div>
 
             <div id="create-group-modal" class="modal" tabindex="-1">
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title title">Create Group</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
-                      <div class="d-flex">
-                          <input class="input me-1 flex-grow-1" placeholder="Group name" value=${group} onchange=${(e) => {setGroup(e.target.value)}} />
-                          <button class="button-secondary ms-1" onclick=${handleCreateGroup}>Create Group</button>
-                      </div>
-                  </div>
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title title">Create Group</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="d-flex">
+                                <input class="input me-1 flex-grow-1" placeholder="Group name" value=${group}
+                                       onchange=${(e) => {
+                                           setGroup(e.target.value)
+                                       }}/>
+                                <button class="button-secondary ms-1" onclick=${handleCreateGroup}>Create Group</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
             </div>
-            
+
         </div>
     `
 }

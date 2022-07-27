@@ -43,6 +43,10 @@ function Settings({state}) {
         localStorage.setItem("discordWebHook", webHook);
     }
 
+    const getStorageSize = () => {
+        return (new Blob(Object.keys(localStorage)).size) / 1000;
+    }
+
     return html`
         <div class="d-flex">
             <${SidebarNav} page="settings" />
@@ -62,6 +66,12 @@ function Settings({state}) {
                     <div class="label">Discord Webhook</div>
                     <input class="input w-75" placeholder="Discord Webhook URL" value=${webHook} onchange=${(e) => {setWebHook(e.target.value)}} />
                     <button class="button-primary ms-3" onclick=${updateDiscordWebHook}>Update</button>
+                </div>
+                
+                <hr />
+                
+                <div class="mt-3">
+                    <div class="label">You have used <span style="color: white;">${getStorageSize()} KB / 5,000 KB</span> of your storage.</div>
                 </div>
             </div>
         </div>

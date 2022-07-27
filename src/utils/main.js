@@ -52,8 +52,6 @@ class Main {
     async getContractAbi(contract, network) {
         let output = this.abi.find(a => a.contractAddress === contract);
 
-        console.log("output", output);
-
         if(typeof output === 'undefined') {
             let abi = await this.fetchContractAbi(contract, network);
 
