@@ -53,6 +53,7 @@ if(localStorage.getItem("eth-tasks") === null) {
                 const task = new Task(t.provider, t.contractAddress, wallet, t.price, t.amount, t.maxGas, t.gasPriority, t.gasLimit, t.functionName, t.args, abi);
 
                 task.network = t.network;
+                task.taskGroup = t.taskGroup;
 
                 task.save();
                 _tasks.push(task);

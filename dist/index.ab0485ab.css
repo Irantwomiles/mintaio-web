@@ -11699,7 +11699,9 @@ hr {
 }
 
 .dropdown-menu {
+  max-height: 20rem;
   background-color: #393a3f;
+  overflow-y: auto;
 }
 
 .dropdown-menu .dropdown-item {
@@ -11740,6 +11742,21 @@ hr {
 }
 
 .group i:hover {
+  color: #49a58b;
+  cursor: pointer;
+}
+
+.create-group {
+  color: #a1a1a1;
+  min-height: 5rem;
+  max-height: 5rem;
+  background-color: #2a2b30;
+  border: 2px solid #49a58b;
+  border-radius: .5rem;
+  transition: color .2s ease-in;
+}
+
+.create-group:hover {
   color: #49a58b;
   cursor: pointer;
 }

@@ -2,6 +2,7 @@ import {BehaviorSubject} from "rxjs";
 import Web3 from 'web3';
 
 class Main {
+
     constructor() {
         this.globalWeb3 = null;
         this.walletsStream = new BehaviorSubject([]);
@@ -16,7 +17,7 @@ class Main {
         })
 
         this.walletsStreamSub = this.ethTasksStream.subscribe((data) => {
-            this.tasks = data;
+            this.ethTasks = data;
         })
 
         if(localStorage.getItem("abi-list") !== null) {
@@ -134,7 +135,7 @@ class Main {
         const unlocked = _wallet.unlock(this.globalWeb3, password);
 
         if(unlocked) {
-            for(const t of this.tasks) {
+            for(const t of this.ethTasks) {
                 if(t.wallet === _wallet.account.address) {
                     t.privateKey = _wallet.account.privateKey;
                 }
@@ -142,9 +143,15 @@ class Main {
         }
 
         this.walletsStream.next(this.wallets);
-        this.ethTasksStream.next(this.tasks);
+        this.ethTasksStream.next(this.ethTasks);
 
         return unlocked;
+    }
+
+    postTaskUpdate() {
+        // we have to create a clone because rxjs doesn't detect a change when we just assign this.ethTasks as the next value.
+        const clone = [...this.ethTasks];
+        this.ethTasksStream.next(clone);
     }
 }
 

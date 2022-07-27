@@ -44,9 +44,12 @@ function EthMinter({state}) {
 
     const [loadingAbi, setLoadingAbi] = useState(false);
     const [groups, setGroups] = useState([]);
+    const [group, setGroup] = useState("");
     const [selectedGroup, setSelectedGroup] = useState([]);
 
     const [newTaskModal, setNewTaskModal] = useState(null);
+    const [createGroupModal, setCreateGroupModal] = useState(null);
+
 
     const handleGetContractInfo = async () => {
 
@@ -128,6 +131,17 @@ function EthMinter({state}) {
         state.ethTasksStream.next(_tasks);
     }
 
+    const handleCreateGroup = () => {
+
+        if(group.length === 0) return;
+
+        if(groups.includes(group)) return;
+
+        setGroups([...groups, group]);
+        setGroup("");
+        createGroupModal.hide();
+    }
+
     useEffect(() => {
 
         setGroupsDropdown(new Dropdown(globalRef.current.querySelector('#groups-dropdown'), {}));
@@ -137,6 +151,7 @@ function EthMinter({state}) {
         //setReadDropdown(new Dropdown(globalRef.current.querySelector('#read-dropdown'), {}));
 
         setNewTaskModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')));
+        setCreateGroupModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#create-group-modal')));
 
         setProvider(localStorage.getItem('globalRpc'));
         setGroups(JSON.parse(localStorage.getItem('eth-groups')));
@@ -183,6 +198,10 @@ function EthMinter({state}) {
 
     }, [state]);
 
+    useEffect(() => {
+        localStorage.setItem('eth-groups', JSON.stringify(groups));
+    }, [groups]);
+
     return html`
         <div ref=${globalRef} class="d-flex">
 
@@ -197,29 +216,38 @@ function EthMinter({state}) {
 
                 <hr />
 
+                <div class="d-flex">
+
+                    <div class="create-group d-flex align-items-center px-2 me-2">
+                        <div class="text-center" onclick=${() => {createGroupModal.show()}}>
+                            <div>Create Group</div>
+                            <i class="fa-solid fa-circle-plus"></i>
+                        </div>
+                    </div>
+                    
                 ${
                         groups.length > 0 ?
                             html`
-                                <div class="d-flex">
                                 ${
                                     groups.map(g => (
                                         html`
                                             <div class="group me-2">
                                                 <div class="title m-2">${g}</div>
                                                 <div class="d-flex align-items-center justify-content-between  m-2">
-                                                    <div class="label">23 Tasks</div>
+                                                    <div class="label">${tasks.filter(t => t.taskGroup === g).length} Task(s)</div>
                                                     <i class="fa-solid fa-circle-play"></i>
                                                 </div>
                                             </div>
                                         `
                                     ))
                                 }
-                                </div>
                             `
 
                         : ''
                 }
 
+                </div>
+                    
                 <hr />
                 
                 ${
@@ -238,13 +266,22 @@ function EthMinter({state}) {
                                     </div>
                                 </div>
 
+                                <div class="label col-1">
+                                    ${Number.parseFloat(`${t.price * t.amount}`).toFixed(3)} 
+                                    <i class="fa-brands fa-ethereum icon-color mx-1"></i> 
+                                        (x${t.amount})
+                                </div>
+                                <div class="label col-1"><i class="fa-solid fa-gas-pump"></i> ${t.maxGas} + ${t.gasPriority}</div>
+
                                 <div class="label col-2">${t.network}</div>
 
-                                <div class="label col-2">Status: ${t.status}</div>
+                                
+                                <div class="label col-2">Status: <span style="color: ${t.status.color}">${t.status.message}</span></div>
 
-                                <div class="actions p-2 col-1">
-                                    <i class="fa-solid fa-circle-play me-2" onclick=${() => {t.start()}}></i>
-                                    <i class="fa-solid fa-circle-stop"></i>
+                                <div class="actions p-2 col-1 text-center">
+                                    <i class="fa-solid fa-circle-play me-2 icon-color" onclick=${() => {t.start(state)}}></i>
+                                    <i class="fa-solid fa-circle-stop me-2 icon-color"></i>
+                                    <i class="fa-solid fa-trash icon-color"></i>
                                 </div>
 
                             </div>
@@ -291,7 +328,7 @@ function EthMinter({state}) {
                                         </ul>
                                     </div>
 
-                                    <div class=" ms-1 me-1">
+                                    <div class="ms-1 me-1">
                                         <div class="label">RPC</div>
                                         <input class="input" value=${provider} onchange=${(e) => {
                                             setProvider(e.target.value)
@@ -373,7 +410,7 @@ function EthMinter({state}) {
                                         setContractAddress(e.target.value)
                                     }} placeholder="0x123abc..."/>
                                     <button class="button-secondary ms-1" onclick=${handleGetContractInfo}>Get ABI
-                                        ${loadingAbi ? html`<i class="fa-solid fa-spinner loading-icon"></i>` : ''}
+                                        ${loadingAbi ? html`<i class="fa-solid fa-spinner loading-icon ms-2"></i>` : ''}
                                     </button>
                                 </div>
 
@@ -478,6 +515,23 @@ function EthMinter({state}) {
                 </div>
             </div>
 
+            <div id="create-group-modal" class="modal" tabindex="-1">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title title">Create Group</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                      <div class="d-flex">
+                          <input class="input me-1 flex-grow-1" placeholder="Group name" value=${group} onchange=${(e) => {setGroup(e.target.value)}} />
+                          <button class="button-secondary ms-1" onclick=${handleCreateGroup}>Create Group</button>
+                      </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
         </div>
     `
 }

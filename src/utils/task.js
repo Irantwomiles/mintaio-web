@@ -50,7 +50,10 @@ class Task {
         this.startMode = 'MANUAL'; // MANUAL, AUTOMATIC, BLOCK_TIME
 
         this.active = false;
-        this.status = 'Inactive';
+        this.status = {
+            message: 'Inactive',
+            color: '#FFF'
+        };
     }
 
     async sendTransaction(state) {
@@ -94,7 +97,12 @@ class Task {
                 data: data
             };
 
-            console.log(tx);
+            this.status = {
+                message: 'Sending Transaction',
+                color: '#D7BA5AFF'
+            };
+
+            state.postTaskUpdate();
 
             const sign = await this.web3.eth.accounts.signTransaction(tx, this.wallet.account.privateKey);
 
@@ -105,10 +113,24 @@ class Task {
         }
     }
 
-    async start() {
-        const data = await this.sendTransaction();
+    async start(state) {
+        this.sendTransaction(state).then(() => {
+            this.status = {
+                message: 'Success',
+                color: '#49a58b'
+            };
 
-        console.log("output data:", data);
+            state.postTaskUpdate();
+        }).catch(e => {
+            this.status = {
+                message: 'Unsuccessful',
+                color: '#f58686'
+            };
+
+            console.log(e);
+
+            state.postTaskUpdate();
+        });
     }
 
     fetchAbi(contract) {

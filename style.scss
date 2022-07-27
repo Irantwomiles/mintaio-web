@@ -268,6 +268,8 @@ hr {
 
 .dropdown-menu {
   background-color: $button-gray-background;
+  max-height: 20rem;
+  overflow-y: auto;
 
   .dropdown-item {
     cursor: pointer;
@@ -312,6 +314,23 @@ hr {
       cursor: pointer;
     }
   }
+}
+
+.create-group {
+  background-color: $background-sidebar;
+  border: 2px solid $green;
+  border-radius: 0.5rem;
+  color: $light-gray;
+  min-height: 5rem;
+  max-height: 5rem;
+  transition: color 200ms ease-in;
+
+
+  &:hover {
+    color: $green;
+    cursor: pointer;
+  }
+
 }
 
 .task {
