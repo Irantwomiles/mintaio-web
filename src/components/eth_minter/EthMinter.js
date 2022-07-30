@@ -8,10 +8,11 @@ function shortenAddress(address) {
     return address.slice(0, 5) + "..." + address.slice(address.length - 6);
 }
 
-function groupToKey(arr, key) {
+function groupToKey(arr, key, groups) {
     let obj = {};
 
     for (const i of arr) {
+
         if (obj.hasOwnProperty(i[key])) {
             obj[i[key]].push(i);
         } else {
@@ -45,8 +46,12 @@ function EthMinter({state}) {
     const [gasPriority, setGasPriority] = useState(0);
     const [gasLimit, setGasLimit] = useState("");
     const [mintMethod, setMintMethod] = useState(null);
+    const [readMethod, setReadMethod] = useState(null);
+    const [readValue, setReadValue] = useState("");
     const [args, setArgs] = useState([]);
     const [abi, setAbi] = useState("");
+    const [mode, setMode] = useState("MANUAL");
+    const [operation, setOperation] = useState("!=");
 
     const [mintMethods, setMintMethods] = useState([]);
     const [readMethods, setReadMethods] = useState([]);
@@ -61,6 +66,7 @@ function EthMinter({state}) {
     const [groups, setGroups] = useState([]);
     const [group, setGroup] = useState("");
     const [selectedGroup, setSelectedGroup] = useState([]);
+    const [selectedColor, setSelectedColor] = useState('#49a58b');
 
     const [newTaskModal, setNewTaskModal] = useState(null);
     const [createGroupModal, setCreateGroupModal] = useState(null);
@@ -151,11 +157,26 @@ function EthMinter({state}) {
 
         if (group.length === 0) return;
 
-        if (groups.includes(group)) return;
+        if (groups.find(g => g.name === group)) return;
 
-        setGroups([...groups, group]);
+        setGroups([...groups, {
+            name: group,
+            color: selectedColor
+        }]);
+
         setGroup("");
+        setSelectedColor('#49a58b')
         createGroupModal.hide();
+    }
+
+    const startGroupTasks = (g) => {
+        const _tasks = tasks.filter(t => t.taskGroup === g);
+
+        if(_tasks.length === 0) return;
+
+        for(const t of _tasks) {
+            t.start(state);
+        }
     }
 
     useEffect(() => {
@@ -204,7 +225,7 @@ function EthMinter({state}) {
 
         const tasksStream = state.ethTasksStream.subscribe((data) => {
             setTasks(data);
-            setGroupedTasks(groupToKey(data, 'taskGroup'));
+            setGroupedTasks(groupToKey(data, 'taskGroup', groups));
         })
 
         return () => {
@@ -215,7 +236,15 @@ function EthMinter({state}) {
     }, [state]);
 
     useEffect(() => {
-        localStorage.setItem('eth-groups', JSON.stringify(groups));
+
+        const clone = groups.map(g => {
+            return {
+                name: g.name,
+                color: g.color
+            }
+        });
+
+        localStorage.setItem('eth-groups', JSON.stringify(clone));
     }, [groups]);
 
     return html`
@@ -253,14 +282,14 @@ function EthMinter({state}) {
                                         ${
                                                 groups.map(g => (
                                                         html`
-                                                            <div class="group me-2">
-                                                                <div class="title m-2">${g}</div>
+                                                            <div class="group me-2" style="border-color: ${g.color};">
+                                                                <div class="title m-2">${g.name}</div>
                                                                 <div class="d-flex align-items-center justify-content-between  m-2">
                                                                     <div class="label">
-                                                                        ${tasks.filter(t => t.taskGroup === g).length}
+                                                                        ${tasks.filter(t => t.taskGroup === g.name).length}
                                                                         Task(s)
                                                                     </div>
-                                                                    <i class="fa-solid fa-circle-play"></i>
+                                                                    <i class="fa-solid fa-circle-play" onclick=${() => startGroupTasks(g)}></i>
                                                                 </div>
                                                             </div>
                                                         `
@@ -280,7 +309,9 @@ function EthMinter({state}) {
                                 Object.keys(groupedTasks).map(k => (
                                     html`
                                         <hr/>
-                                        <div class="title mt-3">${k}</div>
+                                        <div class="mt-2">
+                                            <label class="group-title" style="border-color: ${groups.find(g => g.name === k).color}">${k}</label>
+                                        </div>
                                         ${
                                             groupedTasks[k].map((t) => (
                                                 html`
@@ -421,8 +452,8 @@ function EthMinter({state}) {
                                             ${groups.map(g => (
                                                     html`
                                                         <li class="dropdown-item" onclick=${() => {
-                                                            setSelectedGroup(g)
-                                                        }}>${g}
+                                                            setSelectedGroup(g.name)
+                                                        }}>${g.name}
                                                         </li>
                                                     `
                                             ))}
@@ -516,8 +547,93 @@ function EthMinter({state}) {
                                                    setAmount(e.target.value)
                                                }} placeholder="0"/>
                                     </div>
+                                    
+                                    <div class="ms-1">
+
+                                        <div class="dropdown">
+
+                                            <div class="label">Task Mode</div>
+                                            <button class="button-dropdown dropdown-toggle" type="button"
+                                                    id="modes-dropdown" data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                    onclick=${() => {
+                                                        Dropdown.getOrCreateInstance(globalRef.current.querySelector('#modes-dropdown')).show()
+                                                    }}>
+                                                ${mode}
+                                            </button>
+                                            <ul class="dropdown-menu" aria-labelledby="dropdown">
+                                                <li class="dropdown-item" onclick=${() => {
+                                                    setMode('MANUAL')
+                                                }}>Manual
+                                                </li>
+                                                <li class="dropdown-item" onclick=${() => {
+                                                    setMode('AUTOMATIC')
+                                                }}>Automatic
+                                                </li>
+                                            </ul>
+                                        </div>
+
+                                        <div class="dropdown">
+
+                                            <div class="label">Operation</div>
+                                            <button class="button-dropdown dropdown-toggle" type="button"
+                                                    id="operation-dropdown" data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                    onclick=${() => {
+                                                        Dropdown.getOrCreateInstance(globalRef.current.querySelector('#operation-dropdown')).show()
+                                                    }}>
+                                                ${operation}
+                                            </button>
+                                            <ul class="dropdown-menu" aria-labelledby="dropdown">
+                                                <li class="dropdown-item" onclick=${() => {
+                                                    setMode('MANUAL')
+                                                }}>Manual
+                                                </li>
+                                                <li class="dropdown-item" onclick=${() => {
+                                                    setMode('AUTOMATIC')
+                                                }}>Automatic
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        
+                                    </div>
                                 </div>
 
+                                ${
+                                    mode === 'AUTOMATIC' ?
+                                            html`
+                                    <div className="mt-3">
+                                        <div className="dropdown">
+                                            <div className="label">Read Function</div>
+                                            <button className="button-dropdown dropdown-toggle" type="button"
+                                                    id="read-dropdown"
+                                                    data-bs-toggle="dropdown" aria-expanded="false"
+                                                    onClick=${() => {
+                                                        Dropdown.getOrCreateInstance(globalRef.current.querySelector('#read-dropdown')).show()
+                                                    }}
+                                            >
+                                                ${readMethod === null ? 'Select a Read Function' : readMethod.name}
+                                            </button>
+                                            <ul className="dropdown-menu" aria-labelledby="dropdown">
+                                                ${
+                                                readMethods.length === 0 ? '' :
+                                                        readMethods.map((read) => (
+                                                                html`
+                                                                    <li class="dropdown-item" onclick=${() => {
+                                                                        setReadMethod(read)
+                                                                    }}>${read.name}
+                                                                    </li>
+                                                                `
+                                                        ))
+                                                }
+                                            </ul>
+                                        </div>
+                                        
+                                    </div>
+                                    `
+                                    : ''
+                                }
+                                
                                 <div class="label mt-3 fw-bold">Total cost (gas not included): <span
                                         class="label fw-normal">${Number.parseFloat(`${price * amount}`).toFixed(4)} <i
                                         class="fa-brands fa-ethereum icon-color"></i></span></div>
@@ -569,13 +685,23 @@ function EthMinter({state}) {
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <div class="d-flex">
-                                <input class="input me-1 flex-grow-1" placeholder="Group name" value=${group}
-                                       onchange=${(e) => {
-                                           setGroup(e.target.value)
-                                       }}/>
-                                <button class="button-secondary ms-1" onclick=${handleCreateGroup}>Create Group</button>
+                            <div class="d-flex align-items-center">
+                                <div class="me-2">
+                                    <div class="label">Group Name</div>
+                                    <input class="input me-1 flex-grow-1" placeholder="Group name" value=${group}
+                                           onchange=${(e) => {
+                                               setGroup(e.target.value)
+                                           }}/>
+                                </div>
+                                <div>
+                                    <div class="label">Group Color</div>
+                                    <input type="color" value=${selectedColor} onchange=${(e) => setSelectedColor(e.target.value)} />
+                                </div>
                             </div>
+
+                        </div>
+                        <div class="modal-footer">
+                            <button class="button-secondary ms-1" onclick=${handleCreateGroup}>Create Group</button>
                         </div>
                     </div>
                 </div>

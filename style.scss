@@ -299,6 +299,7 @@ hr {
 
 .group {
   background-color: $background-sidebar;
+  border: 2px solid $background-sidebar;
   border-radius: 0.5rem;
   min-width: 10rem;
   max-width: 10rem;
@@ -316,9 +317,18 @@ hr {
   }
 }
 
+.group-title {
+  color: white;
+  border: 2px solid $green;
+  padding: 0.5rem 0.5rem;
+  border-radius: 0.5rem;
+  min-width: 8rem;
+  text-align: center;
+}
+
 .create-group {
   background-color: $background-sidebar;
-  border: 2px solid $green;
+  border: 2px solid $background-sidebar;
   border-radius: 0.5rem;
   color: $light-gray;
   min-height: 5rem;
@@ -337,6 +347,8 @@ hr {
   background-color: $background-sidebar;
   border-radius: 0.5rem;
   padding: 1rem 1rem;
+  //filter: drop-shadow(0 0.2rem 0.25rem rgba(150, 150, 150, 0.2));
+  border: 1px solid darken($light-gray, 35%);
 
   .actions {
     background-color: $button-gray-background;

@@ -3,6 +3,11 @@ import Web3 from 'web3';
 class Task {
 
     static ID = 0;
+    static GREEN = '#49a58b';
+    static YELLOW = '#d7ba5a';
+    static RED = '#f58686';
+    static WHITE = '#FFF';
+    static BLUE = '#3674e0';
 
     /**
      *
@@ -44,15 +49,18 @@ class Task {
         this.network = 'mainnet';
 
         this.contractReadMethod = "";
+        this.readMethodCurrent = "";
 
         this.taskGroup = "";
 
         this.startMode = 'MANUAL'; // MANUAL, AUTOMATIC, BLOCK_TIME
 
+        this.automaticTimer = null;
+
         this.active = false;
         this.status = {
             message: 'Inactive',
-            color: '#FFF'
+            color: Task.WHITE
         };
     }
 
@@ -133,10 +141,77 @@ class Task {
         });
     }
 
-    fetchAbi(contract) {
-        fetch(`http://api.etherscan.io/api?module=contract&action=getabi&address=${contract}`).then((data) => {
-            console.log("ABI:", data);
-        })
+    async startAutomaticMode(state) {
+
+        if(this.automaticTimer !== null) {
+            this.status = {
+                message: 'Already running',
+                color: Task.RED
+            }
+
+            state.postTaskUpdate();
+            return;
+        }
+
+        if(this.wallet.isLocked()) {
+            this.status = {
+                message: 'Unlock wallet',
+                color: Task.RED
+            }
+
+            state.postTaskUpdate();
+            return;
+        }
+
+        this.status = {
+            message: 'Starting...',
+            color: Task.BLUE
+        }
+
+        state.postTaskUpdate();
+
+        const contract = new state.globalWeb3.eth.Contract(JSON.parse(this.abi), this.contractAddress);
+
+        let found = false;
+
+        this.automaticTimer = setInterval(() => {
+
+            contract.methods[this.contractReadMethod]().call({defaultBlock: 'pending'}).then((result) => {
+
+                if(`${result}`.toLowerCase() !== `${this.readMethodCurrent}`.toLowerCase()) {
+                    clearInterval(this.automaticTimer);
+                    this.automaticTimer = null;
+
+                    if(found) {
+                        return;
+                    }
+
+                    this.status = {
+                        message: 'Contract is live',
+                        color: Task.BLUE
+                    }
+
+                    state.postTaskUpdate();
+
+                    found = true;
+                    this.sendTransaction(state);
+                }
+            }).catch(error => {
+
+                clearInterval(this.automaticTimer);
+                this.automaticTimer = null;
+
+                this.status = {
+                    message: 'Error occurred, check browser console',
+                    color: Task.RED
+                }
+
+                state.postTaskUpdate();
+
+                console.log("error occurred while fetching latest contract data", error);
+            })
+
+        }, 300);
     }
 
     save() {
