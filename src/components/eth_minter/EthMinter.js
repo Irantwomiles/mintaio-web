@@ -2,7 +2,7 @@ import {html} from 'htm/preact';
 import {useEffect, useState, useRef} from "preact/compat";
 import {Dropdown, Modal} from "bootstrap";
 import SidebarNav from '../SidebarNav.js';
-import Task from '../../utils/task';
+import Task from '../../utils/task.js';
 
 function shortenAddress(address) {
     return address.slice(0, 5) + "..." + address.slice(address.length - 6);

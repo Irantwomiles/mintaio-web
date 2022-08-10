@@ -37,7 +37,7 @@ function SidebarNav({page}) {
                     </li>
 
                     <li class="nav-item sidebar-item w-100 mb-1 ${page === 'settings' ? 'active-sidebar' : ''}">
-                        <a href="/settings" class="nav-link align-middle px-0">
+                        <a href="/" class="nav-link align-middle px-0">
                             <i class="fa-solid fa-gear mx-2 size-2"></i>
                             <span class="ms-1 d-none d-sm-inline size-2">Settings</span>
                         </a>

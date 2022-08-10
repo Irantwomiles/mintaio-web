@@ -35,6 +35,8 @@ class Main {
                 console.log(e);
             }
 
+        } else {
+            localStorage.setItem("globalRpc", "");
         }
 
         if(localStorage.getItem("etherscan-api") === null) {
@@ -64,6 +66,7 @@ class Main {
                 abi: abi
             })
 
+            // prevent setting of invalid abi.
             localStorage.setItem('abi-list', JSON.stringify(this.abi));
 
             return abi;
@@ -73,7 +76,7 @@ class Main {
     }
 
     async fetchContractAbi(contract, network) {
-        let data = await fetch(`http://api${network === 'mainnet' ? '' : `-${network}`}.etherscan.io/api?module=contract&action=getabi&address=${contract}&apikey=${localStorage.getItem('etherscan-api')}`);
+        let data = await fetch(`https://api${network === 'mainnet' ? '' : `-${network}`}.etherscan.io/api?module=contract&action=getabi&address=${contract}&apikey=${localStorage.getItem('etherscan-api')}`);
         if(data.status === 200) {
             let abi = await data.json();
             return abi.result;

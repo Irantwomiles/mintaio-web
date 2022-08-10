@@ -4,8 +4,9 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "start": "rm -rf .parcel-cache && parcel index.html",
-    "build": "parcel build index.html --no-source-maps"
+    "start": "rm -rf .parcel-cache && parcel index.html -p 1234",
+    "build": "rm -rf dist && parcel build index.html --no-source-maps --no-scope-hoist && rsync ./login.html ./dist",
+    "deploy": ""
   },
   "author": "Shayan Ghofrany",
   "license": "ISC",

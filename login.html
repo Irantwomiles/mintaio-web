@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Login Page</title>
+</head>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Arimo&display=swap');
+
+    * {
+        font-family: 'Arimo', sans-serif;
+    }
+
+    body {
+        background-color: #313237;
+    }
+
+    .container {
+        display: flex;
+        align-content: center;
+        justify-content: center;
+    }
+
+    .sign-in-section {
+        margin-top: auto;
+        background-color: #2A2B30;
+        padding: 1rem 1rem;
+        border-radius: 0.5rem;
+        width: 10rem;
+        text-align: center;
+    }
+
+    .sign-in-section div {
+        color: white;
+    }
+
+    .discord-sign-in {
+        margin-top: 2rem;
+        padding: 0.5rem 1rem;
+        background-color: #7289da;
+        color: white;
+        border-radius: 0.5rem;
+        border: none;
+        transition: background-color 200ms ease-in;
+        font-size: 1rem;
+    }
+
+    .discord-sign-in:hover {
+        background-color: #5973c7;
+        cursor: pointer;
+    }
+
+    .title {
+        text-align: center;
+        color: #49a58b;
+    }
+
+</style>
+
+<body>
+
+    <h3 class="title">MintAIO</h3>
+
+    <div class="container">
+
+        <div class="sign-in-section">
+            <div>Sign In</div>
+            <button class="discord-sign-in" onclick="openDiscordURL()">Discord</button>
+        </div>
+    </div>
+    <script>
+
+        function openDiscordURL() {
+            if(window.location.href.includes('localhost')) {
+                window.location.href = 'https://discord.com/api/oauth2/authorize?client_id=1003802950289866802&redirect_uri=http%3A%2F%2Flocalhost%3A1234%2Flogin.html&response_type=code&scope=guilds.members.read%20guilds';
+            } else {
+                window.location.href = 'https://discord.com/api/oauth2/authorize?client_id=1003802950289866802&redirect_uri=https%3A%2F%2Fapp.mintbot.click%2Flogin.html&response_type=code&scope=guilds%20guilds.members.read';
+            }
+        }
+
+        if(window.location.href.includes('code=')) {
+            const split = window.location.href.split("=");
+            const code = split[split.length - 1];
+            console.log("Making API call using code", code);
+
+            if(code.length === 0) {
+                window.location.href = 'https://app.mintbot.click/login.html';
+            } else {
+                fetch('https://app.mintbot.click/auth', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    mode: 'same-origin',
+                    body: JSON.stringify({
+                        discord_code: code
+                    })
+                }).then((res) => {
+                    if(res.status === 200) {
+                        window.location.href = 'https://app.mintbot.click/';
+                    } else {
+                        window.location.href = 'https://app.mintbot.click/login.html';
+                    }
+                })
+            }
+        } else {
+            console.log("Waiting for discord click");
+        }
+
+    </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 import {html} from 'htm/preact';
-import SidebarNav from "./SidebarNav";
+import SidebarNav from "./SidebarNav.js";
 import {useState, useEffect} from "preact/compat";
 import Web3 from "web3";
 
@@ -31,7 +31,7 @@ function Settings({state}) {
 
     const updateGlobalRPC = () => {
 
-        if(localStorage.getItem("globalRpc").length === 0 || localStorage.getItem("globalRpc") === rpc) {
+        if(rpc.length === 0 || localStorage.getItem("globalRpc") === rpc) {
             return;
         }
 

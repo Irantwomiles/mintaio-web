@@ -1,5 +1,5 @@
 import {html} from 'htm/preact';
-import SidebarNav from "./SidebarNav";
+import SidebarNav from "./SidebarNav.js";
 import {Modal, Toast} from 'bootstrap';
 import {useState, useEffect, createRef} from "preact/compat";
 import Wallet from '../utils/wallet.js';
