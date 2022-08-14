@@ -45,7 +45,7 @@ function EthMinter({state}) {
     const [amount, setAmount] = useState(0);
     const [maxGas, setMaxGas] = useState(0);
     const [gasPriority, setGasPriority] = useState(0);
-    const [gasLimit, setGasLimit] = useState("");
+    const [gasLimit, setGasLimit] = useState("AUTO");
     const [mintMethod, setMintMethod] = useState(null);
     const [readMethod, setReadMethod] = useState(null);
     const [readValue, setReadValue] = useState("");
@@ -264,7 +264,7 @@ function EthMinter({state}) {
         setNewTaskModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')));
         setCreateGroupModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#create-group-modal')));
 
-        setProvider("");
+        setProvider(localStorage.getItem('globalRpc'));
         setGroups(JSON.parse(localStorage.getItem('eth-groups')));
 
     }, []);
@@ -777,7 +777,7 @@ function EthMinter({state}) {
 
                         </div>
                         <div class="modal-footer">
-                            <button class="button-outline-cancel me-2">Cancel</button>
+                            <button class="button-outline-cancel me-2" onclick=${() => {Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).hide()}}>Cancel</button>
                             <button class="button-primary" onclick=${handleCreateTasks}>Create Task</button>
                         </div>
                     </div>

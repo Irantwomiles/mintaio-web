@@ -5,6 +5,9 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <title>Login Page</title>
 </head>
 
@@ -73,6 +76,24 @@
         width: 7rem;
     }
 
+    .d-none {
+        display: none;
+    }
+
+    .loading-icon {
+        animation: rotation 2s infinite linear;
+    }
+
+    @keyframes rotation {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
 </style>
 
 <body>
@@ -82,13 +103,28 @@
 
         <div class="sign-in-section">
 
-            <div>
-                <img class="image" src="mint-aio-transparent.png" >
+            <div style="margin-bottom: 2rem; font-weight: bold; color: #49A58BFF; font-size: 1.3rem;">
+                MintAIO
             </div>
 
-            <div>Sign In</div>
+            <div class="sign-in-action">
+                <div>Sign In</div>
 
-            <button class="discord-sign-in" onclick="openDiscordURL()">Discord</button>
+                <button class="discord-sign-in" onclick="openDiscordURL()">Discord</button>
+            </div>
+
+            <div class="loading-action d-none">
+                <div><i class="fa-solid fa-spinner loading-icon" style="margin-right: 10px;"></i>Signing in...</div>
+            </div>
+
+            <div class="success-action d-none">
+                <div style="color: #49a58b;">Successfully logged in!</div>
+            </div>
+
+            <div class="failed-action d-none">
+                <div style="color: #f58686;">Failed to authenticate!</div>
+            </div>
+
         </div>
     </div>
     <script>
@@ -109,6 +145,10 @@
             if(code.length === 0) {
                 window.location.href = 'https://app.mintbot.click/login.html';
             } else {
+
+                document.querySelector('.sign-in-action').classList.add('d-none');
+                document.querySelector('.loading-action').classList.remove('d-none');
+
                 fetch('https://app.mintbot.click/auth', {
                     method: 'POST',
                     credentials: 'same-origin',
@@ -118,9 +158,22 @@
                     })
                 }).then((res) => {
                     if(res.status === 200) {
-                        window.location.href = 'https://app.mintbot.click/';
+
+                        document.querySelector('.loading-action').classList.add('d-none');
+                        document.querySelector('.success-action').classList.remove('d-none');
+
+                        setTimeout(() => {
+                            window.location.href = 'https://app.mintbot.click/';
+                        }, 3 * 1000);
+
                     } else {
-                        window.location.href = 'https://app.mintbot.click/login.html';
+
+                        document.querySelector('.loading-action').classList.add('d-none');
+                        document.querySelector('.failed-action').classList.remove('d-none');
+
+                        setTimeout(() => {
+                            window.location.href = 'https://app.mintbot.click/login.html';
+                        }, 3 * 1000);
                     }
                 })
             }
