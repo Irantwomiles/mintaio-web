@@ -11454,10 +11454,18 @@ textarea.form-control-lg {
 }
 
 * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
   font-family: Arimo, sans-serif;
 }
 
+html {
+  height: 100%;
+}
+
 body {
+  height: 100%;
   background-color: #313237 !important;
 }
 
@@ -11477,6 +11485,7 @@ input {
 }
 
 .sidebar {
+  height: 100%;
   background-color: #2a2b30;
   border-right: 1px solid #303136;
 }
@@ -11741,16 +11750,6 @@ hr {
   border-radius: .5rem;
 }
 
-.group i {
-  color: #a1a1a1;
-  transition: color .2s ease-in;
-}
-
-.group i:hover {
-  color: #49a58b;
-  cursor: pointer;
-}
-
 .group-title {
   color: #fff;
   min-width: 8rem;
@@ -11776,8 +11775,8 @@ hr {
 }
 
 .task {
+  filter: drop-shadow(0 .2rem .25rem #2a2a2a33);
   background-color: #2a2b30;
-  border: 1px solid #484848;
   border-radius: .5rem;
   padding: 1rem;
 }
@@ -11821,6 +11820,16 @@ hr {
 }
 
 .delete-icon:hover {
+  color: #f58686;
+  cursor: pointer;
+}
+
+.delete-group-icon {
+  color: #a1a1a1;
+  transition: color .2s ease-in;
+}
+
+.delete-group-icon:hover {
   color: #f58686;
   cursor: pointer;
 }

@@ -149,6 +149,20 @@ class Main {
         return unlocked;
     }
 
+    deleteEthTask(id) {
+        const _task = this.ethTasks.find(t => t.id === id);
+
+        if(typeof _task === 'undefined') {
+            console.log(`Could not find task with id ${id}`);
+            return;
+        }
+
+        _task.delete();
+
+        const _tasks = this.ethTasks.filter(t => t.id !== id);
+        this.ethTasksStream.next(_tasks);
+    }
+
     postTaskUpdate() {
         // we have to create a clone because rxjs doesn't detect a change when we just assign this.ethTasks as the next value.
         const clone = [...this.ethTasks];

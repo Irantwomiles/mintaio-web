@@ -316,6 +316,22 @@ class Task {
 
         localStorage.setItem('eth-tasks', JSON.stringify(_tasks));
     }
+
+    /**
+     * Delete a task and update localStorage. This does NOT update the stream. To update the stream, call deleteEthTask
+     * inside the main state.
+     */
+    delete() {
+        if(localStorage.getItem('eth-tasks') === null) {
+            localStorage.setItem('eth-tasks', JSON.stringify([]));
+        }
+
+        let _tasks = JSON.parse(localStorage.getItem('eth-tasks'));
+
+        _tasks = _tasks.filter(t => t.id !== this.id);
+        localStorage.setItem('eth-tasks', JSON.stringify(_tasks));
+    }
+
 }
 
 export default Task;

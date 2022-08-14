@@ -174,6 +174,24 @@ function EthMinter({state}) {
         createGroupModal.hide();
     }
 
+    const deleteGroup = (g) => {
+        const _clone = [...groups];
+
+        const _groups = _clone.filter(gr => gr.name !== g.name);
+
+        const _tasks = [...state.ethTasks];
+
+        for(const t of _tasks) {
+            if(t.taskGroup === g.name) {
+                t.taskGroup = "";
+                t.save();
+            }
+        }
+
+        state.ethTasksStream.next(_tasks);
+        setGroups(_groups);
+    }
+
     const startGroupTasks = (g) => {
         const _tasks = tasks.filter(t => t.taskGroup === g.name);
 
@@ -181,10 +199,32 @@ function EthMinter({state}) {
             return;
         }
 
-        console.log(_tasks);
-
         for(const t of _tasks) {
             t.start(state);
+        }
+    }
+
+    const stopGroupTasks = (g) => {
+        const _tasks = tasks.filter(t => t.taskGroup === g.name);
+
+        if(_tasks.length === 0) {
+            return;
+        }
+
+        for(const t of _tasks) {
+            t.stop(state);
+        }
+    }
+
+    const deleteGroupTasks = (g) => {
+        const _tasks = tasks.filter(t => t.taskGroup === g.name);
+
+        if(_tasks.length === 0) {
+            return;
+        }
+
+        for(const t of _tasks) {
+            state.deleteEthTask(t.id);
         }
     }
 
@@ -200,6 +240,18 @@ function EthMinter({state}) {
                 return 'Not equals to'
         }
     }
+
+    const startAllTasks = () => {
+
+        if(tasks.length === 0) {
+            return;
+        }
+
+        for(const t of tasks) {
+            t.start(state);
+        }
+    }
+
 
     useEffect(() => {
 
@@ -244,6 +296,7 @@ function EthMinter({state}) {
         })
 
         const tasksStream = state.ethTasksStream.subscribe((data) => {
+            console.log(data);
             setTasks(data);
             setGroupedTasks(groupToKey(data, 'taskGroup', groups));
         })
@@ -285,7 +338,7 @@ function EthMinter({state}) {
                         newTaskModal.show()
                     }}><i class="fa-solid fa-plus"></i> New Task
                     </button>
-                    <button class="button-secondary fw-bold ms-3"><i class="fa-solid fa-arrow-up"></i> Start All
+                    <button class="button-secondary fw-bold ms-3" onclick=${startAllTasks}><i class="fa-solid fa-arrow-up"></i> Start All
                     </button>
                 </div>
 
@@ -309,13 +362,20 @@ function EthMinter({state}) {
                                                 groups.map(g => (
                                                         html`
                                                             <div class="group me-2" style="border-color: ${g.color};">
-                                                                <div class="title m-2">${g.name}</div>
+                                                                <div class="title m-2 d-flex justify-content-between">
+                                                                    <span>${g.name}</span>
+                                                                    <i class="fa-solid fa-xmark delete-group-icon" onclick=${() => deleteGroup(g)}></i>
+                                                                </div>
                                                                 <div class="d-flex align-items-center justify-content-between m-2">
                                                                     <div class="label">
                                                                         ${tasks.filter(t => t.taskGroup === g.name).length}
                                                                         <span class="ms-1">Task(s)</span>
                                                                     </div>
-                                                                    <i class="fa-solid fa-circle-play" onclick=${() => startGroupTasks(g)}></i>
+                                                                    <div class="d-flex justify-content-evenly">
+                                                                        <i class="fa-solid fa-circle-play icon-color start-icon me-1" onclick=${() => startGroupTasks(g)}></i>
+                                                                        <i class="fa-solid fa-circle-stop icon-color stop-icon me-1" onclick=${() => stopGroupTasks(g)}></i>
+                                                                        <i class="fa-solid fa-trash icon-color delete-icon" onclick=${() => deleteGroupTasks(g)}></i>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         `
@@ -360,7 +420,7 @@ function EthMinter({state}) {
                                                         <div class="label col-1 text-center">
                                                             ${Number.parseFloat(`${t.price * t.amount}`).toFixed(3)}
                                                             <i class="fa-brands fa-ethereum icon-color mx-1"></i>
-                                                                (x${t.amount})
+                                                                (${t.amount}x)
                                                         </div>
                                                         
                                                         <div class="label col-1 text-center"><i class="fa-solid fa-gas-pump me-1"></i>
@@ -382,7 +442,10 @@ function EthMinter({state}) {
                                                                onclick=${() => {
                                                                 t.stop(state)
                                                             }}></i>
-                                                            <i class="fa-solid fa-trash icon-color delete-icon"></i>
+                                                            <i class="fa-solid fa-trash icon-color delete-icon"
+                                                               onclick=${() => {
+                                                                state.deleteEthTask(t.id)
+                                                            }}></i>
                                                         </div>
     
                                                     </div>

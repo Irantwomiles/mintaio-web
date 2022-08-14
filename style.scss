@@ -15,9 +15,17 @@ $yellow: #d7ba5a;
 
 * {
   font-family: 'Arimo', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
 }
 
 body {
+  height: 100%;
   background-color: $background !important;
 }
 
@@ -41,6 +49,7 @@ input {
 .sidebar {
   background-color: $background-sidebar;
   border-right: 1px solid $border-color;
+  height: 100%;
 
   .sidebar-item {
     border-radius: 0.5rem;
@@ -311,16 +320,6 @@ hr {
   max-width: 10rem;
   min-height: 5rem;
   max-height: 5rem;
-
-  i {
-    color: $light-gray;
-    transition: color 200ms ease-in;
-
-    &:hover {
-      color: $green;
-      cursor: pointer;
-    }
-  }
 }
 
 .group-title {
@@ -353,8 +352,8 @@ hr {
   background-color: $background-sidebar;
   border-radius: 0.5rem;
   padding: 1rem 1rem;
-  //filter: drop-shadow(0 0.2rem 0.25rem rgba(150, 150, 150, 0.2));
-  border: 1px solid darken($light-gray, 35%);
+  filter: drop-shadow(0 0.2rem 0.25rem rgba(42, 42, 42, 0.2));
+  //border: 1px solid darken($light-gray, 35%);
 
   .actions {
     background-color: $button-gray-background;
@@ -392,6 +391,16 @@ hr {
 
 .delete-icon {
   color: white;
+  transition: color 200ms ease-in;
+
+  &:hover {
+    color: $red;
+    cursor: pointer;
+  }
+}
+
+.delete-group-icon {
+  color: $light-gray;
   transition: color 200ms ease-in;
 
   &:hover {
