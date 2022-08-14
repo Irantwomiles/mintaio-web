@@ -212,7 +212,7 @@ function EthMinter({state}) {
         setNewTaskModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')));
         setCreateGroupModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#create-group-modal')));
 
-        setProvider(localStorage.getItem('globalRpc'));
+        setProvider("");
         setGroups(JSON.parse(localStorage.getItem('eth-groups')));
 
     }, []);
