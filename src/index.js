@@ -60,6 +60,10 @@ if(localStorage.getItem("eth-tasks") === null) {
 
                 task.network = t.network;
                 task.taskGroup = t.taskGroup;
+                task.trigger = t.trigger;
+                task.startMode = t.startMode;
+                task.contractReadMethod = t.contractReadMethod;
+                task.readMethodCurrent = t.readMethodCurrent;
 
                 task.save();
                 _tasks.push(task);

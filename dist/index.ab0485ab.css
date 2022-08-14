@@ -11469,7 +11469,7 @@ input {
 
 .navbar {
   border-bottom: 1px solid #303136;
-  background-color: #222828 !important;
+  background-color: #27282c !important;
 }
 
 .navbar a {
@@ -11621,6 +11621,10 @@ input {
 
 .wallet .balance {
   color: #fff;
+}
+
+.wallet .balance:hover {
+  cursor: pointer;
 }
 
 .wallet .address {
@@ -11789,6 +11793,52 @@ hr {
 
 .icon-green {
   color: #49a58b;
+}
+
+.start-icon {
+  color: #fff;
+  transition: color .2s ease-in;
+}
+
+.start-icon:hover {
+  color: #49a58b;
+  cursor: pointer;
+}
+
+.stop-icon {
+  color: #fff;
+  transition: color .2s ease-in;
+}
+
+.stop-icon:hover {
+  color: #d7ba5a;
+  cursor: pointer;
+}
+
+.delete-icon {
+  color: #fff;
+  transition: color .2s ease-in;
+}
+
+.delete-icon:hover {
+  color: #f58686;
+  cursor: pointer;
+}
+
+.nav-logo {
+  height: 5rem;
+  width: 5rem;
+}
+
+.q-a {
+  color: #a1a1a1;
+}
+
+.q-a p {
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-left: .5rem;
+  padding: 0;
 }
 
 /*# sourceMappingURL=index.ab0485ab.css.map */

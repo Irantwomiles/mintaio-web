@@ -179,6 +179,10 @@ function Wallets({state}) {
         unlockWalletModal.show();
     }
 
+    const copyPublicAddress = (address) => {
+        navigator.clipboard.writeText(`${address.startsWith('0x') ? address : '0x' + address}`).then(() => console.log);
+    }
+
     useEffect(() => {
         setToast(Toast.getOrCreateInstance(globalRef.current.querySelector('#message-toast')));
 
@@ -193,7 +197,6 @@ function Wallets({state}) {
         }
 
         const walletsStream = state.walletsStream.subscribe((data) => {
-            console.log("Update for Wallets", data);
             setWallets(data);
         })
 
@@ -232,7 +235,10 @@ function Wallets({state}) {
                                             </div>
                                         </div>
 
-                                        <div class="balance me-2 mb-2">${shortenAddress(w.account.address)}</div>
+                                        <div class="balance me-2 mb-2" onclick=${() => copyPublicAddress(w.account.address)}>
+                                                0x${shortenAddress(w.account.address)}
+                                            <i class="fa-solid fa-copy ms-2" style="color: #a1a1a1;"></i>
+                                        </div>
 
                                         <div class="d-flex justify-content-between align-items-center">
                                             <button class="button-outline-primary">Export</button>

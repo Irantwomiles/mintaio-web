@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Arimo&display=swap');
 
+$background-navbar: #27282c;
 $background: #313237;
 $background-sidebar: #2A2B30;
 $background-input: #222828;
@@ -28,7 +29,7 @@ input {
 }
 
 .navbar {
-  background-color: $background-input !important;
+  background-color: $background-navbar !important;
 
   border-bottom: 1px solid $border-color;
 
@@ -186,7 +187,12 @@ input {
   }
 
   .balance {
+
     color: white;
+
+    &:hover {
+      cursor: pointer;
+    }
   }
 
   .address {
@@ -362,4 +368,50 @@ hr {
 
 .icon-green {
   color: $green;
+}
+
+.start-icon {
+  color: white;
+  transition: color 200ms ease-in;
+
+  &:hover {
+    color: $green;
+    cursor: pointer;
+  }
+}
+
+.stop-icon {
+  color: white;
+  transition: color 200ms ease-in;
+
+  &:hover {
+    color: $yellow;
+    cursor: pointer;
+  }
+}
+
+.delete-icon {
+  color: white;
+  transition: color 200ms ease-in;
+
+  &:hover {
+    color: $red;
+    cursor: pointer;
+  }
+}
+
+.nav-logo {
+  height: 5rem;
+  width: 5rem;
+}
+
+.q-a {
+  color: $light-gray;
+
+  p {
+    padding: 0;
+    margin-left: 0.5rem;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
 }

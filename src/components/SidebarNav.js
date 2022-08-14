@@ -1,7 +1,12 @@
 import {html} from 'htm/preact';
-
+import {useEffect} from "preact/compat";
 
 function SidebarNav({page}) {
+
+    useEffect(() => {
+        console.log(page);
+    }, []);
+
     return html`
         <div class="sidebar col-auto col-md-3 col-xl-2 px-0">
             <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-3 text-white min-vh-100">
@@ -22,20 +27,27 @@ function SidebarNav({page}) {
                         </a>
                     </li>
 
-                    <li class="nav-item sidebar-item w-100 mb-1">
-                        <a href="#" class="nav-link align-middle px-0">
-                            <i class="fa-solid fa-crosshairs mx-2 size-2"></i>
-                            <span class="ms-1 d-none d-sm-inline size-2">OS Sniper</span>
+<!--                    <li class="nav-item sidebar-item w-100 mb-1">-->
+<!--                        <a href="#" class="nav-link align-middle px-0">-->
+<!--                            <i class="fa-solid fa-crosshairs mx-2 size-2"></i>-->
+<!--                            <span class="ms-1 d-none d-sm-inline size-2">OS Sniper</span>-->
+<!--                        </a>-->
+<!--                    </li>-->
+
+<!--                    <li class="nav-item sidebar-item w-100 mb-1">-->
+<!--                        <a href="#" class="nav-link align-middle px-0">-->
+<!--                            <i class="fa-solid fa-money-bill-trend-up mx-2 size-2"></i>-->
+<!--                            <span class="ms-1 d-none d-sm-inline size-2">OS Bidding</span>-->
+<!--                        </a>-->
+<!--                    </li>-->
+
+                    <li class="nav-item sidebar-item w-100 mb-1 ${page === 'info' ? 'active-sidebar' : ''}">
+                        <a href="/info" class="nav-link align-middle px-0">
+                            <i class="fa-solid fa-circle-info mx-2 size-2"></i>
+                            <span class="ms-1 d-none d-sm-inline size-2">Information</span>
                         </a>
                     </li>
-
-                    <li class="nav-item sidebar-item w-100 mb-1">
-                        <a href="#" class="nav-link align-middle px-0">
-                            <i class="fa-solid fa-money-bill-trend-up mx-2 size-2"></i>
-                            <span class="ms-1 d-none d-sm-inline size-2">OS Bidding</span>
-                        </a>
-                    </li>
-
+                    
                     <li class="nav-item sidebar-item w-100 mb-1 ${page === 'settings' ? 'active-sidebar' : ''}">
                         <a href="/" class="nav-link align-middle px-0">
                             <i class="fa-solid fa-gear mx-2 size-2"></i>

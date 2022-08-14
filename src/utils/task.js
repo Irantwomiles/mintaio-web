@@ -48,13 +48,14 @@ class Task {
         this.abi = abi;
         this.network = 'mainnet';
 
-        this.contractReadMethod = "";
+        this.contractReadMethod = null;
         this.readMethodCurrent = "";
 
         this.taskGroup = "";
 
         this.startMode = 'MANUAL'; // MANUAL, AUTOMATIC, BLOCK_TIME
 
+        this.trigger = '!=';
         this.automaticTimer = null;
 
         this.active = false;
@@ -70,10 +71,22 @@ class Task {
         let finalCost = Number.parseFloat(`${this.price * this.amount}`).toFixed(3);
 
         if(this.wallet === null) {
+            this.status = {
+                message: 'No wallet set',
+                color: Task.RED
+            }
+
+            state.postTaskUpdate();
             return;
         }
 
         if(!this.wallet.account.hasOwnProperty('privateKey')) {
+            this.status = {
+                message: 'Unlock wallet',
+                color: Task.RED
+            }
+
+            state.postTaskUpdate();
             return;
         }
 
@@ -105,43 +118,75 @@ class Task {
                 data: data
             };
 
+            const sign = await this.web3.eth.accounts.signTransaction(tx, this.wallet.account.privateKey);
+
             this.status = {
                 message: 'Sending Transaction',
-                color: '#D7BA5AFF'
+                color: Task.YELLOW
             };
 
             state.postTaskUpdate();
 
-            const sign = await this.web3.eth.accounts.signTransaction(tx, this.wallet.account.privateKey);
+            this.web3.eth.sendSignedTransaction(sign.rawTransaction).then((output) => {
 
-            return this.web3.eth.sendSignedTransaction(sign.rawTransaction);
+                this.status = {
+                    message: `Success: Block #${output.blockNumber}`,
+                    color: Task.GREEN
+                };
+
+                state.postTaskUpdate();
+            }).catch(e => {
+                this.status = {
+                    message: 'Unsuccessful',
+                    color: Task.RED
+                };
+
+                console.log(e);
+
+                state.postTaskUpdate();
+            });
 
         } catch(e) {
+
+            this.status = {
+                message: 'Error occurred',
+                color: Task.RED
+            };
+
+            state.postTaskUpdate();
+
             console.log("error:", e);
         }
     }
 
     async start(state) {
-        this.sendTransaction(state).then(() => {
-            this.status = {
-                message: 'Success',
-                color: '#49a58b'
-            };
 
-            state.postTaskUpdate();
-        }).catch(e => {
-            this.status = {
-                message: 'Unsuccessful',
-                color: '#f58686'
-            };
+        console.log("Starting task", this);
 
-            console.log(e);
-
-            state.postTaskUpdate();
-        });
+        switch(this.startMode) {
+            case "MANUAL":
+                this.sendTransaction(state);
+                return;
+            case "AUTOMATIC":
+                this.startAutomaticMode(state);
+                return;
+            default:
+                console.log("Start mode DEFAULT case");
+                return;
+        }
     }
 
     async startAutomaticMode(state) {
+
+        if(this.contractReadMethod === null || typeof this.contractReadMethod === 'undefined') {
+            this.status = {
+                message: 'No read method set',
+                color: Task.RED
+            }
+
+            state.postTaskUpdate();
+            return;
+        }
 
         if(this.automaticTimer !== null) {
             this.status = {
@@ -163,8 +208,10 @@ class Task {
             return;
         }
 
+
+
         this.status = {
-            message: 'Starting...',
+            message: 'Waiting...',
             color: Task.BLUE
         }
 
@@ -176,9 +223,10 @@ class Task {
 
         this.automaticTimer = setInterval(() => {
 
-            contract.methods[this.contractReadMethod]().call({defaultBlock: 'pending'}).then((result) => {
+            contract.methods[this.contractReadMethod.name]().call({defaultBlock: 'pending'}).then((result) => {
 
-                if(`${result}`.toLowerCase() !== `${this.readMethodCurrent}`.toLowerCase()) {
+                if(this.operators()[this.trigger](`${result}`.toLowerCase(), `${this.readMethodCurrent}`.toLowerCase())) {
+
                     clearInterval(this.automaticTimer);
                     this.automaticTimer = null;
 
@@ -187,7 +235,7 @@ class Task {
                     }
 
                     this.status = {
-                        message: 'Contract is live',
+                        message: 'Contract is live!',
                         color: Task.BLUE
                     }
 
@@ -202,7 +250,7 @@ class Task {
                 this.automaticTimer = null;
 
                 this.status = {
-                    message: 'Error occurred, check browser console',
+                    message: 'Error occurred',
                     color: Task.RED
                 }
 
@@ -211,7 +259,30 @@ class Task {
                 console.log("error occurred while fetching latest contract data", error);
             })
 
-        }, 300);
+        }, 500);
+    }
+
+    stop(state) {
+        if(this.automaticTimer === null) return;
+
+        clearInterval(this.automaticTimer);
+        this.automaticTimer = null;
+
+        this.status = {
+            message: 'Stopped task',
+            color: Task.YELLOW
+        }
+
+        state.postTaskUpdate();
+    }
+
+    operators() {
+        return {
+            '=': (val1, val2) => val1 === val2,
+            '!=': (val1, val2) => val1 !== val2,
+            '>': (val1, val2) => Number.parseFloat(`${val1}`) > Number.parseFloat(`${val2}`),
+            '<': (val1, val2) => Number.parseFloat(`${val1}`) < Number.parseFloat(`${val2}`)
+        }
     }
 
     save() {
@@ -236,9 +307,11 @@ class Task {
             functionName: this.functionName,
             args: this.args,
             contractReadMethod: this.contractReadMethod,
+            readMethodCurrent: this.readMethodCurrent,
             taskGroup: this.taskGroup,
             startMode: this.startMode,
-            network: this.network
+            network: this.network,
+            trigger: this.trigger
         });
 
         localStorage.setItem('eth-tasks', JSON.stringify(_tasks));

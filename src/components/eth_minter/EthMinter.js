@@ -9,6 +9,7 @@ function shortenAddress(address) {
 }
 
 function groupToKey(arr, key, groups) {
+
     let obj = {};
 
     for (const i of arr) {
@@ -51,7 +52,7 @@ function EthMinter({state}) {
     const [args, setArgs] = useState([]);
     const [abi, setAbi] = useState("");
     const [mode, setMode] = useState("MANUAL");
-    const [operation, setOperation] = useState("!=");
+    const [trigger, setTrigger] = useState("!=");
 
     const [mintMethods, setMintMethods] = useState([]);
     const [readMethods, setReadMethods] = useState([]);
@@ -65,7 +66,7 @@ function EthMinter({state}) {
     const [loadingAbi, setLoadingAbi] = useState(false);
     const [groups, setGroups] = useState([]);
     const [group, setGroup] = useState("");
-    const [selectedGroup, setSelectedGroup] = useState([]);
+    const [selectedGroup, setSelectedGroup] = useState("");
     const [selectedColor, setSelectedColor] = useState('#49a58b');
 
     const [newTaskModal, setNewTaskModal] = useState(null);
@@ -136,13 +137,16 @@ function EthMinter({state}) {
             const task = new Task(provider, contractAddress, w, price, amount, maxGas, gasPriority, gasLimit, mintMethod, _args, abi);
             task.taskGroup = selectedGroup;
             task.network = network;
+            task.trigger = trigger;
+            task.startMode = mode;
+            task.readMethodCurrent = readValue;
+            task.contractReadMethod = readMethod;
 
             const _wallet = wallets.find(w => w.account.address === task.wallet.account.address);
 
             if (typeof _wallet !== 'undefined') {
                 if (!_wallet.isLocked()) {
                     task.privateKey = _wallet.account.privateKey;
-                    console.log("found private key");
                 }
             }
 
@@ -151,6 +155,7 @@ function EthMinter({state}) {
         }
 
         state.ethTasksStream.next(_tasks);
+        Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).hide();
     }
 
     const handleCreateGroup = () => {
@@ -170,12 +175,29 @@ function EthMinter({state}) {
     }
 
     const startGroupTasks = (g) => {
-        const _tasks = tasks.filter(t => t.taskGroup === g);
+        const _tasks = tasks.filter(t => t.taskGroup === g.name);
 
-        if(_tasks.length === 0) return;
+        if(_tasks.length === 0) {
+            return;
+        }
+
+        console.log(_tasks);
 
         for(const t of _tasks) {
             t.start(state);
+        }
+    }
+
+    const getTriggerName = () => {
+        switch(trigger) {
+            case '=':
+                return 'Equals to'
+            case '>':
+                return 'Greater than'
+            case '<':
+                return 'Less than'
+            default:
+                return 'Not equals to'
         }
     }
 
@@ -213,8 +235,6 @@ function EthMinter({state}) {
 
     useEffect(() => {
 
-        console.log("state", state);
-
         if (state === null) {
             return;
         }
@@ -234,6 +254,12 @@ function EthMinter({state}) {
         }
 
     }, [state]);
+
+    useEffect(() => {
+
+        console.log("groupedTasks", groupedTasks);
+
+    }, [groupedTasks])
 
     useEffect(() => {
 
@@ -284,10 +310,10 @@ function EthMinter({state}) {
                                                         html`
                                                             <div class="group me-2" style="border-color: ${g.color};">
                                                                 <div class="title m-2">${g.name}</div>
-                                                                <div class="d-flex align-items-center justify-content-between  m-2">
+                                                                <div class="d-flex align-items-center justify-content-between m-2">
                                                                     <div class="label">
                                                                         ${tasks.filter(t => t.taskGroup === g.name).length}
-                                                                        Task(s)
+                                                                        <span class="ms-1">Task(s)</span>
                                                                     </div>
                                                                     <i class="fa-solid fa-circle-play" onclick=${() => startGroupTasks(g)}></i>
                                                                 </div>
@@ -309,8 +335,8 @@ function EthMinter({state}) {
                                 Object.keys(groupedTasks).map(k => (
                                     html`
                                         <hr/>
-                                        <div class="mt-2">
-                                            <label class="group-title" style="border-color: ${groups.find(g => g.name === k).color}">${k}</label>
+                                        <div class="${k.length === 0 ? 'd-none' : 'mt-2'}">
+                                            <label class="group-title" style="${k.length === 0 ? 'border: none;' : "border-color: " + groups.find(g => g.name === k).color};">${k}</label>
                                         </div>
                                         ${
                                             groupedTasks[k].map((t) => (
@@ -331,29 +357,32 @@ function EthMinter({state}) {
                                                             </div>
                                                         </div>
     
-                                                        <div class="label col-1">
+                                                        <div class="label col-1 text-center">
                                                             ${Number.parseFloat(`${t.price * t.amount}`).toFixed(3)}
                                                             <i class="fa-brands fa-ethereum icon-color mx-1"></i>
                                                                 (x${t.amount})
                                                         </div>
-                                                        <div class="label col-1"><i class="fa-solid fa-gas-pump me-1"></i>
+                                                        
+                                                        <div class="label col-1 text-center"><i class="fa-solid fa-gas-pump me-1"></i>
                                                             ${t.maxGas} + ${t.gasPriority}
                                                         </div>
     
-                                                        <div class="label col-2">${t.network}</div>
+                                                        <div class="label col-1 text-center">${t.network}</div>
+
+                                                        <div class="label col-1 text-center">${t.startMode}</div>
     
-    
-                                                        <div class="label col-2">Status: <span
-                                                                style="color: ${t.status.color}">${t.status.message}</span>
-                                                        </div>
+                                                        <div class="label col-3 text-center" style="color: ${t.status.color}">${t.status.message}</div>
     
                                                         <div class="actions p-2 col-1 text-center">
-                                                            <i class="fa-solid fa-circle-play me-2 icon-color"
+                                                            <i class="fa-solid fa-circle-play me-2 icon-color start-icon"
                                                                onclick=${() => {
                                                                    t.start(state)
                                                                }}></i>
-                                                            <i class="fa-solid fa-circle-stop me-2 icon-color"></i>
-                                                            <i class="fa-solid fa-trash icon-color"></i>
+                                                            <i class="fa-solid fa-circle-stop me-2 icon-color stop-icon" 
+                                                               onclick=${() => {
+                                                                t.stop(state)
+                                                            }}></i>
+                                                            <i class="fa-solid fa-trash icon-color delete-icon"></i>
                                                         </div>
     
                                                     </div>
@@ -532,15 +561,15 @@ function EthMinter({state}) {
                                     </div>
                                 </div>
 
-                                <div class="d-flex flex-wrap mt-3">
-                                    <div class="me-1">
+                                <div class="d-flex flex-wrap">
+                                    <div class="me-2 mt-3">
                                         <div class="label">Price</div>
                                         <input class="input" type="number" step="0.0001" min="0" value=${price}
                                                onchange=${(e) => {
                                                    setPrice(e.target.value)
                                                }} placeholder="0.0"/>
                                     </div>
-                                    <div class="ms-1">
+                                    <div class="me-2 mt-3">
                                         <div class="label">Amount</div>
                                         <input class="input" type="number" step="1" min="1" value=${amount}
                                                onchange=${(e) => {
@@ -548,9 +577,9 @@ function EthMinter({state}) {
                                                }} placeholder="0"/>
                                     </div>
                                     
-                                    <div class="ms-1">
+                                    <div class="d-flex mt-3">
 
-                                        <div class="dropdown">
+                                        <div class="dropdown me-2">
 
                                             <div class="label">Task Mode</div>
                                             <button class="button-dropdown dropdown-toggle" type="button"
@@ -572,29 +601,6 @@ function EthMinter({state}) {
                                                 </li>
                                             </ul>
                                         </div>
-
-                                        <div class="dropdown">
-
-                                            <div class="label">Operation</div>
-                                            <button class="button-dropdown dropdown-toggle" type="button"
-                                                    id="operation-dropdown" data-bs-toggle="dropdown"
-                                                    aria-expanded="false"
-                                                    onclick=${() => {
-                                                        Dropdown.getOrCreateInstance(globalRef.current.querySelector('#operation-dropdown')).show()
-                                                    }}>
-                                                ${operation}
-                                            </button>
-                                            <ul class="dropdown-menu" aria-labelledby="dropdown">
-                                                <li class="dropdown-item" onclick=${() => {
-                                                    setMode('MANUAL')
-                                                }}>Manual
-                                                </li>
-                                                <li class="dropdown-item" onclick=${() => {
-                                                    setMode('AUTOMATIC')
-                                                }}>Automatic
-                                                </li>
-                                            </ul>
-                                        </div>
                                         
                                     </div>
                                 </div>
@@ -602,8 +608,8 @@ function EthMinter({state}) {
                                 ${
                                     mode === 'AUTOMATIC' ?
                                             html`
-                                    <div className="mt-3">
-                                        <div className="dropdown">
+                                    <div className="mt-3 d-flex flex-wrap">
+                                        <div className="dropdown me-2">
                                             <div className="label">Read Function</div>
                                             <button className="button-dropdown dropdown-toggle" type="button"
                                                     id="read-dropdown"
@@ -627,6 +633,44 @@ function EthMinter({state}) {
                                                         ))
                                                 }
                                             </ul>
+                                        </div>
+
+                                        <div class="dropdown me-2">
+
+                                            <div class="label">Trigger</div>
+                                            <button class="button-dropdown dropdown-toggle" type="button"
+                                                    id="trigger-dropdown" data-bs-toggle="dropdown"
+                                                    aria-expanded="false"
+                                                    onclick=${() => {
+                                                Dropdown.getOrCreateInstance(globalRef.current.querySelector('#trigger-dropdown')).show()
+                                            }}>
+                                                ${getTriggerName()}
+                                            </button>
+                                            <ul class="dropdown-menu" aria-labelledby="dropdown">
+                                                <li class="dropdown-item" onclick=${() => {
+                                                setTrigger('=')
+                                            }}>Equals To
+                                                </li>
+                                                <li class="dropdown-item" onclick=${() => {
+                                                setTrigger('!=')
+                                            }}>Not equals to
+                                                </li>
+                                                <li class="dropdown-item" onclick=${() => {
+                                                setTrigger('>')
+                                            }}>Greater than
+                                                </li>
+                                                <li class="dropdown-item" onclick=${() => {
+                                                setTrigger('<')
+                                            }}>Less than
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        
+                                        <div>
+                                            <div className="label">Read Value</div>
+                                            <input class="input flex-grow-1" value=${readValue} onchange=${(e) => {
+                                                setReadValue(e.target.value)
+                                            }} placeholder="Read value"/>
                                         </div>
                                         
                                     </div>

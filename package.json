@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "rm -rf .parcel-cache && parcel index.html -p 1234",
-    "build": "rm -rf dist && parcel build index.html --no-source-maps --no-scope-hoist && rsync ./login.html ./dist",
-    "deploy": ""
+    "build": "rm -rf dist && parcel build index.html --no-source-maps --no-scope-hoist && rsync ./login.html ./dist && rsync mint-aio-transparent.png ./dist",
+    "deploy": "aws s3 sync dist s3://mintaio-web/ --profile personal && aws cloudfront create-invalidation --distribution-id='E29QWT5NN6IGVY' --paths '/*' --profile personal"
   },
   "author": "Shayan Ghofrany",
   "license": "ISC",
