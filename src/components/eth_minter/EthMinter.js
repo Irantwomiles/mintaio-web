@@ -4,8 +4,12 @@ import {Dropdown, Modal} from "bootstrap";
 import SidebarNav from '../SidebarNav.js';
 import Task from '../../utils/task.js';
 
-function shortenAddress(address) {
-    return address.slice(0, 5) + "..." + address.slice(address.length - 6);
+function fixAddress(address) {
+    if(address.startsWith('0x')) {
+        return address.toLowerCase();
+    }
+
+    return `0x${address}`.toLowerCase();
 }
 
 function groupToKey(arr, key, groups) {
@@ -252,6 +256,12 @@ function EthMinter({state}) {
         }
     }
 
+    const removeSelectedWallet = (w) => {
+        let clone = [...selectedWallets];
+
+        clone = clone.filter(c => fixAddress(c.account.address) !== fixAddress(w.account.address));
+        setSelectedWallets(clone);
+    }
 
     useEffect(() => {
 
@@ -560,7 +570,9 @@ function EthMinter({state}) {
                                     ${
                                             selectedWallets.map(w => (
                                                     html`
-                                                        <div class="selected-wallet me-1">${w.name}</div>
+                                                        <div class="selected-wallet me-1" onclick=${() => removeSelectedWallet(w)}>${w.name}
+                                                            <i class="fa-solid fa-xmark icon-color ms-2 delete-icon"></i>
+                                                        </div>
                                                     `
                                             ))
                                     }

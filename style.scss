@@ -89,6 +89,13 @@ input {
   color: $light-gray;
   padding: 0.2rem 0.4rem;
   border-radius: 0.5rem;
+
+  transition: background-color 200ms ease-in;
+
+  &:hover {
+    background-color: lighten($button-gray-background, 8%);
+    cursor: pointer;
+  }
 }
 
 .button-dropdown {
