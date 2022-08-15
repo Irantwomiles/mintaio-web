@@ -22,6 +22,8 @@ function Wallets({state}) {
     const [password, setPassword] = useState("");
     const [privateKey, setPrivateKey] = useState("");
 
+    const [privateKeys, setPrivateKeys] = useState([]);
+
     const [unlockWallet, setUnlockWallet] = useState(null);
 
     const [toastInfo, setToastInfo] = useState({
@@ -51,7 +53,7 @@ function Wallets({state}) {
             return;
         }
 
-        if(name.length === 0 || password.length === 0 || privateKey.length === 0) {
+        if(name.length === 0 || password.length === 0 || privateKeys.length === 0) {
             setToastInfo({
                 message: 'You need to fill out all of the input fields.',
                 class: 'toast-error'
@@ -71,38 +73,40 @@ function Wallets({state}) {
             return;
         }
 
-        try {
-            const account = state.globalWeb3.eth.accounts.privateKeyToAccount(privateKey);
+        for(const key of privateKeys) {
+            try {
+                const account = state.globalWeb3.eth.accounts.privateKeyToAccount(key.privateKey);
 
-            console.log("Account created:", account);
+                console.log("Account created:", account);
 
-            for(const w of wallets) {
-                if(account.address === w.account.address) {
-                    setToastInfo({
-                        message: 'That wallet has already been added.',
-                        class: 'toast-error'
-                    })
+                for(const w of wallets) {
+                    if(account.address === w.account.address) {
+                        setToastInfo({
+                            message: 'That wallet has already been added.',
+                            class: 'toast-error'
+                        })
 
-                    toast.show();
-                    return;
+                        toast.show();
+                        return;
+                    }
                 }
+
+                state.walletsStream.next([...wallets, new Wallet(name, account)]);
+
+                // Add encrypted wallet to localStorage.
+                const encryptedWallets = JSON.parse(localStorage.getItem("wallets"));
+
+                const encryptedData = state.globalWeb3.eth.accounts.encrypt(account.privateKey, password);
+
+                console.log(encryptedData);
+
+                encryptedWallets.push({name: name, account: encryptedData});
+
+                localStorage.setItem("wallets", JSON.stringify(encryptedWallets));
+
+            } catch(e) {
+                console.log("error", e);
             }
-
-            state.walletsStream.next([...wallets, new Wallet(name, account)]);
-
-            // Add encrypted wallet to localStorage.
-            const encryptedWallets = JSON.parse(localStorage.getItem("wallets"));
-
-            const encryptedData = state.globalWeb3.eth.accounts.encrypt(account.privateKey, password);
-
-            console.log(encryptedData);
-
-            encryptedWallets.push({name: name, account: encryptedData});
-
-            localStorage.setItem("wallets", JSON.stringify(encryptedWallets));
-
-        } catch(e) {
-            console.log("error", e);
         }
 
     }
@@ -183,6 +187,24 @@ function Wallets({state}) {
         navigator.clipboard.writeText(`${address.startsWith('0x') ? address : '0x' + address}`).then(() => console.log);
     }
 
+    const handlePrivateKeysChange = (id, key, value) => {
+        const clone = [...privateKeys];
+
+        const _privateKey = clone.find(pk => pk.id === id);
+
+        if(typeof _privateKey === 'undefined') return;
+
+        _privateKey[key] = value;
+
+        setPrivateKeys(clone);
+    }
+
+    const handleDeletePrivateKey = (id) => {
+        let clone = [...privateKeys];
+        clone = clone.filter(pk => pk.id !== id);
+        setPrivateKeys(clone);
+    }
+
     useEffect(() => {
         setToast(Toast.getOrCreateInstance(globalRef.current.querySelector('#message-toast')));
 
@@ -214,8 +236,8 @@ function Wallets({state}) {
             <div class="p-3 w-100">
 
                 <div>
-                    <button class="button-primary fw-bold" onclick=${() => {walletCreateModal.show()}}><i class="fa-solid fa-plus"></i> New Wallet</button>
-                    <button class="button-secondary fw-bold ms-3"><i class="fa-solid fa-arrow-up"></i> Import Wallets</button>
+                    <button class="button-primary fw-bold"><i class="fa-solid fa-plus"></i> Create Wallets</button>
+                    <button class="button-secondary fw-bold ms-3" onclick=${() => {walletCreateModal.show()}}><i class="fa-solid fa-arrow-up"></i> Import Wallets</button>
                 </div>
 
                 <hr/>
@@ -284,13 +306,37 @@ function Wallets({state}) {
                             </div>
                             
                             <div class="mt-2">
-                                <div class="label">Private Key</div>
-                                <input type="password" class="input w-100" placeholder="0x123abc..." value=${privateKey} onchange=${(e) => {setPrivateKey(e.target.value)}} />
+
+                                <div class="label">Private Keys</div>
+
+                                ${
+                                    privateKeys.map((p) => (
+                                        html`
+                                            <div class="d-flex mb-2">
+                                                <div class="flex-grow-1">
+                                                    <input type="${p.show ? 'text' : 'password'}" class="input w-100" placeholder="0x123abc..." value=${p.privateKey} onchange=${(e) => {handlePrivateKeysChange(p.id, 'privateKey', e.target.value)}} />
+                                                </div>
+
+                                                <div class="d-flex justify-content-center align-items-center pk-icons p-2 ms-1">
+                                                    <i class="fa-solid fa-eye icon-color ${p.show ? 'd-none' : ''}" onclick=${(e) => {handlePrivateKeysChange(p.id, 'show', true)}}></i>
+                                                    <i class="fa-solid fa-eye-slash icon-color ${!p.show ? 'd-none' : ''}" onclick=${(e) => {handlePrivateKeysChange(p.id, 'show', false)}}></i>
+                                                </div>
+                                                <div class="d-flex justify-content-center align-items-center pk-icons p-2 ms-1">
+                                                    <i class="fa-solid fa-trash icon-color delete-icon" onclick=${() => {handleDeletePrivateKey(p.id)}}></i>
+                                                </div>
+                                            </div>
+                                        `
+                                    ))
+                                
+                                }
+
+                                <button class="button-secondary" onclick=${() => {setPrivateKeys([...privateKeys, {id: "pk-" + Math.random().toString(16).slice(2) , privateKey: '', show: false}])} }>Add Private Key</button>
+
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button class="button-outline-cancel" data-bs-dismiss="modal">Cancel</button>
-                            <button class="button-primary" onclick=${handleAddWallet}>Add</button>
+                            <button class="button-primary" onclick=${handleAddWallet}>Import</button>
                         </div>
                     </div>
                 </div>

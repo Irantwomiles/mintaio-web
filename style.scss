@@ -209,9 +209,6 @@ input {
     color: white;
   }
 
-  .icon-color {
-    color: $light-gray;
-  }
 
   .icon-color-delete {
     color: $light-gray;
@@ -395,6 +392,19 @@ hr {
 
   &:hover {
     color: $red;
+    cursor: pointer;
+  }
+}
+
+.icon-color {
+  color: $light-gray;
+}
+
+.pk-icons {
+  background-color: $button-gray-background;
+  border-radius: 0.5rem;
+
+  i:hover {
     cursor: pointer;
   }
 }
