@@ -223,7 +223,7 @@ class Task {
 
         this.automaticTimer = setInterval(() => {
 
-            contract.methods[this.contractReadMethod.name]().call({defaultBlock: 'pending'}).then((result) => {
+            contract.methods[this.contractReadMethod.name]().call({defaultBlock: 'latest'}).then((result) => {
 
                 if(this.operators()[this.trigger](`${result}`.toLowerCase(), `${this.readMethodCurrent}`.toLowerCase())) {
 

@@ -133,6 +133,20 @@ input {
   }
 }
 
+.button-danger {
+  background-color: $red;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  transition: background-color 200ms ease-in;
+
+  &:hover {
+    background-color: darken($red, 8%);
+  }
+}
+
 .button-outline-cancel {
   color: $light-gray;
   background-color: $background;

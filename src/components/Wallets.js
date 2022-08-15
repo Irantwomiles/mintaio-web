@@ -5,7 +5,15 @@ import {useState, useEffect, createRef} from "preact/compat";
 import Wallet from '../utils/wallet.js';
 
 function shortenAddress(address) {
-    return address.slice(0, 5) + "..." + address.slice(address.length - 6);
+    return fixAddress(address).slice(0, 5) + "..." + address.slice(address.length - 6);
+}
+
+function fixAddress(address) {
+    if(address.startsWith('0x')) {
+        return address.toLowerCase();
+    }
+
+    return `0x${address}`.toLowerCase();
 }
 
 function Wallets({state}) {
@@ -16,20 +24,18 @@ function Wallets({state}) {
 
     const [walletCreateModal, setWalletCreateModal] = useState(null);
     const [unlockWalletModal, setUnlockWalletModal] = useState(null);
-    const [toast, setToast] = useState(null);
 
     const [name, setName] = useState("");
     const [password, setPassword] = useState("");
-    const [privateKey, setPrivateKey] = useState("");
+    const [amount, setAmount] = useState(1);
 
     const [privateKeys, setPrivateKeys] = useState([]);
 
+    const [deleteWallet, setDeleteWallet] = useState(null);
+
     const [unlockWallet, setUnlockWallet] = useState(null);
 
-    const [toastInfo, setToastInfo] = useState({
-        message: 'This is my Toast message here This is my Toast message here This is my Toast message here This is my Toast message here!',
-        class: 'toast-success'
-    })
+    const [toastInfo, setToastInfo] = useState(null)
 
     const handleAddWallet = () => {
 
@@ -38,8 +44,6 @@ function Wallets({state}) {
                 message: 'There was an error, please refresh your page.',
                 class: 'toast-error'
             })
-
-            toast.show();
             return;
         }
 
@@ -48,8 +52,6 @@ function Wallets({state}) {
                 message: 'There was an error, please refresh your page.',
                 class: 'toast-error'
             })
-
-            toast.show();
             return;
         }
 
@@ -58,8 +60,6 @@ function Wallets({state}) {
                 message: 'You need to fill out all of the input fields.',
                 class: 'toast-error'
             })
-
-            toast.show();
             return;
         }
 
@@ -68,8 +68,6 @@ function Wallets({state}) {
                 message: "Wallet names can't be longer than 14 characters",
                 class: 'toast-error'
             })
-
-            toast.show();
             return;
         }
 
@@ -77,32 +75,33 @@ function Wallets({state}) {
             try {
                 const account = state.globalWeb3.eth.accounts.privateKeyToAccount(key.privateKey);
 
-                console.log("Account created:", account);
-
                 for(const w of wallets) {
                     if(account.address === w.account.address) {
                         setToastInfo({
                             message: 'That wallet has already been added.',
                             class: 'toast-error'
                         })
-
-                        toast.show();
-                        return;
+                        continue;
                     }
                 }
 
-                state.walletsStream.next([...wallets, new Wallet(name, account)]);
+                const wallet = new Wallet(name, account);
+                wallet.getBalance(state);
+
+                state.walletsStream.next([...wallets, wallet]);
 
                 // Add encrypted wallet to localStorage.
                 const encryptedWallets = JSON.parse(localStorage.getItem("wallets"));
 
                 const encryptedData = state.globalWeb3.eth.accounts.encrypt(account.privateKey, password);
 
-                console.log(encryptedData);
-
                 encryptedWallets.push({name: name, account: encryptedData});
 
                 localStorage.setItem("wallets", JSON.stringify(encryptedWallets));
+
+                setName("");
+                setPassword("");
+                setPrivateKeys([]);
 
             } catch(e) {
                 console.log("error", e);
@@ -118,8 +117,6 @@ function Wallets({state}) {
                 message: 'There was an error, please refresh your page.',
                 class: 'toast-error'
             });
-
-            toast.show();
             unlockWalletModal.hide();
             return;
         }
@@ -129,8 +126,6 @@ function Wallets({state}) {
                 message: 'There was an error, please refresh your page.',
                 class: 'toast-error'
             });
-
-            toast.show();
             unlockWalletModal.hide();
             return;
         }
@@ -154,8 +149,6 @@ function Wallets({state}) {
                     message: 'Wallet Unlocked.',
                     class: 'toast-success'
                 })
-
-                toast.show();
                 unlockWalletModal.hide();
                 return;
             }
@@ -164,8 +157,6 @@ function Wallets({state}) {
                 message: 'Could not unlock wallet.',
                 class: 'toast-error'
             })
-
-            toast.show();
             unlockWalletModal.hide();
             return;
 
@@ -181,6 +172,56 @@ function Wallets({state}) {
 
         setPassword("");
         unlockWalletModal.show();
+    }
+
+    const handleCreateWallets = () => {
+        if(typeof amount !== 'number') return;
+
+        if(amount <= 0) return;
+
+        if(name.length === 0) return;
+
+        const _newWallets = [];
+
+        try {
+            for(let i = 0; i < amount; i++) {
+                const account = state.globalWeb3.eth.accounts.create();
+                const wallet = new Wallet(name + '-MintAIO-' + (i + 1), account);
+
+                wallet.getBalance(state);
+
+                _newWallets.push(wallet);
+            }
+
+            state.walletsStream.next([...wallets, ..._newWallets]);
+
+            const encryptedWallets = JSON.parse(localStorage.getItem("wallets"));
+
+            for(const w of _newWallets) {
+                const encryptedData = state.globalWeb3.eth.accounts.encrypt(w.account.privateKey, password);
+
+                encryptedWallets.push({
+                    name: w.name,
+                    account: encryptedData
+                })
+
+            }
+
+            localStorage.setItem("wallets", JSON.stringify(encryptedWallets));
+
+            setToastInfo({
+                message: `Created ${amount} wallets.`,
+                class: 'toast-success'
+            })
+
+            setName('');
+            setPassword('');
+            setAmount(1);
+
+            Modal.getOrCreateInstance(document.querySelector('#create-wallets-modal')).hide();
+        } catch(e) {
+            console.log(e);
+        }
     }
 
     const copyPublicAddress = (address) => {
@@ -205,9 +246,50 @@ function Wallets({state}) {
         setPrivateKeys(clone);
     }
 
-    useEffect(() => {
-        setToast(Toast.getOrCreateInstance(globalRef.current.querySelector('#message-toast')));
+    const handleDeleteWallet = () => {
+        if(deleteWallet === null) {
+            setToastInfo({
+                message: `Could not delete that wallet.`,
+                class: 'toast-error'
+            })
+            return;
+        }
 
+        let taskCount = 0;
+
+        for(const t of state.ethTasks) {
+            console.log(t);
+            if(fixAddress(t.wallet.account.address) === fixAddress(deleteWallet.account.address)) {
+                taskCount++;
+            }
+        }
+
+        if(taskCount > 0) {
+            setToastInfo({
+                message: `Please delete all ${taskCount} task(s) using this Wallet.`,
+                class: 'toast-error'
+            })
+            return;
+        }
+
+        let clone = [...wallets]
+        clone = clone.filter((w) => fixAddress(w.account.address) !== fixAddress(deleteWallet.account.address));
+
+        state.walletsStream.next(clone);
+
+        let encryptedWallets = JSON.parse(localStorage.getItem("wallets"));
+        encryptedWallets = encryptedWallets.filter((w) => fixAddress(w.account.address) !== fixAddress(deleteWallet.account.address));
+
+        localStorage.setItem('wallets', JSON.stringify(encryptedWallets));
+
+        setToastInfo({
+            message: `Deleted wallet ${deleteWallet.name}.`,
+            class: 'toast-success'
+        })
+        return;
+    }
+
+    useEffect(() => {
         setWalletCreateModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#new-wallet-modal')));
         setUnlockWalletModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#unlock-wallet-modal')));
     }, []);
@@ -228,6 +310,20 @@ function Wallets({state}) {
 
     }, [state]);
 
+    useEffect(() => {
+
+        if(deleteWallet === null) return;
+
+        Modal.getOrCreateInstance(globalRef.current.querySelector('#delete-wallet-modal')).show();
+
+    }, [deleteWallet]);
+
+    useEffect(() => {
+        if(toastInfo === null) return;
+
+        Toast.getOrCreateInstance(document.querySelector('#toast-message')).show();
+    }, [toastInfo]);
+
     return html`
         <div ref=${globalRef} class="d-flex" style="position: relative;">
 
@@ -236,7 +332,7 @@ function Wallets({state}) {
             <div class="p-3 w-100">
 
                 <div>
-                    <button class="button-primary fw-bold"><i class="fa-solid fa-plus"></i> Create Wallets</button>
+                    <button class="button-primary fw-bold" onclick=${() => {Modal.getOrCreateInstance(document.querySelector('#create-wallets-modal')).show()}}><i class="fa-solid fa-plus"></i> Create Wallets</button>
                     <button class="button-secondary fw-bold ms-3" onclick=${() => {walletCreateModal.show()}}><i class="fa-solid fa-arrow-up"></i> Import Wallets</button>
                 </div>
 
@@ -258,7 +354,7 @@ function Wallets({state}) {
                                         </div>
 
                                         <div class="balance me-2 mb-2" onclick=${() => copyPublicAddress(w.account.address)}>
-                                                0x${shortenAddress(w.account.address)}
+                                                ${shortenAddress(w.account.address)}
                                             <i class="fa-solid fa-copy ms-2" style="color: #a1a1a1;"></i>
                                         </div>
 
@@ -267,7 +363,7 @@ function Wallets({state}) {
                                             <div>
                                                 ${w.isLocked() ? html`<i className="fa-solid fa-lock me-2 icon-color-unlock" onclick=${() => {handleOpenUnlockWallet(w)}}></i>` : ''}
                                                 
-                                                <i class="fa-solid fa-trash-can icon-color-delete"></i>
+                                                <i class="fa-solid fa-trash-can icon-color-delete" onclick=${() => setDeleteWallet(w)}></i>
                                             </div>
                                         </div>
                                     </div>
@@ -278,10 +374,10 @@ function Wallets({state}) {
                 </div>
             </div>
             
-            <div id="message-toast" class="toast align-items-center ${toastInfo.class} end-0 top-0 m-3" style="position: absolute" role="alert" aria-live="assertive" aria-atomic="true">
+            <div id="toast-message" class="toast align-items-center ${toastInfo === null ? '' : toastInfo.class} end-0 top-0 m-3" style="position: absolute" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="d-flex align-items-center justify-content-between py-3 mx-2">
                     <div class="toast-body">
-                        ${toastInfo.message}
+                        ${toastInfo === null ? '' : toastInfo.message}
                     </div>
                     <i class="fa-regular fa-circle-xmark" data-bs-dismiss="toast"></i>
                 </div>
@@ -341,6 +437,40 @@ function Wallets({state}) {
                     </div>
                 </div>
             </div>
+
+            <div id="create-wallets-modal" class="modal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        
+                        <div class="modal-header">
+                            <h5 class="modal-title title">Create Wallets</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+
+                            <div>
+                                <div class="label">Name</div>
+                                <input class="input" placeholder="Wallet Name" value=${name} onchange=${(e) => {setName(e.target.value)}} />
+                            </div>
+
+                            <div class="mt-2">
+                                <div class="label">Amount</div>
+                                <input class="input" placeholder="Wallet Name" type="number" min="1" value=${amount} onchange=${(e) => {setAmount(Number.parseInt(e.target.value))}} />
+                            </div>
+                            
+                            <div class="mt-2">
+                                <div class="label">Password</div>
+                                <input type="password" class="input w-75" placeholder="Wallet Password" value=${password} onchange=${(e) => {setPassword(e.target.value)}} />
+                            </div>
+
+                        </div>
+                        <div class="modal-footer">
+                            <button class="button-outline-cancel" data-bs-dismiss="modal">Cancel</button>
+                            <button class="button-primary" onclick=${handleCreateWallets}>Create</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <div id="unlock-wallet-modal" class="modal" tabindex="-1">
                 <div class="modal-dialog">
@@ -360,6 +490,28 @@ function Wallets({state}) {
                         <div class="modal-footer">
                             <button class="button-outline-cancel" data-bs-dismiss="modal">Cancel</button>
                             <button class="button-primary" onclick=${handleUnlockWallet}>Unlock</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="delete-wallet-modal" class="modal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title title">Delete Wallet</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+
+                            <div class="title">Wallet <span style="color: #f58686;">${deleteWallet !== null ? deleteWallet.name : ''}</span> (${deleteWallet !== null ? html`${deleteWallet.balance} <i class="fa-brands fa-ethereum icon-color"></i>` : ''})</div>
+                            
+                            <div class="mt-2 label">Are you sure you want to delete this wallet? Please make sure you have a backup of your Private Key, this action can NOT be reversed!</div>
+
+                        </div>
+                        <div class="modal-footer">
+                            <button class="button-outline-cancel" data-bs-dismiss="modal">Cancel</button>
+                            <button class="button-danger" onclick=${handleDeleteWallet}>Delete</button>
                         </div>
                     </div>
                 </div>
