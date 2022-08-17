@@ -140,7 +140,6 @@
         if(window.location.href.includes('code=')) {
             const split = window.location.href.split("=");
             const code = split[split.length - 1];
-            console.log("Making API call using code", code);
 
             if(code.length === 0) {
                 window.location.href = 'https://app.mintbot.click/login.html';
@@ -177,10 +176,7 @@
                     }
                 })
             }
-        } else {
-            console.log("Waiting for discord click");
         }
-
     </script>
 </body>
 </html>

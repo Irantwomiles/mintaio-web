@@ -171,7 +171,6 @@ class Task {
                 this.startAutomaticMode(state);
                 return;
             default:
-                console.log("Start mode DEFAULT case");
                 return;
         }
     }

@@ -306,7 +306,6 @@ function EthMinter({state}) {
         })
 
         const tasksStream = state.ethTasksStream.subscribe((data) => {
-            console.log(data);
             setTasks(data);
             setGroupedTasks(groupToKey(data, 'taskGroup', groups));
         })
@@ -317,12 +316,6 @@ function EthMinter({state}) {
         }
 
     }, [state]);
-
-    useEffect(() => {
-
-        console.log("groupedTasks", groupedTasks);
-
-    }, [groupedTasks])
 
     useEffect(() => {
 

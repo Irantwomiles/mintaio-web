@@ -1,6 +1,6 @@
 import {html} from 'htm/preact';
 import SidebarNav from "./SidebarNav.js";
-import {Modal, Toast} from 'bootstrap';
+import {Modal, Toast, Dropdown} from 'bootstrap';
 import {useState, useEffect, createRef} from "preact/compat";
 import Wallet from '../utils/wallet.js';
 
@@ -30,7 +30,9 @@ function Wallets({state}) {
     const [amount, setAmount] = useState(1);
 
     const [privateKeys, setPrivateKeys] = useState([]);
+    const [disperseWallets, setDisperseWallets] = useState([]);
 
+    const [disperseMain, setDisperseMain] = useState(null);
     const [deleteWallet, setDeleteWallet] = useState(null);
 
     const [unlockWallet, setUnlockWallet] = useState(null);
@@ -71,22 +73,23 @@ function Wallets({state}) {
             return;
         }
 
+        let i = 1;
+
         for(const key of privateKeys) {
             try {
                 const account = state.globalWeb3.eth.accounts.privateKeyToAccount(key.privateKey);
 
                 for(const w of wallets) {
                     if(account.address === w.account.address) {
-                        setToastInfo({
-                            message: 'That wallet has already been added.',
-                            class: 'toast-error'
-                        })
+                        console.log("Wallet already added, skipping.")
                         continue;
                     }
                 }
 
-                const wallet = new Wallet(name, account);
+                const wallet = new Wallet(name + '-Import-' + (i + 1), account);
                 wallet.getBalance(state);
+
+                i++;
 
                 state.walletsStream.next([...wallets, wallet]);
 
@@ -99,14 +102,18 @@ function Wallets({state}) {
 
                 localStorage.setItem("wallets", JSON.stringify(encryptedWallets));
 
-                setName("");
-                setPassword("");
-                setPrivateKeys([]);
-
             } catch(e) {
+                setToastInfo({
+                    message: "Error while import wallet, check console.",
+                    class: 'toast-error'
+                })
                 console.log("error", e);
             }
         }
+
+        setName("");
+        setPassword("");
+        setPrivateKeys([]);
 
     }
 
@@ -251,14 +258,15 @@ function Wallets({state}) {
             setToastInfo({
                 message: `Could not delete that wallet.`,
                 class: 'toast-error'
-            })
+            });
+
+            Modal.getOrCreateInstance(document.querySelector('#delete-wallet-modal')).hide();
             return;
         }
 
         let taskCount = 0;
 
         for(const t of state.ethTasks) {
-            console.log(t);
             if(fixAddress(t.wallet.account.address) === fixAddress(deleteWallet.account.address)) {
                 taskCount++;
             }
@@ -268,7 +276,8 @@ function Wallets({state}) {
             setToastInfo({
                 message: `Please delete all ${taskCount} task(s) using this Wallet.`,
                 class: 'toast-error'
-            })
+            });
+            Modal.getOrCreateInstance(document.querySelector('#delete-wallet-modal')).hide();
             return;
         }
 
@@ -286,7 +295,113 @@ function Wallets({state}) {
             message: `Deleted wallet ${deleteWallet.name}.`,
             class: 'toast-success'
         })
+        Modal.getOrCreateInstance(document.querySelector('#delete-wallet-modal')).hide();
         return;
+    }
+
+    const availableDisperseWallets = () => {
+        if(disperseMain === null) return [];
+
+        let filtered = wallets.filter((w) => fixAddress(w.account.address) !== fixAddress(disperseMain.account.address));
+
+        for(const disperse of disperseWallets) {
+            filtered = filtered.filter((f) => fixAddress(f.account.address) !== fixAddress(disperse.wallet.account.address));
+        }
+
+        return filtered;
+    }
+
+    const handleDisperseChange = (wallet, key, value) => {
+        const clone = [...disperseWallets];
+
+        const _disperse = clone.find(d => fixAddress(d.wallet.account.address) === fixAddress(wallet.wallet.account.address));
+
+        if(typeof _disperse === 'undefined') return;
+
+        _disperse[key] = value;
+
+        setDisperseWallets(clone);
+    }
+
+    const handleDeleteDisperse = (wallet) => {
+        let clone = [...disperseWallets];
+        const _disperse = clone.filter(d => fixAddress(d.wallet.account.address) !== fixAddress(wallet.wallet.account.address));
+        setDisperseWallets(_disperse);
+    }
+
+    const disperseFunds = () => {
+
+        if(disperseMain === null) {
+            setToastInfo({
+                message: 'You must select a wallet to disperse from',
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        if(disperseMain.isLocked()) {
+            setToastInfo({
+                message: 'Your disperse wallet must be unlocked',
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        if(disperseWallets.length === 0) {
+            setToastInfo({
+                message: 'You must select at least one wallet to send funds to',
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        let totalValue = 0.000;
+        const recipients = [];
+        const values = [];
+
+        for(let i = 0; i < disperseWallets.length; i++) {
+            recipients[i] = fixAddress(disperseWallets[i].wallet.account.address);
+            values[i] = state.globalWeb3.utils.toWei(`${disperseWallets[i].amount}`, 'ether');
+
+            totalValue += Number.parseFloat(Number.parseFloat(disperseWallets[i].amount).toFixed(3));
+        }
+
+        state.disperseFunds(disperseMain, totalValue, recipients, values).then((output) => {
+
+            state.refreshAllBalance();
+
+            setToastInfo({
+                message: 'Funds dispersed successfully',
+                class: 'toast-success'
+            });
+        }).catch((e) => {
+            setToastInfo({
+                message: 'Error occurred while dispersing funds',
+                class: 'toast-error'
+            });
+
+            console.log(e);
+        });
+
+        setToastInfo({
+            message: 'Attempting to disperse funds, please wait a few seconds.',
+            class: 'toast-warning'
+        });
+
+        setDisperseWallets([]);
+        setDisperseMain(null);
+
+        Modal.getOrCreateInstance(document.querySelector('#disperse-funds-modal')).hide();
+    }
+
+    const getTotalFundsDispersed = () => {
+        let totalValue = 0.000;
+
+        for(let i = 0; i < disperseWallets.length; i++) {
+            totalValue += Number.parseFloat(Number.parseFloat(disperseWallets[i].amount).toFixed(3));
+        }
+
+        return totalValue;
     }
 
     useEffect(() => {
@@ -334,6 +449,7 @@ function Wallets({state}) {
                 <div>
                     <button class="button-primary fw-bold" onclick=${() => {Modal.getOrCreateInstance(document.querySelector('#create-wallets-modal')).show()}}><i class="fa-solid fa-plus"></i> Create Wallets</button>
                     <button class="button-secondary fw-bold ms-3" onclick=${() => {walletCreateModal.show()}}><i class="fa-solid fa-arrow-up"></i> Import Wallets</button>
+                    <button class="button-orange fw-bold ms-3" onclick=${() => {Modal.getOrCreateInstance(document.querySelector('#disperse-funds-modal')).show()}}><i class="fa-solid fa-arrow-right-arrow-left"></i> Disperse Funds</button>
                 </div>
 
                 <hr/>
@@ -382,7 +498,6 @@ function Wallets({state}) {
                     <i class="fa-regular fa-circle-xmark" data-bs-dismiss="toast"></i>
                 </div>
             </div>
-            
             <div id="new-wallet-modal" class="modal" tabindex="-1">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -455,7 +570,7 @@ function Wallets({state}) {
 
                             <div class="mt-2">
                                 <div class="label">Amount</div>
-                                <input class="input" placeholder="Wallet Name" type="number" min="1" value=${amount} onchange=${(e) => {setAmount(Number.parseInt(e.target.value))}} />
+                                <input class="input" placeholder="Amount" type="number" min="1" value=${amount} onchange=${(e) => {setAmount(Number.parseInt(e.target.value))}} />
                             </div>
                             
                             <div class="mt-2">
@@ -512,6 +627,86 @@ function Wallets({state}) {
                         <div class="modal-footer">
                             <button class="button-outline-cancel" data-bs-dismiss="modal">Cancel</button>
                             <button class="button-danger" onclick=${handleDeleteWallet}>Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="disperse-funds-modal" class="modal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title title">Disperse Funds</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+
+                            <div>
+                                <div class="dropdown">
+
+                                    <div class="label">Main Wallet</div>
+                                    <button class="button-dropdown dropdown-toggle" id="disperse-main-dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                    onclick=${() => Dropdown.getOrCreateInstance(document.querySelector('#disperse-main-dropdown')).show()}>
+                                        ${disperseMain === null ? 'Select Wallet' : disperseMain.name}
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdown">
+                                        ${wallets.filter(f => !f.isLocked()).map(w => (
+                                            html`
+                                                <li class="dropdown-item" onclick=${() => {setDisperseMain(w)}}>${w.name} (${w.balance})</li>
+                                            `
+                                        ))}
+
+                                    </ul>
+                                </div>
+                                
+                            </div>
+
+                            <div class="mt-2">
+                                
+                                ${
+                                        disperseWallets.map((w) => (
+                                                html`
+                                            <div class="mb-2">
+                                                <div class="label">
+                                                    ${w.wallet.name}
+                                                </div>
+
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <input class="input w-50" type="number" min="0" value=${w.amount} onchange=${(e) => {handleDisperseChange(w, 'amount', e.target.value)}} />
+                                                    <i class="fa-solid fa-trash icon-color delete-icon pk-icons p-2 ms-1" onclick=${() => handleDeleteDisperse(w)}></i>
+                                                </div>
+                                            </div>
+                                        `
+                                        ))
+
+                                }
+
+                                <div class="dropdown ${disperseMain !== null ? '' : 'd-none'}">
+
+                                    <button class="button-secondary dropdown-toggle" id="disperse-select-dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                            onclick=${() => Dropdown.getOrCreateInstance(document.querySelector('#disperse-select-dropdown')).show()}>
+                                        Add Wallet
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdown">
+                                        ${disperseMain !== null ?
+                                            availableDisperseWallets().map(w => (
+                                                html`
+                                                <li class="dropdown-item" onclick=${() => {setDisperseWallets([...disperseWallets, {wallet: w, amount: 0}])}}>${w.name} (${w.balance})</li>
+                                            `
+                                        )) : ''
+                                        }
+
+                                    </ul>
+                                </div>
+
+                            </div>
+                           
+                            <div class="mt-3 label">Total (not including gas): <span>${getTotalFundsDispersed()} <i class="fa-brands fa-ethereum icon-color"></i></span></div>
+                            
+                        </div>
+                        <div class="modal-footer">
+                            <button class="button-outline-cancel" data-bs-dismiss="modal">Cancel</button>
+                            <button class="button-primary" onclick=${() => disperseFunds()}>Send Transaction</button>
                         </div>
                     </div>
                 </div>

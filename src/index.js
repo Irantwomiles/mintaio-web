@@ -53,7 +53,6 @@ if(localStorage.getItem("eth-tasks") === null) {
         });
 
         if(typeof wallet !== 'undefined') {
-            console.log("Creating task");
 
             mainState.getContractAbi(t.contractAddress, t.network).then((abi) => {
                 const task = new Task(t.provider, t.contractAddress, wallet, t.price, t.amount, t.maxGas, t.gasPriority, t.gasLimit, t.functionName, t.args, abi);

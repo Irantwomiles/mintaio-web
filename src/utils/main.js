@@ -43,6 +43,8 @@ class Main {
             localStorage.setItem("etherscan-api", "");
         }
 
+        this.disperseABI = [{"constant":false,"inputs":[{"name":"token","type":"address"},{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseTokenSimple","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"token","type":"address"},{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseToken","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseEther","outputs":[],"payable":true,"stateMutability":"payable","type":"function"}];
+
         console.log("Main state initiated.");
     }
 
@@ -89,8 +91,6 @@ class Main {
 
         let methods = null;
         const valid_json = this.validJson(abi);
-
-        console.log(abi);
 
         if(methods === null && !valid_json) {
             console.log("no methods found and the abi was invalid");
@@ -167,6 +167,43 @@ class Main {
         // we have to create a clone because rxjs doesn't detect a change when we just assign this.ethTasks as the next value.
         const clone = [...this.ethTasks];
         this.ethTasksStream.next(clone);
+    }
+
+    refreshAllBalance() {
+        for(const w of this.wallets) {
+            w.getBalance(this);
+        }
+    }
+
+    async disperseFunds(mainWallet, totalValue, recipients, values) {
+
+        const account = this.globalWeb3.eth.accounts.privateKeyToAccount(mainWallet.account.privateKey);
+        const contract = new this.globalWeb3.eth.Contract(this.disperseABI, '0xD152f549545093347A162Dce210e7293f1452150');
+        const nonce = await this.globalWeb3.eth.getTransactionCount(account.address, 'latest');
+        const value = `${this.globalWeb3.utils.toWei(`${totalValue}`, 'ether')}`;
+
+        const gasLimit = await contract.methods['disperseEther'](recipients, values).estimateGas(
+            {
+                from: account.address,
+                value: value
+            });
+
+        const data = contract.methods['disperseEther'](recipients, values).encodeABI();
+
+        const tx = {
+            from: account.address,
+            to: '0xD152f549545093347A162Dce210e7293f1452150',
+            value: value,
+            nonce: nonce,
+            maxFeePerGas: `${this.globalWeb3.utils.toWei('100', 'gwei')}`,
+            maxPriorityFeePerGas: `${this.globalWeb3.utils.toWei(`1.5`,  'gwei')}`,
+            gasLimit: Number.parseInt(gasLimit),
+            data: data
+        };
+
+        const sign = await this.globalWeb3.eth.accounts.signTransaction(tx, account.privateKey);
+
+        return this.globalWeb3.eth.sendSignedTransaction(sign.rawTransaction);
     }
 }
 

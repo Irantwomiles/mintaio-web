@@ -12,6 +12,7 @@ $green: #49a58b;
 $blue: #3674e0;
 $red: #f58686;
 $yellow: #d7ba5a;
+$orange: #d78e5a;
 
 * {
   font-family: 'Arimo', sans-serif;
@@ -154,6 +155,20 @@ input {
   }
 }
 
+.button-orange {
+  background-color: $orange;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  transition: background-color 200ms ease-in;
+
+  &:hover {
+    background-color: darken($orange, 8%);
+  }
+}
+
 .button-outline-cancel {
   color: $light-gray;
   background-color: $background;
@@ -287,6 +302,21 @@ hr {
 .toast-error {
   background-color: $background-sidebar;
   color: $red;
+
+  i {
+    color: $light-gray;
+    transition: color 200ms ease-in;
+
+    &:hover {
+      color: $red;
+      cursor: pointer;
+    }
+  }
+}
+
+.toast-warning {
+  background-color: $background-sidebar;
+  color: $yellow;
 
   i {
     color: $light-gray;
