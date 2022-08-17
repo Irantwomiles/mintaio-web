@@ -8,6 +8,8 @@ class Main {
         this.walletsStream = new BehaviorSubject([]);
         this.ethTasksStream = new BehaviorSubject([]);
 
+        this.webhook = localStorage.getItem('discordWebHook') === null ? '' : localStorage.getItem('discordWebHook');
+
         this.abi = [];
         this.wallets = [];
         this.ethTasks = [];
@@ -205,6 +207,55 @@ class Main {
 
         return this.globalWeb3.eth.sendSignedTransaction(sign.rawTransaction);
     }
+
+    mintSuccessMessage(contract_address, tx_hash, price, max_gas, priority_fee, webhook) {
+
+        if(this.webhook.length === 0) {
+            console.log("Webhook not set");
+            return;
+        }
+
+        try {
+            const message = {
+                "embeds": [
+                    {
+                        "title": "Successfully Minted!",
+                        "description": `Project: [View on etherscan](https://etherscan.io/address/${contract_address})  Transaction: [View on etherscan](https://etherscan.io/tx/${tx_hash})\n\n**Price**: ${price} ETH\n**Max Gas:** ${max_gas} | **Priority Fee:** ${priority_fee}`,
+                        "color": 3135616,
+                        "author": {
+                            "name": "MintAIO",
+                            "url": "https://twitter.com/MintAIO_"
+                        }
+                    }
+                ]
+            }
+
+            fetch(this.webhook, {
+                method: 'POST',
+                body: JSON.stringify(message),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        } catch {
+
+        }
+    }
+
+    testWebHook() {
+        fetch(this.webhook, {
+            method: 'POST',
+            body: JSON.stringify({
+                "content": "This is a test from MintAIO! Your Discord webhook is working :)",
+                "embeds": null,
+                "attachments": []
+            }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+    }
+
 }
 
 export default Main;
