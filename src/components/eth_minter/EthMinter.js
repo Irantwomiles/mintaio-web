@@ -58,6 +58,8 @@ function EthMinter({state}) {
     const [mode, setMode] = useState("MANUAL");
     const [trigger, setTrigger] = useState("!=");
 
+    const [editTask, setEditTask] = useState(null);
+
     const [mintMethods, setMintMethods] = useState([]);
     const [readMethods, setReadMethods] = useState([]);
 
@@ -65,7 +67,6 @@ function EthMinter({state}) {
     const [networksDropdown, setNetworksDropdown] = useState(null);
     const [walletsDropdown, setWalletsDropdown] = useState(null);
     const [mintDropdown, setMintDropdown] = useState(null);
-    const [readDropdown, setReadDropdown] = useState(null);
 
     const [loadingAbi, setLoadingAbi] = useState(false);
     const [groups, setGroups] = useState([]);
@@ -73,7 +74,6 @@ function EthMinter({state}) {
     const [selectedGroup, setSelectedGroup] = useState("");
     const [selectedColor, setSelectedColor] = useState('#49a58b');
 
-    const [newTaskModal, setNewTaskModal] = useState(null);
     const [createGroupModal, setCreateGroupModal] = useState(null);
 
     const [groupedTasks, setGroupedTasks] = useState(null);
@@ -129,16 +129,10 @@ function EthMinter({state}) {
             return;
         }
 
-        const _args = [];
-
-        for (const a of args) {
-            _args.push(a.value);
-        }
-
         let _tasks = [...tasks];
         for (const w of selectedWallets) {
 
-            const task = new Task(provider, contractAddress, w, price, amount, maxGas, gasPriority, gasLimit, mintMethod, _args, abi);
+            const task = new Task(provider, contractAddress, w, price, amount, maxGas, gasPriority, gasLimit, mintMethod, args, abi);
             task.taskGroup = selectedGroup;
             task.network = network;
             task.trigger = trigger;
@@ -160,6 +154,33 @@ function EthMinter({state}) {
 
         state.ethTasksStream.next(_tasks);
         Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).hide();
+    }
+
+    const handleUpdateTasks = () => {
+        if(editTask === null) {
+            return;
+        }
+
+        if(selectedWallets.length > 1 || selectedWallets.length === 0) {
+            return;
+        }
+
+        editTask.wallet = selectedWallets[0];
+        editTask.provider = provider;
+        editTask.network = network;
+        editTask.contractAddress = contractAddress;
+        editTask.taskGroup = selectedGroup;
+        editTask.contractAddress = contractAddress;
+        editTask.functionName = mintMethod;
+        editTask.args = args;
+        editTask.readMethodCurrent = readMethod;
+        editTask.readMethodCurrent = readValue;
+        editTask.trigger = trigger;
+        editTask.maxGas = maxGas;
+        editTask.gasPriority = gasPriority;
+        editTask.gasLimit = gasLimit;
+
+        // update task.
     }
 
     const handleCreateGroup = () => {
@@ -263,6 +284,11 @@ function EthMinter({state}) {
         setSelectedWallets(clone);
     }
 
+    const handleShowCreateTaskModal = () => {
+        setEditTask(null);
+        Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).show();
+    }
+
     useEffect(() => {
 
         setGroupsDropdown(new Dropdown(globalRef.current.querySelector('#groups-dropdown'), {}));
@@ -271,7 +297,6 @@ function EthMinter({state}) {
         setMintDropdown(new Dropdown(globalRef.current.querySelector('#mint-dropdown'), {}));
         //setReadDropdown(new Dropdown(globalRef.current.querySelector('#read-dropdown'), {}));
 
-        setNewTaskModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')));
         setCreateGroupModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#create-group-modal')));
 
         setProvider(localStorage.getItem('globalRpc'));
@@ -329,6 +354,85 @@ function EthMinter({state}) {
         localStorage.setItem('eth-groups', JSON.stringify(clone));
     }, [groups]);
 
+    useEffect(() => {
+
+        if(provider.length === 0) return;
+
+        if(provider.toLowerCase().includes('rinkeby')) {
+            setNetwork('rinkeby');
+
+        } else if(provider.toLowerCase().includes('ropsten')) {
+            setNetwork('ropsten');
+
+        } else if(provider.toLowerCase().includes('goerli')) {
+            setNetwork('goerli');
+        } else {
+            setNetwork('mainnet');
+        }
+
+
+    }, [provider]);
+
+    useEffect(() => {
+
+        if(editTask === null) return;
+
+        const _wallet = wallets.find(w => fixAddress(w.account.address) === fixAddress(editTask.wallet.account.address))
+
+        setSelectedWallets([_wallet]);
+        setProvider(editTask.provider);
+        setNetwork(editTask.network);
+
+        let _group = groups.find(g => g.name === editTask.taskGroup);
+
+        if(typeof _group === 'undefined') {
+            _group = "";
+        } else {
+            _group = _group.name;
+        }
+
+        setSelectedGroup(editTask.taskGroup.length > 0 ? _group : "");
+        setContractAddress(editTask.contractAddress);
+        setAbi(editTask.abi);
+
+        const contractInfo = state.getContractMethods(editTask.abi);
+
+        if (contractInfo === null) {
+            console.log("Could not get contract info.");
+        } else {
+            setMintMethods(contractInfo.mintMethods);
+            setReadMethods(contractInfo.readMethods);
+        }
+
+        setMintMethod(editTask.functionName);
+
+        setMode(editTask.startMode);
+
+        if(editTask.startMode === "AUTOMATIC") {
+            setReadMethod(editTask.contractReadMethod);
+        }
+
+        setTrigger(editTask.trigger);
+        setReadValue(editTask.readMethodCurrent);
+
+        setMaxGas(editTask.maxGas);
+        setGasPriority(editTask.gasPriority);
+        setGasLimit(editTask.gasLimit);
+
+        Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).show();
+
+    }, [editTask]);
+
+    useEffect(() => {
+
+        // because the args value is overridden when the setMintMethod is called, we need to set the args value again here.
+
+        if(editTask === null) return;
+
+        setArgs(editTask.args);
+
+    }, [args]);
+
     return html`
         <div ref=${globalRef} class="d-flex">
 
@@ -338,7 +442,7 @@ function EthMinter({state}) {
 
                 <div>
                     <button class="button-primary fw-bold" onclick=${() => {
-                        newTaskModal.show()
+                        handleShowCreateTaskModal()
                     }}><i class="fa-solid fa-plus"></i> New Task
                     </button>
                     <button class="button-secondary fw-bold ms-3" onclick=${startAllTasks}><i class="fa-solid fa-arrow-up"></i> Start All
@@ -445,6 +549,13 @@ function EthMinter({state}) {
                                                                onclick=${() => {
                                                                 t.stop(state)
                                                             }}></i>
+
+                                                            <i class="fa-solid fa-pen-to-square me-2 icon-color edit-icon"
+                                                                onclick=${() => {
+                                                                    setEditTask(t);
+                                                                }}
+                                                            ></i>
+
                                                             <i class="fa-solid fa-trash icon-color delete-icon"
                                                                onclick=${() => {
                                                                 state.deleteEthTask(t.id)
@@ -529,6 +640,10 @@ function EthMinter({state}) {
                                             <li class="dropdown-item" onclick=${() => {
                                                 setNetwork('rinkeby')
                                             }}>Dev - Rinkeby
+                                            </li>
+                                            <li class="dropdown-item" onclick=${() => {
+                                                setNetwork('goerli')
+                                            }}>Dev - Goerli
                                             </li>
                                         </ul>
                                     </div>
@@ -621,7 +736,7 @@ function EthMinter({state}) {
                                                                         <div class="label">${arg.name}</div>
                                                                         <input class="input" onchange=${(e) => {
                                                                             handleInput(e, index)
-                                                                        }} placeholder=${arg.name}/>
+                                                                        }} placeholder=${arg.name} value=${arg.value} />
                                                                     </div>
                                                                 `
                                                         ))
@@ -783,7 +898,8 @@ function EthMinter({state}) {
                         </div>
                         <div class="modal-footer">
                             <button class="button-outline-cancel me-2" onclick=${() => {Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).hide()}}>Cancel</button>
-                            <button class="button-primary" onclick=${handleCreateTasks}>Create Task</button>
+                            <button class="button-secondary ${editTask === null ? 'd-none' : ''}" onclick=${handleUpdateTasks}>Save Task</button>
+                            <button class="button-primary ${editTask === null ? '' : 'd-none'}" onclick=${handleCreateTasks}>Create Task</button>
                         </div>
                     </div>
                 </div>

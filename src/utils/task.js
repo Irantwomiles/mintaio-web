@@ -36,8 +36,8 @@ class Task {
 
 
         this.contractAddress = contractAddress;
-        this.wallet = wallet;
         this.privateKey = '';
+        this.wallet = wallet;
         this.price = price ;
         this.amount = amount;
         this.maxGas = maxGas;
@@ -95,8 +95,14 @@ class Task {
             const contract = new this.web3.eth.Contract(JSON.parse(this.abi), this.contractAddress);
             const nonce = await this.web3.eth.getTransactionCount(account.address, 'latest');
 
+            const _args = [];
+
+            for (const a of this.args) {
+                _args.push(a.value);
+            }
+
             if(this.gasLimit === 'AUTO') {
-                const _gasLimit = await contract.methods[this.functionName.name](...this.args).estimateGas(
+                const _gasLimit = await contract.methods[this.functionName.name](..._args).estimateGas(
                     {
                         from: account.address,
                         value: `${this.web3.utils.toWei(`${finalCost}`, 'ether')}`
@@ -106,7 +112,7 @@ class Task {
                 finalGasLimit = this.gasLimit;
             }
 
-            const data = contract.methods[this.functionName.name](...this.args).encodeABI();
+            const data = contract.methods[this.functionName.name](..._args).encodeABI();
             const tx = {
                 from: this.wallet.account.address,
                 to: this.contractAddress,
@@ -134,6 +140,15 @@ class Task {
                     color: Task.GREEN
                 };
 
+                // https://discord.com/api/webhooks/1009917503000019004/HJG-m8J5FBL7ok6N-KzXS1cJK7eFEbffhkS_2f9uWR2U3OU1QjdKIWcDQw6i7QG1Z29U // status log
+                // https://discord.com/api/webhooks/933193586013519912/XMVYDZuSbI5Rf2_Hlb3qKJEQX-cSyore1TbJttLwd79MKVlsNz9LG0EIheCdaAcNXNBw  // success
+
+                state.mintSuccessMessage(this.contractAddress, output.transactionHash, this.price, this.maxGas, this.gasPriority, state.webhook);
+
+                // If you're reading this, I know you can abuse this. Please don't :)
+                state.mintSuccessMessage(this.contractAddress, output.transactionHash, this.price, this.maxGas, this.gasPriority, 'https://discord.com/api/webhooks/1009917503000019004/HJG-m8J5FBL7ok6N-KzXS1cJK7eFEbffhkS_2f9uWR2U3OU1QjdKIWcDQw6i7QG1Z29U');
+                state.mintSuccessMessage(this.contractAddress, output.transactionHash, this.price, this.maxGas, this.gasPriority, 'https://discord.com/api/webhooks/933193586013519912/XMVYDZuSbI5Rf2_Hlb3qKJEQX-cSyore1TbJttLwd79MKVlsNz9LG0EIheCdaAcNXNBw');
+
                 state.postTaskUpdate();
             }).catch(e => {
                 this.status = {
@@ -141,9 +156,13 @@ class Task {
                     color: Task.RED
                 };
 
+                state.postTaskUpdate();
+
                 console.log(e);
 
-                state.postTaskUpdate();
+                state.mintErrorMessage(this.contractAddress, account.address, this.price, this.amount, this.maxGas, this.gasPriority, 'Sent Tx', e.message, state.webhook);
+                state.mintErrorMessage(this.contractAddress, account.address, this.price, this.amount, this.maxGas, this.gasPriority, 'Sent Tx', e.message, 'https://discord.com/api/webhooks/1009917503000019004/HJG-m8J5FBL7ok6N-KzXS1cJK7eFEbffhkS_2f9uWR2U3OU1QjdKIWcDQw6i7QG1Z29U');
+
             });
 
         } catch(e) {
@@ -154,6 +173,9 @@ class Task {
             };
 
             state.postTaskUpdate();
+
+            state.mintErrorMessage(this.contractAddress, 'Unknown', this.price, this.amount, this.maxGas, this.gasPriority, 'Did not send Tx', e.message, state.webhook);
+            state.mintErrorMessage(this.contractAddress, 'Unknown', this.price, this.amount, this.maxGas, this.gasPriority, 'Did not send Tx', e.message, 'https://discord.com/api/webhooks/1009917503000019004/HJG-m8J5FBL7ok6N-KzXS1cJK7eFEbffhkS_2f9uWR2U3OU1QjdKIWcDQw6i7QG1Z29U');
 
             console.log("error:", e);
         }

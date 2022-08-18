@@ -47,16 +47,16 @@ class Main {
 
         this.disperseABI = [{"constant":false,"inputs":[{"name":"token","type":"address"},{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseTokenSimple","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"token","type":"address"},{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseToken","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseEther","outputs":[],"payable":true,"stateMutability":"payable","type":"function"}];
 
-        console.log("Main state initiated.");
-    }
-
-    updateWalletsBalance() {
-
-
+        console.log("Main state initiated, MintAIO - v0.1-beta");
     }
 
     async getContractAbi(contract, network) {
         let output = this.abi.find(a => a.contractAddress === contract);
+
+        if(typeof output !== 'undefined' && output.abi === 'Contract source code not verified') {
+            this.abi = this.abi.filter(a => a.contractAddress !== contract);
+            output = undefined;
+        }
 
         if(typeof output === 'undefined') {
             let abi = await this.fetchContractAbi(contract, network);
@@ -210,7 +210,7 @@ class Main {
 
     mintSuccessMessage(contract_address, tx_hash, price, max_gas, priority_fee, webhook) {
 
-        if(this.webhook.length === 0) {
+        if(webhook.length === 0) {
             console.log("Webhook not set");
             return;
         }
@@ -230,13 +230,44 @@ class Main {
                 ]
             }
 
-            fetch(this.webhook, {
+            fetch(webhook, {
                 method: 'POST',
                 body: JSON.stringify(message),
                 headers: {
                     'Content-Type': 'application/json'
                 }
             })
+        } catch {
+
+        }
+    }
+
+    mintErrorMessage(contract_address, sender, price, amount, max_gas, priority_fee, status, error, webhook) {
+
+        if(webhook.length === 0) {
+            console.log("Webhook not set");
+            return;
+        }
+
+        try {
+            const message = {
+                "embeds": [
+                    {
+                        "title": "MintAIO",
+                        "description": `**Status:** ${status} | **Mode:** Automatic\n**Project**: [View on etherscan](https://etherscan.io/address/${contract_address}) | **Sender:** [View on etherscan](https://etherscan.io/address/${sender})\n\n**Price:** ${price} ETH | **Quantity:** ${amount} | **Max Gas:** ${max_gas} | **Priority Fee:** ${priority_fee}\n\n**Error:** ${error}`,
+                        "color": 13963794
+                    }
+                ]
+            }
+
+            fetch(webhook, {
+                method: 'POST',
+                body: JSON.stringify(message),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+
         } catch {
 
         }

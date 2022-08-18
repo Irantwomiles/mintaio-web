@@ -427,6 +427,16 @@ hr {
   }
 }
 
+.edit-icon {
+  color: white;
+  transition: color 200ms ease-in;
+
+  &:hover {
+    color: $blue;
+    cursor: pointer;
+  }
+}
+
 .stop-icon {
   color: white;
   transition: color 200ms ease-in;

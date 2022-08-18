@@ -1,11 +1,6 @@
 import {html} from 'htm/preact';
-import {useEffect} from "preact/compat";
 
 function SidebarNav({page}) {
-
-    useEffect(() => {
-        console.log('MintAIO - v0.1-beta');
-    }, []);
 
     return html`
         <div class="sidebar col-auto col-md-3 col-xl-2 px-0">

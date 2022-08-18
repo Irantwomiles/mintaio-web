@@ -3,6 +3,7 @@
   * Show recent mints.
   * Show upcoming mints.
   * Quick Add upcoming hyped mints.
+* Edit tasks
 * Add discord webhook support
 * Allow users to mass unlock wallets
 * Allow for even distribution of funds.
