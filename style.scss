@@ -488,10 +488,21 @@ hr {
 .q-a {
   color: $light-gray;
 
+  a {
+    color: $green;
+    text-decoration: none;
+  }
+
   p {
     padding: 0;
     margin-left: 0.5rem;
     margin-top: 0;
     margin-bottom: 0;
   }
+}
+
+.info-section {
+  background-color: $background-sidebar;
+  padding: 2rem 2rem;
+  border-radius: 0.5rem;
 }

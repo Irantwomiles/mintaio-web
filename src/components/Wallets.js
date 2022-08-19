@@ -27,6 +27,7 @@ function Wallets({state}) {
 
     const [name, setName] = useState("");
     const [password, setPassword] = useState("");
+    const [massPassword, setMassPassword] = useState("");
     const [amount, setAmount] = useState(1);
 
     const [privateKeys, setPrivateKeys] = useState([]);
@@ -170,6 +171,38 @@ function Wallets({state}) {
         } catch(e) {
             console.log("error:", e);
         }
+
+    }
+
+    const massUnlockWallets = async () => {
+
+        if(massPassword.length === 0) {
+            setToastInfo({
+                message: `You must input the password.`,
+                class: 'toast-error'
+            })
+            return;
+        }
+
+        let i = 0;
+
+        for(const w of wallets) {
+
+            try {
+                const unlocked = state.unlockWallet(w.account.address, massPassword);
+
+                if(unlocked) {
+                    i++;
+                }
+
+            } catch(e) {
+            }
+        }
+
+        setToastInfo({
+            message: `Unlocked ${i} wallets.`,
+            class: 'toast-success'
+        })
 
     }
 
@@ -446,14 +479,20 @@ function Wallets({state}) {
 
             <div class="p-3 w-100">
 
-                <div>
+                <div class="d-flex">
                     <button class="button-primary fw-bold" onclick=${() => {Modal.getOrCreateInstance(document.querySelector('#create-wallets-modal')).show()}}><i class="fa-solid fa-plus"></i> Create Wallets</button>
-                    <button class="button-secondary fw-bold ms-3" onclick=${() => {walletCreateModal.show()}}><i class="fa-solid fa-arrow-up"></i> Import Wallets</button>
-                    <button class="button-orange fw-bold ms-3" onclick=${() => {Modal.getOrCreateInstance(document.querySelector('#disperse-funds-modal')).show()}}><i class="fa-solid fa-arrow-right-arrow-left"></i> Disperse Funds</button>
+                    <button class="button-secondary fw-bold ms-2" onclick=${() => {walletCreateModal.show()}}><i class="fa-solid fa-arrow-up"></i> Import Wallets</button>
+                    <button class="button-orange fw-bold ms-2" onclick=${() => {Modal.getOrCreateInstance(document.querySelector('#disperse-funds-modal')).show()}}><i class="fa-solid fa-arrow-right-arrow-left"></i> Disperse Funds</button>
+                    
                 </div>
 
                 <hr/>
 
+                <div class="mb-3">
+                    <button class="button-primary fw-bold me-2" onclick=${() => {massUnlockWallets()}}><i class="fa-solid fa-unlock"></i> Mass Unlock</button>
+                    <input class="input" placeholder="Password" type="password" value=${massPassword} onchange=${(e) => {setMassPassword(e.target.value)}} />
+                </div>
+                
                 <div class="d-flex flex-wrap">
                     
                     ${
