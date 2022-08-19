@@ -165,22 +165,35 @@ function EthMinter({state}) {
             return;
         }
 
-        editTask.wallet = selectedWallets[0];
-        editTask.provider = provider;
-        editTask.network = network;
-        editTask.contractAddress = contractAddress;
-        editTask.taskGroup = selectedGroup;
-        editTask.contractAddress = contractAddress;
-        editTask.functionName = mintMethod;
-        editTask.args = args;
-        editTask.readMethodCurrent = readMethod;
-        editTask.readMethodCurrent = readValue;
-        editTask.trigger = trigger;
-        editTask.maxGas = maxGas;
-        editTask.gasPriority = gasPriority;
-        editTask.gasLimit = gasLimit;
+        const _task = state.ethTasks.find(t => t.id === editTask.id);
 
-        // update task.
+        if(typeof _task === 'undefined') {
+            console.log("Task is undefined", _task);
+            return;
+        }
+
+        _task.wallet = selectedWallets[0];
+        _task.provider = provider;
+        _task.network = network;
+        _task.contractAddress = contractAddress;
+        _task.taskGroup = selectedGroup;
+        _task.contractAddress = contractAddress;
+        _task.functionName = mintMethod;
+        _task.args = args;
+        _task.amount = amount;
+        _task.price = price;
+        _task.contractReadMethod = readMethod;
+        _task.readMethodCurrent = readValue;
+        _task.trigger = trigger;
+        _task.maxGas = maxGas;
+        _task.gasPriority = gasPriority;
+        _task.gasLimit = gasLimit;
+        _task.startMode = mode;
+
+        _task.save();
+
+        Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).hide();
+        console.log("Saved", _task);
     }
 
     const handleCreateGroup = () => {
@@ -406,6 +419,8 @@ function EthMinter({state}) {
 
         setMintMethod(editTask.functionName);
 
+        setPrice(editTask.price);
+        setAmount(editTask.amount);
         setMode(editTask.startMode);
 
         if(editTask.startMode === "AUTOMATIC") {
@@ -552,7 +567,7 @@ function EthMinter({state}) {
 
                                                             <i class="fa-solid fa-pen-to-square me-2 icon-color edit-icon"
                                                                 onclick=${() => {
-                                                                    setEditTask(t);
+                                                                    setEditTask(Object.assign({}, t));
                                                                 }}
                                                             ></i>
 
@@ -599,13 +614,13 @@ function EthMinter({state}) {
                                         <ul class="dropdown-menu" aria-labelledby="dropdown">
                                             ${
                                                     wallets.length === 0 ? '' :
-                                                            wallets.filter(w => !w.isLocked()).map((w) => (
-                                                                    html`
-                                                                        <li class="dropdown-item" onclick=${() => {
-                                                                            addWallet(w)
-                                                                        }}>${w.name}
-                                                                        </li>
-                                                                    `
+                                                            wallets.map((w) => (
+                                                                html`
+                                                                    <li class="dropdown-item" onclick=${() => {
+                                                                        addWallet(w)
+                                                                    }}>${w.name}
+                                                                    </li>
+                                                                `
                                                             ))
                                             }
                                         </ul>
