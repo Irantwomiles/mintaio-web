@@ -1,6 +1,6 @@
 import {html} from 'htm/preact';
 import {useEffect, useState, useRef} from "preact/compat";
-import {Dropdown, Modal} from "bootstrap";
+import {Dropdown, Modal, Toast} from "bootstrap";
 import SidebarNav from '../SidebarNav.js';
 import Task from '../../utils/task.js';
 
@@ -77,6 +77,7 @@ function EthMinter({state}) {
     const [createGroupModal, setCreateGroupModal] = useState(null);
 
     const [groupedTasks, setGroupedTasks] = useState(null);
+    const [toastInfo, setToastInfo] = useState(null)
 
     const handleGetContractInfo = async () => {
 
@@ -86,10 +87,16 @@ function EthMinter({state}) {
 
         setTimeout(() => {
             setLoadingAbi(false);
-        }, 1000);
+        }, 750);
 
         if (abi === null) {
-            console.log("error occurred while getting abi");
+            setToastInfo({
+                message: 'Error while getting ABI.',
+                class: 'toast-error'
+            });
+
+            console.log("ABI was null.");
+            return;
         }
 
         setAbi(abi);
@@ -97,7 +104,12 @@ function EthMinter({state}) {
         const contractInfo = state.getContractMethods(abi);
 
         if (contractInfo === null) {
-            console.log("Could not get contract info.");
+            setToastInfo({
+                message: 'Could not get the information required.',
+                class: 'toast-error'
+            });
+
+            console.log("Contract info is null");
             return;
         }
 
@@ -122,23 +134,70 @@ function EthMinter({state}) {
     const handleCreateTasks = () => {
 
         if (selectedWallets.length === 0) {
+            setToastInfo({
+                message: `You must select at least one wallet`,
+                class: 'toast-error'
+            });
             return;
         }
 
-        if (provider.length === 0 || contractAddress.length === 0) {
+        if (provider.length === 0) {
+            setToastInfo({
+                message: `You must set a RPC endpoint.`,
+                class: 'toast-error'
+            });
             return;
+        }
+
+        if (contractAddress.length === 0) {
+            setToastInfo({
+                message: `You must input a Contract Address.`,
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        if(mintMethod === null) {
+            setToastInfo({
+                message: `You must select a Mint Function.`,
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        if(mode === 'AUTOMATIC') {
+
+            if(readMethod === null) {
+                setToastInfo({
+                    message: `You must select a Read Function for Automatic tasks.`,
+                    class: 'toast-error'
+                });
+                return;
+            }
+
+            if(readValue.length === 0) {
+                setToastInfo({
+                    message: `You must input a Read Value for Automatic tasks.`,
+                    class: 'toast-error'
+                });
+                return;
+            }
         }
 
         let _tasks = [...tasks];
+        let i = 0;
         for (const w of selectedWallets) {
 
             const task = new Task(provider, contractAddress, w, price, amount, maxGas, gasPriority, gasLimit, mintMethod, args, abi);
+
             task.taskGroup = selectedGroup;
             task.network = network;
             task.trigger = trigger;
             task.startMode = mode;
             task.readMethodCurrent = readValue;
             task.contractReadMethod = readMethod;
+
+            i++;
 
             const _wallet = wallets.find(w => w.account.address === task.wallet.account.address);
 
@@ -154,21 +213,43 @@ function EthMinter({state}) {
 
         state.ethTasksStream.next(_tasks);
         Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).hide();
+
+        setToastInfo({
+            message: `Created ${i} tasks.`,
+            class: 'toast-success'
+        });
     }
 
     const handleUpdateTasks = () => {
         if(editTask === null) {
+            setToastInfo({
+                message: 'Error while trying to update task.',
+                class: 'toast-error'
+            });
+
+            console.log("Task was null.");
             return;
         }
 
         if(selectedWallets.length > 1 || selectedWallets.length === 0) {
+            setToastInfo({
+                message: 'You must select a wallet for this task.',
+                class: 'toast-error'
+            });
+
+            console.log("Task was undefined, could not edit.");
             return;
         }
 
         const _task = state.ethTasks.find(t => t.id === editTask.id);
 
         if(typeof _task === 'undefined') {
-            console.log("Task is undefined", _task);
+            setToastInfo({
+                message: 'Error while trying to update task.',
+                class: 'toast-error'
+            });
+
+            console.log("Task was undefined, could not edit.");
             return;
         }
 
@@ -192,20 +273,51 @@ function EthMinter({state}) {
 
         _task.save();
 
+        setToastInfo({
+            message: 'Task updated successfully.',
+            class: 'toast-success'
+        });
+
         Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).hide();
-        console.log("Saved", _task);
+
+        state.postTaskUpdate();
     }
 
     const handleCreateGroup = () => {
 
-        if (group.length === 0) return;
+        if (group.length === 0) {
+            setToastInfo({
+                message: `You must specify a name for your group.`,
+                class: 'toast-error'
+            });
+            return;
+        }
 
-        if (groups.find(g => g.name === group)) return;
+        if(group.length > 12) {
+            setToastInfo({
+                message: `Group names can't be longer than 12 characters.`,
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        if (groups.find(g => g.name === group)) {
+            setToastInfo({
+                message: `Group with that name already exists.`,
+                class: 'toast-error'
+            });
+            return;
+        }
 
         setGroups([...groups, {
             name: group,
             color: selectedColor
         }]);
+
+        setToastInfo({
+            message: `Created group ${group}`,
+            class: 'toast-success'
+        });
 
         setGroup("");
         setSelectedColor('#49a58b')
@@ -228,6 +340,10 @@ function EthMinter({state}) {
 
         state.ethTasksStream.next(_tasks);
         setGroups(_groups);
+        setToastInfo({
+            message: `Deleted group ${g.name}`,
+            class: 'toast-success'
+        });
     }
 
     const startGroupTasks = (g) => {
@@ -240,6 +356,11 @@ function EthMinter({state}) {
         for(const t of _tasks) {
             t.start(state);
         }
+
+        setToastInfo({
+            message: `Started ${_tasks.length} tasks in group ${g.name}`,
+            class: 'toast-success'
+        });
     }
 
     const stopGroupTasks = (g) => {
@@ -252,18 +373,32 @@ function EthMinter({state}) {
         for(const t of _tasks) {
             t.stop(state);
         }
+
+        setToastInfo({
+            message: `Stopped ${_tasks.length} tasks in group ${g.name}`,
+            class: 'toast-success'
+        });
     }
 
     const deleteGroupTasks = (g) => {
         const _tasks = tasks.filter(t => t.taskGroup === g.name);
 
         if(_tasks.length === 0) {
+            setToastInfo({
+                message: `There are no tasks in group ${g.name}`,
+                class: 'toast-error'
+            });
             return;
         }
 
         for(const t of _tasks) {
             state.deleteEthTask(t.id);
         }
+
+        setToastInfo({
+            message: `Deleted ${_tasks.length} tasks in group ${g.name}`,
+            class: 'toast-success'
+        });
     }
 
     const getTriggerName = () => {
@@ -288,6 +423,11 @@ function EthMinter({state}) {
         for(const t of tasks) {
             t.start(state);
         }
+
+        setToastInfo({
+            message: `Started ${tasks.length} tasks`,
+            class: 'toast-success'
+        });
     }
 
     const removeSelectedWallet = (w) => {
@@ -390,6 +530,8 @@ function EthMinter({state}) {
 
         if(editTask === null) return;
 
+        setArgs([]);
+
         const _wallet = wallets.find(w => fixAddress(w.account.address) === fixAddress(editTask.wallet.account.address))
 
         setSelectedWallets([_wallet]);
@@ -441,12 +583,20 @@ function EthMinter({state}) {
     useEffect(() => {
 
         // because the args value is overridden when the setMintMethod is called, we need to set the args value again here.
-
+        // We set the args to an empty array in the [editTask] useEffect show that it will reset it everytime.
         if(editTask === null) return;
 
-        setArgs(editTask.args);
+        if(args.length === 0) {
+            setArgs(editTask.args);
+        }
 
     }, [args]);
+
+    useEffect(() => {
+        if(toastInfo === null) return;
+
+        Toast.getOrCreateInstance(document.querySelector('#toast-message')).show();
+    }, [toastInfo]);
 
     return html`
         <div ref=${globalRef} class="d-flex">
@@ -950,6 +1100,16 @@ function EthMinter({state}) {
                 </div>
             </div>
 
+
+            <div id="toast-message" class="toast align-items-center ${toastInfo === null ? '' : toastInfo.class} end-0 top-0 m-3" style="position: absolute" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex align-items-center justify-content-between py-3 mx-2">
+                    <div class="toast-body">
+                        ${toastInfo === null ? '' : toastInfo.message}
+                    </div>
+                    <i class="fa-regular fa-circle-xmark" data-bs-dismiss="toast"></i>
+                </div>
+            </div>
+            
         </div>
     `
 }

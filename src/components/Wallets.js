@@ -498,6 +498,7 @@ function Wallets({state}) {
                     <i class="fa-regular fa-circle-xmark" data-bs-dismiss="toast"></i>
                 </div>
             </div>
+            
             <div id="new-wallet-modal" class="modal" tabindex="-1">
                 <div class="modal-dialog">
                     <div class="modal-content">
