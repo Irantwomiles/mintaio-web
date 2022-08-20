@@ -1,10 +1,13 @@
 import {BehaviorSubject} from "rxjs";
 import Web3 from 'web3';
+import NFTManager from './nft_manager';
 
 class Main {
 
     constructor() {
         this.globalWeb3 = null;
+        this.nftManager = new NFTManager();
+
         this.walletsStream = new BehaviorSubject([]);
         this.ethTasksStream = new BehaviorSubject([]);
 

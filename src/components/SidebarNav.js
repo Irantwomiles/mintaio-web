@@ -8,6 +8,13 @@ function SidebarNav({page}) {
                 
                 <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start w-100" id="menu">
 
+                    <li class="nav-item sidebar-item w-100 mb-1 ${page === 'dashboard' ? 'active-sidebar' : ''}">
+                        <a href="/dashboard" class="nav-link align-middle px-0">
+                            <i class="fa-solid fa-newspaper mx-2 size-2"></i>
+                            <span class="ms-1 d-none d-sm-inline size-2">Dashboard</span>
+                        </a>
+                    </li>
+                    
                     <li class="nav-item sidebar-item w-100 mb-1 ${page === 'wallets' ? 'active-sidebar' : ''}">
                         <a href="/wallets" class="nav-link align-middle px-0">
                             <i class="fa-solid fa-wallet mx-2 size-2"></i>

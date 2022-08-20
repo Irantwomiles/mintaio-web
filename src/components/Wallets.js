@@ -502,9 +502,9 @@ function Wallets({state}) {
                                     <div class="m-2 p-2">
                                         <div class="top d-flex justify-content-between mb-3">
                                             <div class="name pe-5">${w.name}</div>
-                                            <div class="balance ps-5">
+                                            <div class="d-flex align-items-baseline balance ps-5">
                                                 ${w.balance === -1 ? html`<i class="fa-solid fa-spinner loading-icon"></i>` : 
-                                                        html`${w.balance} <i class="fa-brands fa-ethereum icon-color"></i>`}
+                                                        html`${w.balance} <i class="fa-brands fa-ethereum icon-color ms-1"></i>`}
                                             </div>
                                         </div>
 

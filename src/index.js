@@ -79,4 +79,8 @@ if(localStorage.getItem("eth-groups") === null) {
     localStorage.setItem("eth-groups", JSON.stringify([]));
 }
 
+if(typeof window.state === 'undefined') {
+    window.state = mainState;
+}
+
 render(html`<${App} state=${mainState} />`, document.getElementById('root'));

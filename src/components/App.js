@@ -7,6 +7,7 @@ import EthMinter from "./eth_minter/EthMinter.js";
 import Nav from "./Nav.js";
 import Settings from "./Settings.js";
 import Information from "./Information.js";
+import Dashboard from "./dashboard/Dashboard";
 
 function App({state}) {
     return html`
@@ -17,6 +18,7 @@ function App({state}) {
             <${Wallets} state=${state} path="/wallets" />
             <${EthMinter} state=${state} path="/eth-tasks" />
             <${Information} state=${state} path="/info" />
+            <${Dashboard} state=${state} path="/dashboard" />
         </${Router}>
     </div>
     `

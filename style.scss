@@ -506,3 +506,31 @@ hr {
   padding: 2rem 2rem;
   border-radius: 0.5rem;
 }
+
+.nft {
+
+  position: relative;
+  background-color: $background-sidebar;
+  border-radius: 0.5rem;
+
+  min-width: 15rem;
+  max-width: 15rem;
+
+  min-height: 20rem;
+  max-height: 20rem;
+
+  .nft-image {
+    max-height: 12rem;
+  }
+
+  img {
+    object-fit: cover;
+  }
+
+  .links {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+  }
+
+}
