@@ -6,3 +6,4 @@
 * Allow for even distribution of funds.
 * Allow for Export/Import of data from localStorage.
 * Make the success/error message link to etherscan.
+* Gas calculator

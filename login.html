@@ -139,6 +139,7 @@
         }
 
         if(window.location.href.includes('code=')) {
+
             const split = window.location.href.split("=");
             const code = split[split.length - 1];
 
@@ -157,6 +158,7 @@
                         discord_code: code
                     })
                 }).then((res) => {
+
                     if(res.status === 200) {
 
                         document.querySelector('.loading-action').classList.add('d-none');
@@ -175,6 +177,8 @@
                             window.location.href = 'https://app.mintbot.click/login.html';
                         }, 3 * 1000);
                     }
+                }).catch(e => {
+                    console.log("error:", e);
                 })
             }
         }
