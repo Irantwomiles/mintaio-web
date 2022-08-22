@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <title>Login Page</title>
+</head>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Arimo&display=swap');
+
+    * {
+        font-family: 'Arimo', sans-serif;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    html {
+        height: 100%;
+    }
+
+    body {
+        height: 100%;
+        background-color: #313237;
+
+        display: flex;
+        flex-flow: column;
+        align-content: center;
+        justify-content: center;
+    }
+
+    .container {
+        display: flex;
+        align-content: center;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+    .sign-in-section {
+        margin-top: auto;
+        background-color: #2A2B30;
+        padding: 1rem 5rem;
+        border-radius: 0.5rem;
+        /*width: 10rem;*/
+        text-align: center;
+    }
+
+    .sign-in-section div {
+        color: #a1a1a1;
+    }
+
+    .discord-sign-in {
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+        background-color: #7289da;
+        color: white;
+        border-radius: 0.5rem;
+        border: none;
+        transition: background-color 200ms ease-in;
+        font-size: 1rem;
+    }
+
+    .discord-sign-in:hover {
+        background-color: #5973c7;
+        cursor: pointer;
+    }
+
+    .image {
+        height: 7rem;
+        width: 7rem;
+    }
+
+    .d-none {
+        display: none;
+    }
+
+    .loading-icon {
+        animation: rotation 2s infinite linear;
+    }
+
+    @keyframes rotation {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+</style>
+
+<body>
+
+
+    <div class="container">
+
+        <div class="sign-in-section">
+
+            <div style="margin-bottom: 2rem; font-weight: bold; color: #49A58BFF; font-size: 1.3rem;">
+                MintAIO
+            </div>
+
+            <div class="sign-in-action">
+                <div>Sign In</div>
+
+                <button class="discord-sign-in" onclick="openDiscordURL()">Discord</button>
+                <div style="margin-top: 1rem; color: #626161; font-size: 0.8rem;">(If you just signed in, please refresh the page!)</div>
+            </div>
+
+            <div class="loading-action d-none">
+                <div><i class="fa-solid fa-spinner loading-icon" style="margin-right: 10px;"></i>Signing in...</div>
+            </div>
+
+            <div class="success-action d-none">
+                <div style="color: #49a58b;">Successfully logged in!</div>
+            </div>
+
+            <div class="failed-action d-none">
+                <div style="color: #f58686;">Failed to authenticate!</div>
+            </div>
+
+        </div>
+    </div>
+    <script>
+
+        function openDiscordURL() {
+            if(window.location.href.includes('localhost')) {
+                window.location.href = 'https://discord.com/api/oauth2/authorize?client_id=1003802950289866802&redirect_uri=http%3A%2F%2Flocalhost%3A1234%2Flogin.html&response_type=code&scope=guilds.members.read%20guilds';
+            } else {
+                window.location.href = 'https://discord.com/api/oauth2/authorize?client_id=1003802950289866802&redirect_uri=https%3A%2F%2Fapp.mintbot.click%2Flogin.html&response_type=code&scope=guilds%20guilds.members.read';
+            }
+        }
+
+        if(window.location.href.includes('code=')) {
+
+            const split = window.location.href.split("=");
+            const code = split[split.length - 1];
+
+            if(code.length === 0) {
+                window.location.href = 'https://app.mintbot.click/login.html';
+            } else {
+
+                document.querySelector('.sign-in-action').classList.add('d-none');
+                document.querySelector('.loading-action').classList.remove('d-none');
+
+                fetch('https://app.mintbot.click/auth', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    mode: 'same-origin',
+                    body: JSON.stringify({
+                        discord_code: code
+                    })
+                }).then((res) => {
+
+                    console.log(res);
+
+                    if(res.status === 200) {
+
+                        document.querySelector('.loading-action').classList.add('d-none');
+                        document.querySelector('.success-action').classList.remove('d-none');
+
+                        setTimeout(() => {
+                            //window.location.href = 'https://app.mintbot.click/';
+                        }, 3 * 1000);
+
+                    } else {
+
+                        document.querySelector('.loading-action').classList.add('d-none');
+                        document.querySelector('.failed-action').classList.remove('d-none');
+
+                        setTimeout(() => {
+                            //window.location.href = 'https://app.mintbot.click/login.html';
+                        }, 3 * 1000);
+                    }
+                })
+            }
+        }
+    </script>
+</body>
+</html>
