@@ -1,4 +1,5 @@
 import Web3 from 'web3';
+import {html} from "htm/preact";
 
 class Task {
 
@@ -136,7 +137,7 @@ class Task {
             this.web3.eth.sendSignedTransaction(sign.rawTransaction).then((output) => {
 
                 this.status = {
-                    message: `Success: Block #${output.blockNumber}`,
+                    message: html`<a class="success-transaction" target="_blank" href="https://${this.network === 'mainnet' ? '' : this.network + '.'}etherscan.io/tx/${output.transactionHash}">Success: Block #${output.blockNumber}</a>`,
                     color: Task.GREEN
                 };
 

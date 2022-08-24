@@ -1,6 +1,7 @@
 import {BehaviorSubject} from "rxjs";
 import Web3 from 'web3';
 import NFTManager from './nft_manager';
+import OpenSeaBid from "./opensea_bid";
 
 class Main {
 
@@ -10,20 +11,26 @@ class Main {
 
         this.walletsStream = new BehaviorSubject([]);
         this.ethTasksStream = new BehaviorSubject([]);
+        this.openseaBidderStream = new BehaviorSubject([]);
 
         this.webhook = localStorage.getItem('discordWebHook') === null ? '' : localStorage.getItem('discordWebHook');
 
         this.abi = [];
         this.wallets = [];
         this.ethTasks = [];
+        this.openseaBidders = [];
 
-        this.walletsStreamSub = this.walletsStream.subscribe((data) => {
+        this.walletsStream.subscribe((data) => {
             this.wallets = data;
-        })
+        });
 
-        this.walletsStreamSub = this.ethTasksStream.subscribe((data) => {
+        this.ethTasksStream.subscribe((data) => {
             this.ethTasks = data;
-        })
+        });
+
+        this.openseaBidderStream.subscribe((data) => {
+            this.openseaBidders = data;
+        });
 
         if(localStorage.getItem("abi-list") !== null) {
             this.abi = JSON.parse(localStorage.getItem("abi-list"));

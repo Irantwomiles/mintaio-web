@@ -134,7 +134,7 @@ function NFTDashboard({state}) {
                                 html`
                         <div class="nft me-2 mb-2">
                             <div class="nft-image h-100 m-3">
-                                <img class="w-100 h-100" src="${d.media[0].gateway}" />
+                                <img class="w-100 h-100" src="${typeof d.media[0].gateway === 'undefined' ? '../../images/mintaio-logo.png' : d.media[0].gateway}" alt="Image missing" />
                             </div>
                             <div class="mx-3">
                                 <div class="title">${d.title.length === 0 ? html`<span style="color: #f58686;">Missing</span>` : d.title}</div>

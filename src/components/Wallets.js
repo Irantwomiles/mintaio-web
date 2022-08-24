@@ -265,7 +265,31 @@ function Wallets({state}) {
     }
 
     const copyPublicAddress = (address) => {
-        navigator.clipboard.writeText(`${address.startsWith('0x') ? address : '0x' + address}`).then(() => console.log);
+        navigator.clipboard.writeText(`${address.startsWith('0x') ? address : '0x' + address}`).then(() => {
+            setToastInfo({
+                message: `Copied public address to clipboard.`,
+                class: 'toast-success'
+            });
+        });
+    }
+
+    const copyPrivateKey = (wallet) => {
+
+        if(wallet.isLocked()) {
+            setToastInfo({
+                message: `You must unlock the wallet first.`,
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        navigator.clipboard.writeText(wallet.account.privateKey).then(() => {
+            setToastInfo({
+                message: `Copied private key to clipboard.`,
+                class: 'toast-success'
+            });
+            return;
+        });
     }
 
     const handlePrivateKeysChange = (id, key, value) => {
@@ -488,9 +512,16 @@ function Wallets({state}) {
 
                 <hr/>
 
-                <div class="mb-3">
-                    <button class="button-primary fw-bold me-2" onclick=${() => {massUnlockWallets()}}><i class="fa-solid fa-unlock"></i> Mass Unlock</button>
-                    <input class="input" placeholder="Password" type="password" value=${massPassword} onchange=${(e) => {setMassPassword(e.target.value)}} />
+                <div class="d-flex justify-content-between mb-3">
+                    
+                    <div>
+                        <button class="button-primary fw-bold me-2" onclick=${() => {massUnlockWallets()}}><i class="fa-solid fa-unlock"></i> Mass Unlock</button>
+                        <input class="input" placeholder="Password" type="password" value=${massPassword} onchange=${(e) => {setMassPassword(e.target.value)}} />
+                    </div>
+                    <div class="button-outline-secondary">
+                        <i class="fa-solid fa-arrows-rotate me-2" onclick=${() => {state.refreshAllBalance()}}></i>
+                        <span>Refresh Balances</span>
+                    </div>
                 </div>
                 
                 <div class="d-flex flex-wrap">
@@ -514,7 +545,7 @@ function Wallets({state}) {
                                         </div>
 
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <button class="button-outline-primary">Export</button>
+                                            <button class="button-outline-primary" onclick=${() => copyPrivateKey(w)}>Export</button>
                                             <div>
                                                 ${w.isLocked() ? html`<i className="fa-solid fa-lock me-2 icon-color-unlock" onclick=${() => {handleOpenUnlockWallet(w)}}></i>` : ''}
                                                 

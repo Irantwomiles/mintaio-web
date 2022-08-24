@@ -141,6 +141,22 @@ input {
   }
 }
 
+.button-outline-secondary {
+  color: $light-gray;
+  border: 1px solid $light-gray;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  transition: color 200ms ease-in, border-color 200ms ease-in;
+
+  &:hover {
+    color: $blue;
+    border-color: $blue;
+    cursor: pointer;
+  }
+}
+
+
 .button-danger {
   background-color: $red;
   color: white;
@@ -533,4 +549,15 @@ hr {
     right: 1rem;
   }
 
+}
+
+.success-transaction {
+  color: $green;
+  text-decoration: none;
+  transition: color 200ms ease-in;
+
+  &:hover {
+    cursor: pointer;
+    color: darken($green, 10%);
+  }
 }
