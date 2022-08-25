@@ -49,6 +49,9 @@ class Task {
         this.abi = abi;
         this.network = 'mainnet';
 
+        this.nonce = -1;
+        this.pending = false;
+
         this.contractReadMethod = null;
         this.readMethodCurrent = "";
 
@@ -94,7 +97,12 @@ class Task {
         try {
             const account = this.web3.eth.accounts.privateKeyToAccount(this.wallet.account.privateKey);
             const contract = new this.web3.eth.Contract(JSON.parse(this.abi), this.contractAddress);
-            const nonce = await this.web3.eth.getTransactionCount(account.address, 'latest');
+
+            let nonce = await this.web3.eth.getTransactionCount(account.address, 'latest');
+
+            if(this.nonce === -1) {
+                this.nonce = nonce;
+            }
 
             const _args = [];
 
@@ -134,6 +142,7 @@ class Task {
 
             state.postTaskUpdate();
 
+            this.pending = true;
             this.web3.eth.sendSignedTransaction(sign.rawTransaction).then((output) => {
 
                 this.status = {
@@ -152,6 +161,9 @@ class Task {
 
                 state.postTaskUpdate();
             }).catch(e => {
+
+                this.pending = false;
+
                 this.status = {
                     message: 'Unsuccessful',
                     color: Task.RED
@@ -167,6 +179,8 @@ class Task {
             });
 
         } catch(e) {
+
+            this.pending = false;
 
             this.status = {
                 message: 'Error occurred',
@@ -282,6 +296,16 @@ class Task {
             })
 
         }, 500);
+    }
+
+    updateGas(state, maxGas, priority) {
+        
+        this.maxGas = maxGas;
+        this.gasPriority = priority;
+
+        this.sendTransaction(state);
+
+        state.postTaskUpdate();
     }
 
     stop(state) {

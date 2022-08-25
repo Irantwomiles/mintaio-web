@@ -13,6 +13,7 @@ $blue: #3674e0;
 $red: #f58686;
 $yellow: #d7ba5a;
 $orange: #d78e5a;
+$pink: #d58ce0;
 
 * {
   font-family: 'Arimo', sans-serif;
@@ -182,6 +183,20 @@ input {
 
   &:hover {
     background-color: darken($orange, 8%);
+  }
+}
+
+.button-pink {
+  background-color: $pink;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  transition: background-color 200ms ease-in;
+
+  &:hover {
+    background-color: darken($pink, 8%);
   }
 }
 
@@ -425,6 +440,10 @@ hr {
   }
 }
 
+.task-selected {
+  border: 1px solid $pink;
+}
+
 .icon-red {
   color: $red;
 }
@@ -434,7 +453,6 @@ hr {
 }
 
 .start-icon {
-  color: white;
   transition: color 200ms ease-in;
 
   &:hover {
@@ -444,7 +462,6 @@ hr {
 }
 
 .edit-icon {
-  color: white;
   transition: color 200ms ease-in;
 
   &:hover {
@@ -454,7 +471,6 @@ hr {
 }
 
 .stop-icon {
-  color: white;
   transition: color 200ms ease-in;
 
   &:hover {
@@ -464,11 +480,19 @@ hr {
 }
 
 .delete-icon {
-  color: white;
   transition: color 200ms ease-in;
 
   &:hover {
     color: $red;
+    cursor: pointer;
+  }
+}
+
+.pink-icon {
+  transition: color 200ms ease-in;
+
+  &:hover {
+    color: $pink;
     cursor: pointer;
   }
 }

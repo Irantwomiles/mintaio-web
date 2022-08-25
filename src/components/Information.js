@@ -12,7 +12,7 @@ function Information({state}) {
             
             <div class="info-section">
                 
-                <h5 style="color: white;">Here are some common FAQ's that users have:</h5>
+                <h5 style="color: white;">Here are some security FAQ's that users have:</h5>
                 <div class="q-a">
                     <p>Q: Why do we need to input our Private Key when importing a wallet?</p>
                     <p>A: Inorder for the program to send a transaction in the Ethereum network we require a valid Private Key to generate the transaction.</p>
@@ -44,6 +44,27 @@ function Information({state}) {
                 
             </div>
 
+            <h3 class="title mt-3">Common Questions</h3>
+            <hr />
+
+            <div class="info-section">
+
+                <h5 style="color: white;">Here are some common FAQ's that users have:</h5>
+                <div class="q-a">
+                    <p>Q: Why do my Wallets and Tasks keep disappearing?</p>
+                    <p>A: There are a couple of reasons that could be causing this:</p>
+                    <p>   - 1) Using Incognito mode. Browsers do not save data when they are in Incognito Mode and we rely heavily on the localStorage of the browser.</p>
+                    <p>   - 2) Switching browsers. The browsers localStorage does not transfer to other browsers. For example, the data that gets saved on FireFox does not transfer to Chrome.</p>
+                    <p>   - 3) A bug. If you believe you have found a bug that is making your data reset everytime you visit the site, please let us know in Discord.</p>
+                </div>
+
+                <div class="q-a mt-3">
+                    <p>Q: Does this tool help lower gas fees?</p>
+                    <p>A: No tool is able to lower Ethereum gas fees, what we do is to help make sending transactions easier and faster.</p>
+                </div>
+
+            </div>
+            
             <h3 class="title mt-3">Setup Guide</h3>
             <hr />
             

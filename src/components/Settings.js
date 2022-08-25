@@ -2,12 +2,20 @@ import {html} from 'htm/preact';
 import SidebarNav from "./SidebarNav.js";
 import {useState, useEffect} from "preact/compat";
 import Web3 from "web3";
+import {Toast} from "bootstrap";
 
 function Settings({state}) {
 
     const [etherscan, setEtherscan] = useState("");
     const [rpc, setRpc] = useState("");
     const [webHook, setWebHook] = useState("");
+    const [toastInfo, setToastInfo] = useState(null)
+
+    useEffect(() => {
+        if(toastInfo === null) return;
+
+        Toast.getOrCreateInstance(document.querySelector('#toast-message')).show();
+    }, [toastInfo]);
 
     useEffect(() => {
 
@@ -27,21 +35,47 @@ function Settings({state}) {
 
     const updateEtherscanApi = () => {
         localStorage.setItem("etherscan-api", etherscan);
+        setToastInfo({
+            message: "Updated Etherscan API key.",
+            class: 'toast-success'
+        });
     }
 
     const updateGlobalRPC = () => {
 
-        if(rpc.length === 0 || localStorage.getItem("globalRpc") === rpc) {
+        if(rpc.length === 0) {
+            setToastInfo({
+                message: "You can't set an empty value as your Global RPC.",
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        if(localStorage.getItem("globalRpc") === rpc) {
+            setToastInfo({
+                message: "Your current RPC matches the input you are trying to set.",
+                class: 'toast-error'
+            });
             return;
         }
 
         localStorage.setItem("globalRpc", rpc);
         state.globalWeb3 = new Web3(rpc);
+
+        setToastInfo({
+            message: "Updated Global RPC.",
+            class: 'toast-success'
+        });
     }
 
     const updateDiscordWebHook = () => {
         localStorage.setItem("discordWebHook", webHook);
         state.webhook = webHook;
+
+        setToastInfo({
+            message: 'Discord Webhook updated.',
+            class: 'toast-success'
+        });
     }
 
     const getStorageSize = () => {
@@ -50,10 +84,18 @@ function Settings({state}) {
 
     const testDiscordWebHook = () => {
         if(state.webhook.length === 0) {
+            setToastInfo({
+                message: "Please set a Discord Webhook first.",
+                class: 'toast-error'
+            });
             return;
         }
 
         state.testWebHook();
+        setToastInfo({
+            message: "Check your Discord channel.",
+            class: 'toast-success'
+        });
     }
 
     return html`
@@ -82,6 +124,15 @@ function Settings({state}) {
                 
                 <div class="mt-3">
                     <div class="label">You have used <span style="color: white;">${getStorageSize()} KB / 5,000 KB</span> of your storage.</div>
+                </div>
+            </div>
+
+            <div id="toast-message" class="toast align-items-center ${toastInfo === null ? '' : toastInfo.class} end-0 top-0 m-3" style="position: absolute" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex align-items-center justify-content-between py-3 mx-2">
+                    <div class="toast-body">
+                        ${toastInfo === null ? '' : toastInfo.message}
+                    </div>
+                    <i class="fa-regular fa-circle-xmark" data-bs-dismiss="toast"></i>
                 </div>
             </div>
         </div>

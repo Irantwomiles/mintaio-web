@@ -77,7 +77,11 @@ function EthMinter({state}) {
     const [createGroupModal, setCreateGroupModal] = useState(null);
 
     const [groupedTasks, setGroupedTasks] = useState(null);
-    const [toastInfo, setToastInfo] = useState(null)
+    const [toastInfo, setToastInfo] = useState(null);
+
+    const [selectedTasks, setSelectedTasks] = useState([]);
+    const [updateMaxGas, setUpdateMaxGas] = useState("");
+    const [updatePriorityGas, setUpdatePriorityGas] = useState("");
 
     const handleGetContractInfo = async () => {
 
@@ -442,6 +446,84 @@ function EthMinter({state}) {
         Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).show();
     }
 
+    const handleSelectedTask = (t) => {
+        const _task = selectedTasks.find(task => task.id === t.id);
+
+        if(typeof _task === 'undefined') {
+            setSelectedTasks([...selectedTasks, t]);
+        } else {
+            let clone = [...selectedTasks];
+            clone = clone.filter(task => task.id !== t.id);
+
+            setSelectedTasks(clone);
+        }
+
+    }
+
+    const isSelected = (t) => {
+        const _task = selectedTasks.find(task => task.id === t.id);
+
+        return (typeof _task !== 'undefined');
+    }
+
+    const updateGas = () => {
+
+        if(selectedTasks.length === 0) {
+            setToastInfo({
+                message: 'Please select at least one pending transaction to update.',
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        if(updateMaxGas <= 0) {
+            setToastInfo({
+                message: 'Max Gas must be greater than 0.',
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        if(updatePriorityGas <= 0) {
+            setToastInfo({
+                message: 'Priority Fee must be greater than 0.',
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        if(updatePriorityGas > updateMaxGas) {
+            setToastInfo({
+                message: "Priority Fee can't be greater than Max Gas.",
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        let counter = 0;
+
+        for(const task of selectedTasks) {
+
+            if(!task.pending) continue;
+
+            task.updateGas(state, updateMaxGas, updatePriorityGas);
+            counter++;
+        }
+
+        if(counter === 0) {
+            setToastInfo({
+                message: "No pending transactions found.",
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        setToastInfo({
+            message: `Updated gas settings for ${counter} pending task(s).`,
+            class: 'toast-success'
+        });
+    }
+
     useEffect(() => {
 
         setGroupsDropdown(new Dropdown(globalRef.current.querySelector('#groups-dropdown'), {}));
@@ -605,13 +687,18 @@ function EthMinter({state}) {
 
             <div class="p-3 w-100">
 
-                <div>
+                <div class="d-flex flex-wrap">
                     <button class="button-primary fw-bold" onclick=${() => {
                         handleShowCreateTaskModal()
                     }}><i class="fa-solid fa-plus"></i> New Task
                     </button>
-                    <button class="button-secondary fw-bold ms-3" onclick=${startAllTasks}><i class="fa-solid fa-arrow-up"></i> Start All
-                    </button>
+                    <button class="button-secondary fw-bold ms-2" onclick=${startAllTasks}><i class="fa-solid fa-arrow-up"></i> Start All</button>
+                    
+                    <div class="ms-2">
+                        <button class="button-pink fw-bold" onclick=${updateGas}><i class="fa-solid fa-gas-pump"></i> Update Gas</button>
+                        <input class="input ms-2" style="width: 10rem;" type="number" min="1" step="1" placeholder="Max Gas" value=${updateMaxGas} onchange=${(e) => setUpdateMaxGas(Number.parseInt(e.target.value))} />
+                        <input class="input ms-2" style="width: 10rem;" type="number" min="1" step="1" placeholder="Priority Fee" value=${updatePriorityGas} onchange=${(e) => setUpdatePriorityGas(Number.parseInt(e.target.value))} />
+                    </div>
                 </div>
 
                 <hr/>
@@ -673,7 +760,7 @@ function EthMinter({state}) {
                                         ${
                                             groupedTasks[k].map((t) => (
                                                 html`
-                                                    <div class="task d-flex justify-content-between align-items-center mt-2">
+                                                    <div class="task ${isSelected(t) ? 'task-selected' : ''} d-flex justify-content-between align-items-center mt-2">
                                                         <div class="col-4">
                                                             <div class="title">
                                                                 ${t.contractAddress}
@@ -721,10 +808,13 @@ function EthMinter({state}) {
                                                                 }}
                                                             ></i>
 
+                                                            <i class="fa-solid fa-gas-pump icon-color pink-icon me-2" onclick=${() => handleSelectedTask(t)}></i>
+
                                                             <i class="fa-solid fa-trash icon-color delete-icon"
                                                                onclick=${() => {
                                                                 state.deleteEthTask(t.id)
                                                             }}></i>
+
                                                         </div>
     
                                                     </div>

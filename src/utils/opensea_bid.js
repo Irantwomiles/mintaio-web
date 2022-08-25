@@ -4,7 +4,7 @@ import { OpenSeaSDK, Network } from 'opensea-js'
 class OpenSeaBid {
 
     constructor(wallet) {
-        this.walletProvider = new HDWalletProvider(['0xb3daad1f66fad028d6ce0a5c9c3324d262fb785b33b642ac024c04b7137cba5e'], 'wss://eth-mainnet.g.alchemy.com/v2/AMkm4ceqbFzP6YEEL1-Ye1PuGma3Ey6T', 0, 1);
+        this.walletProvider = new HDWalletProvider([''], 'wss://eth-mainnet.g.alchemy.com/v2/AMkm4ceqbFzP6YEEL1-Ye1PuGma3Ey6T', 0, 1);
 
         this.openseaSDK = new OpenSeaSDK(this.walletProvider, {
             networkName: Network.Main,

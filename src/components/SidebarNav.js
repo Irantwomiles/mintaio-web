@@ -15,13 +15,6 @@ function SidebarNav({page}) {
                         </a>
                     </li>
                     
-                    <li class="nav-item sidebar-item w-100 mb-1 ${page === 'wallets' ? 'active-sidebar' : ''}">
-                        <a href="/wallets" class="nav-link align-middle px-0">
-                            <i class="fa-solid fa-wallet mx-2 size-2"></i>
-                            <span class="ms-1 d-none d-sm-inline size-2">Multi-Wallet</span>
-                        </a>
-                    </li>
-                    
                     <li class="nav-item sidebar-item w-100 mb-1 ${page === 'eth-tasks' ? 'active-sidebar' : ''}">
                         <a href="/eth-tasks" class="nav-link align-middle px-0">
                             <i class="fa-solid fa-bars-progress mx-2 size-2"></i> 
@@ -29,6 +22,13 @@ function SidebarNav({page}) {
                         </a>
                     </li>
 
+                    <li class="nav-item sidebar-item w-100 mb-1 ${page === 'wallets' ? 'active-sidebar' : ''}">
+                        <a href="/wallets" class="nav-link align-middle px-0">
+                            <i class="fa-solid fa-wallet mx-2 size-2"></i>
+                            <span class="ms-1 d-none d-sm-inline size-2">Multi-Wallet</span>
+                        </a>
+                    </li>
+                    
                     <li class="nav-item sidebar-item w-100 mb-1 ${page === 'info' ? 'active-sidebar' : ''}">
                         <a href="/info" class="nav-link align-middle px-0">
                             <i class="fa-solid fa-circle-info mx-2 size-2"></i>
