@@ -36,3 +36,12 @@ export async function fetchAssetTraits(url, number, ending) {
     console.log(flat);
     return data;
 }
+
+/**
+ * Fetch a collection from opensea
+ * @param slug
+ * @returns {Promise<Response>}
+ */
+export function getOpenSeaCollection(slug) {
+    return fetch(`https://api.opensea.io/api/v1/collection/${slug}`);
+}

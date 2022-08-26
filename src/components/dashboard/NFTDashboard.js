@@ -1,6 +1,7 @@
 import {html} from 'htm/preact';
 import {useEffect, useState} from "preact/compat";
 import {Toast, Dropdown} from 'bootstrap';
+import logo from '../../images/mintaio-logo.png';
 
 function fixAddress(address) {
     if(address.startsWith('0x')) {
@@ -53,7 +54,9 @@ function NFTDashboard({state}) {
             const flat = [].concat(...filtered);
             setData(flat);
 
-            console.log(flat);
+            for(const f of flat) {
+                console.log(f.media);
+            }
 
         }).catch(e => {
             console.log(e);
@@ -134,7 +137,7 @@ function NFTDashboard({state}) {
                                 html`
                         <div class="nft me-2 mb-2">
                             <div class="nft-image h-100 m-3">
-                                <img class="w-100 h-100" src="${typeof d.media[0].gateway === 'undefined' ? '../../images/mintaio-logo.png' : d.media[0].gateway}" alt="Image missing" />
+                                <img class="w-100 h-100" src=${d.media.length === 0 ? logo : d.media[0].gateway} alt="Image missing" />
                             </div>
                             <div class="mx-3">
                                 <div class="title">${d.title.length === 0 ? html`<span style="color: #f58686;">Missing</span>` : d.title}</div>

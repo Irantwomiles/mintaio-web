@@ -2,6 +2,7 @@ import {BehaviorSubject} from "rxjs";
 import Web3 from 'web3';
 import NFTManager from './nft_manager';
 import OpenSeaBid from "./opensea_bid";
+import OpenSeaSniper from "./opensea_sniper";
 
 class Main {
 
@@ -56,6 +57,10 @@ class Main {
         }
 
         this.disperseABI = [{"constant":false,"inputs":[{"name":"token","type":"address"},{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseTokenSimple","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"token","type":"address"},{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseToken","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseEther","outputs":[],"payable":true,"stateMutability":"payable","type":"function"}];
+
+        const sniper = new OpenSeaSniper(this, 'azuki', '10');
+
+        sniper.fetchAssetListings();
 
         console.log("Main state initiated, MintAIO - v0.1-beta");
     }

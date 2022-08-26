@@ -7,3 +7,4 @@
 * Allow for Export/Import of data from localStorage.
 * Gas calculator
 * Add better error messages for wallets.
+* Rename wallets
