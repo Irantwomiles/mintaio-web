@@ -8,3 +8,4 @@
 * Gas calculator
 * Add better error messages for wallets.
 * Rename wallets
+* Add discord webhooks to sniper

@@ -10,14 +10,9 @@ import '@popperjs/core';
 import '../style.scss';
 
 import Task from "./utils/task.js";
+import OpenSeaSniper from "./utils/opensea_sniper";
 
 const mainState = new Main();
-
-/*fetch('https://api.mintbot.click/auth', {
-    credentials: 'include'
-}).then((res) => {
-    console.log("res:", res);
-})*/
 
 if(localStorage.getItem("wallets") === null) {
     localStorage.setItem("wallets", JSON.stringify([]));
@@ -71,13 +66,42 @@ if(localStorage.getItem("eth-tasks") === null) {
         }
 
     }
-    // mainState.ethTasks = _tasks;
     mainState.ethTasksStream.next(_tasks);
 }
 
-if(localStorage.getItem("eth-groups") === null) {
-    localStorage.setItem("eth-groups", JSON.stringify([]));
+if(localStorage.getItem("os-snipers") === null) {
+    localStorage.setItem("os-snipers", JSON.stringify([]));
+} else {
+
+    const snipers = JSON.parse(localStorage.getItem("os-snipers"));
+    const _snipers = [];
+
+    for(const s of snipers) {
+
+        const wallet = mainState.wallets.find((w, index) => {
+            const _address = `${w.account.address.includes('0x') ? '' : '0x'}${w.account.address}`;
+            const _sAddress = `${s.wallet.includes('0x') ? '' : '0x'}${s.wallet}`;
+
+            return _sAddress.toLowerCase() === _address.toLowerCase();
+        });
+
+        if(typeof wallet === 'undefined') continue;
+
+        const sniper = new OpenSeaSniper({
+            slug: s.slug,
+            contractAddress: s.contractAddress,
+            wallet: wallet,
+            price: s.price,
+            traits: s.traits
+        });
+
+        sniper.save();
+        _snipers.push(sniper);
+    }
+    mainState.openseaSniperStream.next(_snipers);
 }
+
+
 
 if(typeof window.state === 'undefined') {
     window.state = mainState;

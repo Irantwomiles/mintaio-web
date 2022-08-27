@@ -11,8 +11,15 @@ function fixAddress(address) {
 
 class OpenSeaSniper {
 
-    constructor({state, slug, contractAddress, wallet, price, traits = []}) {
-        this.state = state;
+    static ID = 0;
+    static GREEN = '#49a58b';
+    static YELLOW = '#d7ba5a';
+    static RED = '#f58686';
+    static WHITE = '#FFF';
+    static BLUE = '#3674e0';
+
+    constructor({slug, contractAddress, wallet, price, traits = []}) {
+        this.id = OpenSeaSniper.ID++;
         this.slug = slug;
         this.contractAddress = contractAddress;
         this.price = price;
@@ -20,17 +27,45 @@ class OpenSeaSniper {
         this.wallet = wallet;
         this.walletProvider = null;
         this.openseaSDK = null;
+        this.stopped = true;
 
-        this.tokenCache = [];
+        this.interval = null;
+
+        this.status = {
+            message: 'Inactive',
+            color: OpenSeaSniper.WHITE
+        };
+
     }
 
-    fetchAssetListings() {
+    fetchAssetListings(state) {
 
+        let throttleTimer = 0;
         let checking = false;
+        this.stopped = false;
+
+        this.status = {
+            message: 'Searching...',
+            color: OpenSeaSniper.BLUE
+        };
+
+        state.postOpenSeaSniperUpdate();
 
         this.interval = setInterval(() => {
 
             if(checking) return;
+
+            if(throttleTimer > 0) {
+                throttleTimer--;
+
+                this.status = {
+                    message: `Waiting ${throttleTimer} seconds`,
+                    color: OpenSeaSniper.YELLOW
+                };
+
+                state.postOpenSeaSniperUpdate();
+                return;
+            }
 
             fetch(`https://api.opensea.io/api/v1/events?event_type=created&collection_slug=${this.slug}`, {
                 headers: {
@@ -40,6 +75,17 @@ class OpenSeaSniper {
 
                 if(response.status !== 200) {
                     checking = false;
+
+                    if(response.status >= 400 && response.status <= 499) {
+                        throttleTimer = 5;
+                    }
+
+                    this.status = {
+                        message: `Status ${response.status}`,
+                        color: OpenSeaSniper.YELLOW
+                    };
+
+                    state.postOpenSeaSniperUpdate();
                     return;
                 }
 
@@ -49,9 +95,9 @@ class OpenSeaSniper {
 
                     for(const asset of result.asset_events) {
 
-                        const currentPrice = Number.parseFloat(`${this.state.globalWeb3.utils.fromWei(asset.starting_price, 'ether')}`);
+                        const currentPrice = Number.parseFloat(`${state.globalWeb3.utils.fromWei(asset.starting_price, 'ether')}`);
 
-                        //console.log(`Token ID:${asset.asset.token_id} Current Price: ${currentPrice} Price Wanted: ${this.price} Quantity: ${asset.quantity}`);
+                        //console.log(`Price status: (${currentPrice}, ${Number.parseFloat(this.price)}) ${currentPrice <= Number.parseFloat(this.price)} Token Symbol: ${asset.payment_token.symbol === 'ETH'} Quantity: ${asset.quantity === '1'} Overall: ${currentPrice <= Number.parseFloat(this.price) && asset.payment_token.symbol === 'ETH' && asset.quantity === '1'}`);
 
                         if(currentPrice <= Number.parseFloat(this.price) && asset.payment_token.symbol === 'ETH' && asset.quantity === '1') {
                             validTokens.push(asset.asset.token_id);
@@ -76,6 +122,17 @@ class OpenSeaSniper {
 
                         if(assetsResponse.status !== 200) {
                             checking = false;
+
+                            if(response.status >= 400 && response.status <= 499) {
+                                throttleTimer = 5;
+                            }
+
+                            this.status = {
+                                message: `Status ${response.status}`,
+                                color: OpenSeaSniper.YELLOW
+                            };
+
+                            state.postOpenSeaSniperUpdate();
                             return;
                         }
 
@@ -87,7 +144,7 @@ class OpenSeaSniper {
 
                                 if(asset.seaport_sell_orders === null) continue;
 
-                                const assetPrice = Number.parseFloat(`${this.state.globalWeb3.utils.fromWei(asset.seaport_sell_orders[0].current_price, 'ether')}`);
+                                const assetPrice = Number.parseFloat(`${state.globalWeb3.utils.fromWei(asset.seaport_sell_orders[0].current_price, 'ether')}`);
 
                                 if(assetPrice > Number.parseFloat(this.price)) continue;
 
@@ -106,17 +163,13 @@ class OpenSeaSniper {
 
                                     for(const t of asset.traits) {
                                         assetTraits.push(t['trait_type'].toLowerCase() + '|m|' + t['value'].toLowerCase());
-                                        console.log("Traits:", t['trait_type'].toLowerCase() + '|m|' + t['value'].toLowerCase())
                                     }
 
                                     for(const t of this.traits) {
-                                        console.log("Comparing", t);
                                         if(assetTraits.includes(t.toLowerCase())) {
-                                            console.log("Contains", t)
                                             continue;
                                         }
 
-                                        console.log("Reached here", t);
                                         valid = false;
                                         break;
                                     }
@@ -132,19 +185,28 @@ class OpenSeaSniper {
                             }
 
                             if(validAssets.length === 0) {
-                                console.log("No valid assets");
-                                // checking = false;
+                                checking = false;
                                 return;
                             }
 
                             validAssets.sort(compare);
 
                             console.log(validAssets);
-                            console.log('Should attempt to buy', validAssets[0])
                             checking = false;
 
                             clearInterval(this.interval);
                             console.log("Cleared interval, stopping task here!");
+
+                            if(this.stopped) return;
+
+                            this.status = {
+                                message: `Found listing...`,
+                                color: OpenSeaSniper.GREEN
+                            };
+
+                            state.postOpenSeaSniperUpdate();
+
+                            this.fillOrder(state, validAssets[0].tokenId);
 
                         }).catch(e => {
                             checking = false;
@@ -167,39 +229,145 @@ class OpenSeaSniper {
 
     }
 
-    async fillOrder(tokenId) {
+    stopFetchingAssets(state) {
+        if(this.interval === null) {
+            return;
+        }
+
+        clearInterval(this.interval);
+        this.interval = null;
+
+        this.status = {
+            message: 'Stopped Searching',
+            color: OpenSeaSniper.YELLOW
+        }
+
+        state.postOpenSeaSniperUpdate();
+    }
+
+    async fillOrder(state, tokenId) {
 
         if(this.wallet.isLocked()) {
+            this.status = {
+                message: `Unlock Wallet`,
+                color: OpenSeaSniper.RED
+            };
+
+            state.postOpenSeaSniperUpdate();
             return;
         }
 
         // 0xc4524796d8d0d43c854bd592d17791b094fa8ecddb8e7eabdbedfd989d8bf83a
 
-        if(this.walletProvider === null || this.openseaSDK === null) {
-            this.walletProvider = new HDWalletProvider([fixAddress(this.wallet.account.privateKey)], this.state.globalWeb3, 0, 1);
+        try {
 
-            this.openseaSDK = new OpenSeaSDK(this.walletProvider, {
-                networkName: Network.Rinkeby,
-                //apiKey: '852d4657fe794045abf12f206af777ad'
-            });
+            if(this.walletProvider === null || this.openseaSDK === null) {
+
+                console.log(state.globalWeb3);
+
+                state.globalWeb3.providers.HttpProvider.prototype.sendAsync = state.globalWeb3.providers.HttpProvider.prototype.send;
+
+                this.walletProvider = new HDWalletProvider([fixAddress(this.wallet.account.privateKey)], state.globalWeb3.currentProvider, 0, 1);
+
+                this.openseaSDK = new OpenSeaSDK(this.walletProvider, {
+                    networkName: Network.Main,
+                    apiKey: '852d4657fe794045abf12f206af777ad'
+                });
+            }
+
+            this.openseaSDK.api.getOrder({
+                side: "ask",
+                assetContractAddress: this.contractAddress,
+                tokenId: tokenId
+            }).then(order => {
+                this.status = {
+                    message: `Found order`,
+                    color: OpenSeaSniper.BLUE
+                };
+
+                state.postOpenSeaSniperUpdate();
+
+                this.openseaSDK.fulfillOrder({
+                    order,
+                    accountAddress: fixAddress(this.wallet.account.address)
+                }).then(transaction => {
+
+
+                    console.log(transaction);
+
+                    this.status = {
+                        message: `Listing Sniped!`,
+                        color: OpenSeaSniper.GREEN
+                    };
+
+                    state.postOpenSeaSniperUpdate();
+                }).catch(e => {
+                    console.log("error while sniping:", e);
+
+                    this.status = {
+                        message: `Error while Sniping`,
+                        color: OpenSeaSniper.RED
+                    };
+
+                    state.postOpenSeaSniperUpdate();
+                })
+
+
+            }).catch(e => {
+                console.log("error while getting order:", e);
+
+                this.status = {
+                    message: `Error getting Order`,
+                    color: OpenSeaSniper.RED
+                };
+
+                state.postOpenSeaSniperUpdate();
+            })
+
+        } catch(e) {
+
+            console.log(e);
+
+            this.status = {
+                message: `Error Occurred`,
+                color: OpenSeaSniper.RED
+            };
         }
 
 
 
-        const order = await this.openseaSDK.api.getOrder({
-            side: "ask",
-            assetContractAddress: this.contractAddress,
-            tokenId: tokenId
-        })
+    }
 
-        console.log(typeof order);
+    save() {
+        if(localStorage.getItem('os-snipers') === null) {
+            localStorage.setItem('os-snipers', JSON.stringify([]));
+        }
 
-        const transaction = await this.openseaSDK.fulfillOrder({
-            order,
-            accountAddress: fixAddress(this.wallet.account.address)
-        })
+        let _snipers = JSON.parse(localStorage.getItem('os-snipers'));
 
-        console.log(transaction);
+        _snipers = _snipers.filter(t => t.id !== this.id);
+
+        _snipers.push({
+            id: this.id,
+            slug: this.slug,
+            contractAddress: this.contractAddress,
+            price: this.price,
+            traits: this.traits,
+            wallet: this.wallet.account.address
+        });
+
+        localStorage.setItem('os-snipers', JSON.stringify(_snipers));
+    }
+
+    delete() {
+        if(localStorage.getItem('os-snipers') === null) {
+            localStorage.setItem('os-snipers', JSON.stringify([]));
+        }
+
+        let _snipers = JSON.parse(localStorage.getItem('os-snipers'));
+
+        _snipers = _snipers.filter(t => t.id !== this.id);
+        localStorage.setItem('os-snipers', JSON.stringify(_snipers));
     }
 
 }

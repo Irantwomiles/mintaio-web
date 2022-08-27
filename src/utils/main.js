@@ -13,6 +13,7 @@ class Main {
         this.walletsStream = new BehaviorSubject([]);
         this.ethTasksStream = new BehaviorSubject([]);
         this.openseaBidderStream = new BehaviorSubject([]);
+        this.openseaSniperStream = new BehaviorSubject([]);
 
         this.webhook = localStorage.getItem('discordWebHook') === null ? '' : localStorage.getItem('discordWebHook');
 
@@ -20,6 +21,7 @@ class Main {
         this.wallets = [];
         this.ethTasks = [];
         this.openseaBidders = [];
+        this.openseaSnipers = [];
 
         this.walletsStream.subscribe((data) => {
             this.wallets = data;
@@ -31,6 +33,10 @@ class Main {
 
         this.openseaBidderStream.subscribe((data) => {
             this.openseaBidders = data;
+        });
+
+        this.openseaSniperStream.subscribe((data) => {
+            this.openseaSnipers = data;
         });
 
         if(localStorage.getItem("abi-list") !== null) {
@@ -58,7 +64,7 @@ class Main {
 
         this.disperseABI = [{"constant":false,"inputs":[{"name":"token","type":"address"},{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseTokenSimple","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"token","type":"address"},{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseToken","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseEther","outputs":[],"payable":true,"stateMutability":"payable","type":"function"}];
 
-        const sniper = new OpenSeaSniper({
+        /*const sniper = new OpenSeaSniper({
             state: this,
             slug: 'grandpaapecountryclub',
             price: '0.9',
@@ -67,7 +73,7 @@ class Main {
             traits: ['background|m|purple', `headwear|m|king's crown`]
         });
 
-        sniper.fetchAssetListings();
+        sniper.fetchAssetListings();*/
 
         //sniper.fetchAssetListings();
 
@@ -189,10 +195,30 @@ class Main {
         this.ethTasksStream.next(_tasks);
     }
 
+    deleteOpenSeaSniperTask(id) {
+        const _task = this.openseaSnipers.find(t => t.id === id);
+
+        if(typeof _task === 'undefined') {
+            console.log(`Could not find sniper with id ${id}`);
+            return;
+        }
+
+        _task.delete();
+
+        const _tasks = this.openseaSnipers.filter(t => t.id !== id);
+        this.openseaSniperStream.next(_tasks);
+    }
+
     postTaskUpdate() {
         // we have to create a clone because rxjs doesn't detect a change when we just assign this.ethTasks as the next value.
         const clone = [...this.ethTasks];
         this.ethTasksStream.next(clone);
+    }
+
+    postOpenSeaSniperUpdate() {
+        // we have to create a clone because rxjs doesn't detect a change when we just assign this.ethTasks as the next value.
+        const clone = [...this.openseaSnipers];
+        this.openseaSniperStream.next(clone);
     }
 
     refreshAllBalance() {

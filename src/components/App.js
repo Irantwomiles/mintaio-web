@@ -8,7 +8,7 @@ import Nav from "./Nav.js";
 import Settings from "./Settings.js";
 import Information from "./Information.js";
 import Dashboard from "./dashboard/Dashboard";
-import OpenSeaSniper from "./opensea/OpenSeaSniper";
+import OpenSeaSniperComp from "./opensea/OpenSeaSniperComp";
 
 function App({state}) {
     return html`
@@ -20,7 +20,7 @@ function App({state}) {
             <${EthMinter} state=${state} path="/eth-tasks" />
             <${Information} state=${state} path="/info" />
             <${Dashboard} state=${state} path="/dashboard" />
-            <${OpenSeaSniper} state=${state} path="/opensea" />
+            <${OpenSeaSniperComp} state=${state} path="/opensea" />
         </${Router}>
     </div>
     `
