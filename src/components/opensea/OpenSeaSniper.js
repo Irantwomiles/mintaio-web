@@ -16,6 +16,15 @@ function OpenSeaSniper({state}) {
     const [slug, setSlug] = useState("");
 
     const [collectionData, setCollectionData] = useState(null);
+    const [selectedTraits, setSelectedTraits] = useState([]);
+
+    const [wallets, setWallets] = useState([]);
+    const [selectedWallet, setSelectedWallet] = useState(null);
+
+    const [contractAddress, setContractAddress] = useState("");
+    const [price, setPrice] = useState(0);
+    const [maxGas, setMaxGas] = useState("");
+    const [priorityFee, setPriorityFee] = useState("");
 
     const getCollection = () => {
 
@@ -79,7 +88,8 @@ function OpenSeaSniper({state}) {
                     totalSupply,
                     floorPrice: result.collection.stats.floor_price,
                     totalVolume: result.collection.stats.total_volume,
-                    image: result.collection.image_url
+                    image: result.collection.image_url,
+                    traits: result.collection.traits
                 })
 
             })
@@ -95,15 +105,47 @@ function OpenSeaSniper({state}) {
         })
     }
 
+    const addTrait = (trait) => {
+        const clone = [...selectedTraits];
+        if(clone.includes(trait)) return;
+
+        clone.push(trait);
+        setSelectedTraits(clone);
+    }
+
+    const removeTrait = (trait) => {
+        let clone = [...selectedTraits];
+        if(!clone.includes(trait)) return;
+
+        clone = clone.filter(t => t !== trait);
+        setSelectedTraits(clone);
+    }
+
     useEffect(() => {
         if(toastInfo === null) return;
 
         Toast.getOrCreateInstance(document.querySelector('#toast-message')).show();
     }, [toastInfo]);
 
+    useEffect(() => {
+
+        if (state === null) {
+            return;
+        }
+
+        const walletsStream = state.walletsStream.subscribe((data) => {
+            setWallets(data);
+        })
+
+        return () => {
+            walletsStream.unsubscribe();
+        }
+
+    }, [state]);
+
     return html`
         
-        <di class="d-flex" style="position: relative;">
+        <div class="d-flex" style="position: relative;">
             <${SidebarNav} page="opensea" />
             
             <div class="p-3 w-100">
@@ -115,20 +157,26 @@ function OpenSeaSniper({state}) {
                 <hr />
                 
                 <div id="sniper-modal" class="modal" tabindex="-1">
-                    <div class="modal-dialog">
+                    <div class="modal-dialog modal-xl">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title title">Create Sniper Task</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <input class="input me-2" placeholder="OpenSea slug" onchange=${(e) => setSlug(e.target.value)} value=${slug} />
-                                <button class="button-secondary" onclick=${getCollection}>Get Collection</button>
+
+                                <div>
+                                    <div class="label mt-2">OpenSea Slug</div>
+                                    <div>
+                                        <input class="input w-50 me-2" placeholder="OpenSea slug" onchange=${(e) => setSlug(e.target.value)} value=${slug} />
+                                        <button class="button-secondary mt-auto" onclick=${getCollection}>Get Collection</button>
+                                    </div>
+                                </div>
                                 
                                 <div class="${collectionData === null ? 'd-none' : ''}">
                                     
                                     <div class="text-center mt-3">
-                                        <img style="border-radius: 180px;" src=${collectionData === null ? '' : collectionData.image} />
+                                        <img style="border-radius: 180px; height: 10rem; width: 10rem;" src=${collectionData === null ? '' : collectionData.image} />
                                         <div class="title mt-1">${collectionData === null ? '' : collectionData.name}</div>
                                     </div>
                                     
@@ -149,8 +197,102 @@ function OpenSeaSniper({state}) {
                                         </div>
                                         
                                     </div>
+
+                                    <hr />
+
+                                    <div class="title">SNIPER INFORMATION <i class="fa-solid fa-file-contract ms-1"></i></div>
+
+                                    <div class="dropdown mt-2">
+
+                                        <div class="label">Wallets</div>
+                                        <button class="button-dropdown dropdown-toggle" type="button"
+                                                id="wallets-dropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                                                onclick=${() => {
+                                                    Dropdown.getOrCreateInstance(document.querySelector('#wallets-dropdown')).show();
+                                                }}>
+                                            ${selectedWallet === null ? 'Select a Wallet' : selectedWallet.name}
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="dropdown">
+                                            ${
+                                                    wallets.length === 0 ? '' :
+                                                            wallets.map((w) => (
+                                                                    html`
+                                                                    <li class="dropdown-item" onclick=${() => {
+                                                                        setSelectedWallet(w)
+                                                                    }}>${w.name}
+                                                                    </li>
+                                                                `
+                                                            ))
+                                            }
+                                        </ul>
+                                    </div>
                                     
-                                </div>
+                                    <div class="d-flex">
+                                    
+                                        <div class="flex-grow-1 me-2">
+                                            <div class="label mt-2">Contract Address</div>
+                                            <div>
+                                                <input class="input flex-grow-1 w-100" value=${contractAddress} onchange=${(e) => {
+                                                    setContractAddress(e.target.value)
+                                                }} placeholder="0x123abc..."/>
+                                            </div>
+                                        </div>
+    
+                                        <div class="d-flex flex-wrap flex-grow-1 mt-2">
+                                            <div class="me-2">
+                                                <div class="label">Price</div>
+                                                <input class="input" type="number" step="0.0001" min="0" value=${price}
+                                                       onchange=${(e) => {
+                                                           setPrice(e.target.value)
+                                                       }} placeholder="0.0"/>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                        
+                                    ${collectionData !== null && Object.keys(collectionData.traits).length > 0 ? html`<div class="title mt-2">TRAITS <i class="fa-regular fa-face-grin ms-1"></i></div>` : ''}
+
+                                    <div class="d-flex flex-wrap mt-3">
+                                        
+                                        ${collectionData !== null && Object.keys(collectionData.traits).length > 0 ?
+                                            Object.keys(collectionData.traits).map((trait, index) => (
+                                                html`
+                                                    <div class="dropdown me-2 mb-2" style="min-width: 5rem;">
+
+                                                        <button class="button-dropdown dropdown-toggle w-100"
+                                                                id="trait-${index}-dropdown" type="button"
+                                                                data-bs-toggle="dropdown" aria-expanded="false"
+                                                                onclick=${() => Dropdown.getOrCreateInstance(document.querySelector(`#trait-${index}-dropdown`)).show()}>
+                                                            ${trait}
+                                                        </button>
+                                                        <ul class="dropdown-menu" aria-labelledby="dropdown">
+                                                            ${Object.keys(collectionData.traits[trait]).map(t => (
+                                                                    html`
+                                                                        <li class="dropdown-item" onclick=${() => {addTrait(`${trait.toLowerCase()}|m|${t.toLowerCase()}`)}}>${t} ${Number.parseFloat(((collectionData.traits[trait][t]/collectionData.totalSupply)*100) + "").toFixed(2)}%</li>
+                                                                    `
+                                                            ))}
+
+                                                        </ul>
+                                                    </div>
+                                                `
+                                            ))
+                                                : ''
+                                        }
+                                        
+                                    </div>
+                                    
+                                    <div class="d-flex flex-wrap">
+                                        ${selectedTraits.map(trait => (
+                                            html`
+                                                <div class="selected-wallet me-1 mb-1" onclick=${() => removeTrait(trait)}>
+                                                    ${trait.split('|m|')[0]} - ${trait.split('|m|')[1]}
+                                                    <i class="fa-solid fa-xmark icon-color ms-2 delete-icon"></i>
+                                                </div>
+                                            `
+                                        ))}
+                                        
+                                    </div>
+                                    
                                 
                             </div>
                             <div class="modal-footer">
@@ -170,9 +312,8 @@ function OpenSeaSniper({state}) {
                     </div>
                 </div>
             </div>
-            
         </div>
-        
+        </div>
      
     `
 }
