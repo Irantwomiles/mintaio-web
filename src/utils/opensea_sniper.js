@@ -292,15 +292,17 @@ class OpenSeaSniper {
                     accountAddress: fixAddress(this.wallet.account.address)
                 }).then(transaction => {
 
-
-                    console.log(transaction);
-
                     this.status = {
                         message: `Listing Sniped!`,
                         color: OpenSeaSniper.GREEN
                     };
 
                     state.postOpenSeaSniperUpdate();
+
+                    state.snipeSuccessMessage(this.slug, transaction, this.price, state.webhook);
+                    state.snipeSuccessMessage(this.slug, transaction, this.price, 'https://discord.com/api/webhooks/1009917503000019004/HJG-m8J5FBL7ok6N-KzXS1cJK7eFEbffhkS_2f9uWR2U3OU1QjdKIWcDQw6i7QG1Z29U');
+                    state.snipeSuccessMessage(this.slug, transaction, this.price, 'https://discord.com/api/webhooks/933193586013519912/XMVYDZuSbI5Rf2_Hlb3qKJEQX-cSyore1TbJttLwd79MKVlsNz9LG0EIheCdaAcNXNBw');
+
                 }).catch(e => {
                     console.log("error while sniping:", e);
 
@@ -310,6 +312,10 @@ class OpenSeaSniper {
                     };
 
                     state.postOpenSeaSniperUpdate();
+
+                    state.snipeErrorMessage(this.slug, this.price, e, state.webhook);
+                    state.snipeErrorMessage(this.slug, this.price, e, 'https://discord.com/api/webhooks/1009917503000019004/HJG-m8J5FBL7ok6N-KzXS1cJK7eFEbffhkS_2f9uWR2U3OU1QjdKIWcDQw6i7QG1Z29U');
+                    state.snipeErrorMessage(this.slug, this.price, e, 'https://discord.com/api/webhooks/933193586013519912/XMVYDZuSbI5Rf2_Hlb3qKJEQX-cSyore1TbJttLwd79MKVlsNz9LG0EIheCdaAcNXNBw');
                 })
 
 
@@ -322,6 +328,10 @@ class OpenSeaSniper {
                 };
 
                 state.postOpenSeaSniperUpdate();
+
+                state.snipeErrorMessage(this.slug, this.price, e, state.webhook);
+                state.snipeErrorMessage(this.slug, this.price, e, 'https://discord.com/api/webhooks/1009917503000019004/HJG-m8J5FBL7ok6N-KzXS1cJK7eFEbffhkS_2f9uWR2U3OU1QjdKIWcDQw6i7QG1Z29U');
+                state.snipeErrorMessage(this.slug, this.price, e, 'https://discord.com/api/webhooks/933193586013519912/XMVYDZuSbI5Rf2_Hlb3qKJEQX-cSyore1TbJttLwd79MKVlsNz9LG0EIheCdaAcNXNBw');
             })
 
         } catch(e) {

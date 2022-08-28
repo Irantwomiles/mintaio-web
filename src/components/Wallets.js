@@ -99,7 +99,7 @@ function Wallets({state}) {
 
                 const encryptedData = state.globalWeb3.eth.accounts.encrypt(account.privateKey, password);
 
-                encryptedWallets.push({name: name, account: encryptedData});
+                encryptedWallets.push({name: wallet.name, account: encryptedData});
 
                 localStorage.setItem("wallets", JSON.stringify(encryptedWallets));
 

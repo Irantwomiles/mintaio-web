@@ -323,6 +323,71 @@ class Main {
         }
     }
 
+    snipeSuccessMessage(slug, tx_hash, price, webhook) {
+
+        if(webhook.length === 0) {
+            console.log("Webhook not set");
+            return;
+        }
+
+        try {
+            const message = {
+                "embeds": [
+                    {
+                        "title": "Successfully Minted!",
+                        "description": `Project: [View on etherscan](https://opensea.io/collection/${slug}) Transaction: [View on etherscan](https://etherscan.io/tx/${tx_hash})\n\n**Price**: ${price} ETH`,
+                        "color": 3135616,
+                        "author": {
+                            "name": "MintAIO",
+                            "url": "https://twitter.com/MintAIO_"
+                        }
+                    }
+                ]
+            }
+
+            fetch(webhook, {
+                method: 'POST',
+                body: JSON.stringify(message),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        } catch {
+
+        }
+    }
+
+    snipeErrorMessage(slug, price, error, webhook) {
+
+        if(webhook.length === 0) {
+            console.log("Webhook not set");
+            return;
+        }
+
+        try {
+            const message = {
+                "embeds": [
+                    {
+                        "title": "MintAIO",
+                        "description": `**Project:** ${slug}\n**Project**: [View on OpenSea](https://opensea.io/collection/${slug})\n\n**Price:** ${price} ETH\n\n**Error:** ${error}`,
+                        "color": 13963794
+                    }
+                ]
+            }
+
+            fetch(webhook, {
+                method: 'POST',
+                body: JSON.stringify(message),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+
+        } catch {
+
+        }
+    }
+
     testWebHook() {
         fetch(this.webhook, {
             method: 'POST',

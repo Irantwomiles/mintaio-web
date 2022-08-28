@@ -457,7 +457,28 @@ function EthMinter({state}) {
 
             setSelectedTasks(clone);
         }
+    }
 
+    const handleSelectGroupTasks = (g) => {
+
+        let _clone = [...tasks];
+        _clone = _clone.filter(t => t.taskGroup === g.name);
+
+        if(_clone.length === 0) return;
+
+        let _selectedClone = [...selectedTasks];
+
+        for(const t of _clone) {
+            const _task = _selectedClone.find(_t => _t.id === t.id);
+
+            if(typeof _task === 'undefined') {
+                _selectedClone.push(t);
+            } else {
+                _selectedClone = _selectedClone.filter(_t => _t.id !== t.id);
+            }
+        }
+
+        setSelectedTasks(_selectedClone);
     }
 
     const isSelected = (t) => {
@@ -730,10 +751,16 @@ function EthMinter({state}) {
                                                                         ${tasks.filter(t => t.taskGroup === g.name).length}
                                                                         <span class="ms-1">Task(s)</span>
                                                                     </div>
-                                                                    <div class="d-flex justify-content-evenly">
-                                                                        <i class="fa-solid fa-circle-play icon-color start-icon me-1" onclick=${() => startGroupTasks(g)}></i>
-                                                                        <i class="fa-solid fa-circle-stop icon-color stop-icon me-1" onclick=${() => stopGroupTasks(g)}></i>
-                                                                        <i class="fa-solid fa-trash icon-color delete-icon" onclick=${() => deleteGroupTasks(g)}></i>
+                                                                    <div>
+                                                                        <div class="d-flex justify-content-evenly mb-1">
+                                                                            <i class="fa-solid fa-circle-play icon-color start-icon me-1" onclick=${() => startGroupTasks(g)}></i>
+                                                                            <i class="fa-solid fa-circle-stop icon-color stop-icon" onclick=${() => stopGroupTasks(g)}></i> 
+                                                                        </div>
+
+                                                                        <div class="d-flex justify-content-evenly">
+                                                                            <i class="fa-solid fa-gas-pump icon-color pink-icon me-1" onclick=${() => handleSelectGroupTasks(g)}></i>
+                                                                            <i class="fa-solid fa-trash icon-color delete-icon" onclick=${() => deleteGroupTasks(g)}></i>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>

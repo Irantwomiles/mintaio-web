@@ -54,10 +54,6 @@ function NFTDashboard({state}) {
             const flat = [].concat(...filtered);
             setData(flat);
 
-            for(const f of flat) {
-                console.log(f.media);
-            }
-
         }).catch(e => {
             console.log(e);
         })

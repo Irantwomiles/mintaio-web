@@ -125,7 +125,45 @@ function OpenSeaSniperComp({state}) {
 
     const handleCreateTask = () => {
 
-        // check everything here
+        if(slug.length === 0) {
+            setToastInfo({
+                message: "OpenSea slug can't be left empty.",
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        if(contractAddress.length === 0) {
+            setToastInfo({
+                message: "Please enter in the contract address of the collection.",
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        if(price.length === 0) {
+            setToastInfo({
+                message: "Set a price point you wish to snipe at.",
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        if(selectedWallet === null) {
+            setToastInfo({
+                message: "Please select a wallet.",
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        if(tasks.length > 0) {
+            setToastInfo({
+                message: "While we are testing, the sniper is limited to 1.",
+                class: 'toast-error'
+            });
+            return;
+        }
 
         const sniper = new OpenSeaSniper({
             state: state,
