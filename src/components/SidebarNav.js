@@ -5,8 +5,7 @@ function SidebarNav({page}) {
     return html`
         <div class="sidebar col-auto col-md-3 col-xl-2 px-0">
             <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-3 min-vh-100 text-white">
-                
-                <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start w-100" id="menu">
+                <ul class="nav nav-pills flex-column mb-0 align-items-center align-items-sm-start w-100" id="menu">
 
                     <li class="nav-item sidebar-item w-100 mb-1 ${page === 'dashboard' ? 'active-sidebar' : ''}">
                         <a href="/dashboard" class="nav-link align-middle px-0">
@@ -51,7 +50,6 @@ function SidebarNav({page}) {
                     </li>
                     
                 </ul>
-                
             </div>
         </div>
     `

@@ -2,7 +2,7 @@ import {html} from 'htm/preact';
 import {useEffect, useState} from "preact/compat";
 import {Toast, Dropdown, Modal} from 'bootstrap';
 import SidebarNav from "../SidebarNav";
-import {getOpenSeaCollection} from "../../utils/opensea_utils";
+import {getOpenSeaCollection} from "../../utils/utils.js";
 import OpenSeaSniper from "../../utils/opensea_sniper";
 
 function kFormatter(num) {

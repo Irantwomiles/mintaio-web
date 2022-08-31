@@ -3,6 +3,7 @@ import SidebarNav from "./SidebarNav.js";
 import {Modal, Toast, Dropdown} from 'bootstrap';
 import {useState, useEffect, createRef} from "preact/compat";
 import Wallet from '../utils/wallet.js';
+import {getEthPrice} from "../utils/utils";
 
 function shortenAddress(address) {
     return fixAddress(address).slice(0, 5) + "..." + address.slice(address.length - 6);
@@ -29,6 +30,8 @@ function Wallets({state}) {
     const [password, setPassword] = useState("");
     const [massPassword, setMassPassword] = useState("");
     const [amount, setAmount] = useState(1);
+    const [totalBalance, setTotalBalance] = useState("--");
+    const [ethPrice, setEthPrice] = useState(0)
 
     const [privateKeys, setPrivateKeys] = useState([]);
     const [disperseWallets, setDisperseWallets] = useState([]);
@@ -386,6 +389,21 @@ function Wallets({state}) {
         setDisperseWallets(_disperse);
     }
 
+    const getTotalBalance = () => {
+
+        let total = 0.0;
+
+        for(const w of wallets) {
+
+            if(w.balance !== -1) {
+                total += Number.parseFloat(`${w.balance}`);
+            }
+
+        }
+
+        setTotalBalance(Number.parseFloat(`${total}`).toFixed(8));
+    }
+
     const disperseFunds = () => {
 
         if(disperseMain === null) {
@@ -462,6 +480,17 @@ function Wallets({state}) {
     }
 
     useEffect(() => {
+
+        getEthPrice().then((res) => {
+            res.json().then(result => {
+                setEthPrice(result['USD']);
+            }).catch(e => {
+                setEthPrice(0);
+            })
+        }).catch(e => {
+            setEthPrice(0);
+        })
+
         setWalletCreateModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#new-wallet-modal')));
         setUnlockWalletModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#unlock-wallet-modal')));
     }, []);
@@ -481,6 +510,10 @@ function Wallets({state}) {
         }
 
     }, [state]);
+
+    useEffect(() => {
+        getTotalBalance();
+    }, [wallets])
 
     useEffect(() => {
 
@@ -508,6 +541,21 @@ function Wallets({state}) {
                     <button class="button-secondary fw-bold ms-2" onclick=${() => {walletCreateModal.show()}}><i class="fa-solid fa-arrow-up"></i> Import Wallets</button>
                     <button class="button-orange fw-bold ms-2" onclick=${() => {Modal.getOrCreateInstance(document.querySelector('#disperse-funds-modal')).show()}}><i class="fa-solid fa-arrow-right-arrow-left"></i> Disperse Funds</button>
                     
+                    
+                    <div class="total-balance ms-auto">
+                        <div class="label">Total Balance</div>
+                        <div>
+                            <i class="fa-brands fa-ethereum icon-color me-1"></i>
+                            <span>${totalBalance} 
+                                <span class="dollar-value ms-1 fw-normal ${ethPrice === 0 ? 'd-none' : ''}">(
+                                    ${totalBalance === '--' ? '' : 
+                                    Number.parseFloat(`${Number.parseFloat(`${totalBalance * ethPrice}`)}`).toFixed(2)
+                                    })
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                    
                 </div>
 
                 <hr/>
@@ -519,8 +567,13 @@ function Wallets({state}) {
                         <input class="input" placeholder="Password" type="password" value=${massPassword} onchange=${(e) => {setMassPassword(e.target.value)}} />
                     </div>
                     <div class="button-outline-secondary">
-                        <i class="fa-solid fa-arrows-rotate me-2" onclick=${() => {state.refreshAllBalance()}}></i>
-                        <span>Refresh Balances</span>
+                        <div>
+                            <i class="fa-solid fa-arrows-rotate me-2" onclick=${() => {
+                            state.refreshAllBalance();
+                            getTotalBalance();
+                        }}></i>
+                            Refresh Balances
+                        </div>
                     </div>
                 </div>
                 

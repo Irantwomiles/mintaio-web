@@ -7,7 +7,16 @@ function Information({state}) {
         <${SidebarNav} page="info"/>
         
         <div class="p-3 w-100">
-            <h3 class="title">Security</h3>
+            
+            <h3 class="title">Setup Guide</h3>
+            <hr />
+
+            <div class="info-section">
+                <h5 style="color: white;">Documentation</h5>
+                <p class="q-a">Read the following <a href="https://mintaio.gitbook.io/mintaio-web/mint-bot" target="_blank">documentation</a> on how to properly configure this tool.</p>
+            </div>
+            
+            <h3 class="title mt-3">Security</h3>
             <hr />
             
             <div class="info-section">
@@ -64,14 +73,7 @@ function Information({state}) {
                 </div>
 
             </div>
-            
-            <h3 class="title mt-3">Setup Guide</h3>
-            <hr />
-            
-            <div class="info-section">
-                <h5 style="color: white;">Documentation</h5>
-                <p class="q-a">Read the following <a href="https://mintaio.gitbook.io/mintaio-web/mint-bot" target="_blank">documentation</a> on how to properly configure this tool.</p>
-            </div>
+
         </div>
         
     </div>

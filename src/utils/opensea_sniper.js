@@ -17,6 +17,7 @@ class OpenSeaSniper {
     static RED = '#f58686';
     static WHITE = '#FFF';
     static BLUE = '#3674e0';
+    static PINK = '#d58ce0';
 
     constructor({slug, contractAddress, wallet, price, traits = []}) {
         this.id = OpenSeaSniper.ID++;
@@ -257,21 +258,27 @@ class OpenSeaSniper {
             return;
         }
 
-        // 0xc4524796d8d0d43c854bd592d17791b094fa8ecddb8e7eabdbedfd989d8bf83a
-
         try {
 
             if(this.walletProvider === null || this.openseaSDK === null) {
 
-                console.log(state.globalWeb3);
+                let rpc = localStorage.getItem("globalRpc");
 
-                state.globalWeb3.providers.HttpProvider.prototype.sendAsync = state.globalWeb3.providers.HttpProvider.prototype.send;
+                if(rpc.length === 0) {
+                    return;
+                }
 
-                this.walletProvider = new HDWalletProvider([fixAddress(this.wallet.account.privateKey)], state.globalWeb3.currentProvider, 0, 1);
+                if(rpc.startsWith('https')) {
+                    rpc = rpc.replace('https', 'wss');
+                }
+                // state.globalWeb3.providers.HttpProvider.prototype.sendAsync = state.globalWeb3.providers.HttpProvider.prototype.send;
+
+                console.log("Chosen RPC:", rpc);
+                this.walletProvider = new HDWalletProvider([fixAddress(this.wallet.account.privateKey)], rpc, 0, 1);
 
                 this.openseaSDK = new OpenSeaSDK(this.walletProvider, {
                     networkName: Network.Main,
-                    apiKey: '852d4657fe794045abf12f206af777ad'
+                    apiKey: 'e6cc4c87a86740de959622f78c8bca8a'
                 });
             }
 
@@ -282,7 +289,7 @@ class OpenSeaSniper {
             }).then(order => {
                 this.status = {
                     message: `Found order`,
-                    color: OpenSeaSniper.BLUE
+                    color: OpenSeaSniper.PINK
                 };
 
                 state.postOpenSeaSniperUpdate();
@@ -343,8 +350,6 @@ class OpenSeaSniper {
                 color: OpenSeaSniper.RED
             };
         }
-
-
 
     }
 

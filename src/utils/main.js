@@ -334,7 +334,7 @@ class Main {
             const message = {
                 "embeds": [
                     {
-                        "title": "Successfully Minted!",
+                        "title": "Successfully Sniped!",
                         "description": `Project: [View on etherscan](https://opensea.io/collection/${slug}) Transaction: [View on etherscan](https://etherscan.io/tx/${tx_hash})\n\n**Price**: ${price} ETH`,
                         "color": 3135616,
                         "author": {

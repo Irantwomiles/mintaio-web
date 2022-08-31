@@ -582,3 +582,38 @@ hr {
     color: darken($green, 10%);
   }
 }
+
+.nav-info {
+  background-color: $background;
+  padding: 0.3rem 0.3rem;
+  border-radius: 0.3rem;
+}
+
+.nav-eth-info {
+  color: $light-gray;
+  font-size: 0.9rem;
+}
+
+.nav-eth-separator {
+  color: $light-gray;
+}
+
+.warning-banner {
+  background-color: $background-sidebar;
+  padding: 1rem 1rem;
+  color: $yellow;
+  font-weight: bold;
+  border-radius: 0.5rem;
+}
+
+.total-balance {
+  span {
+    color: white;
+    font-weight: bold;
+  }
+
+  .dollar-value {
+    color: $light-gray;
+    font-size: 0.85rem;
+  }
+}

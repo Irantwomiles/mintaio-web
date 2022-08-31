@@ -1,4 +1,4 @@
-
+import { saveAs } from 'file-saver';
 
 /**
  * Fetch assets from IPFS
@@ -44,4 +44,40 @@ export async function fetchAssetTraits(url, number, ending) {
  */
 export function getOpenSeaCollection(slug) {
     return fetch(`https://api.opensea.io/api/v1/collection/${slug}`);
+}
+
+export function getEthPrice() {
+    return fetch('https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD');
+}
+
+export function getGasPrices() {
+    return fetch('https://blocknative-api.herokuapp.com/data');
+}
+
+export function downloadLocalData() {
+
+    let data = {};
+
+    Object.keys(localStorage).forEach((key) => {
+        if(key !== 'abi-list') {
+            const val = localStorage.getItem(key);
+            data[key] = isJson(val) ? JSON.parse(val) : val;
+        }
+    })
+
+    console.log(data);
+
+    const fileToSave = new Blob([JSON.stringify(data)], {
+        type: 'application/json'
+    });
+    saveAs(fileToSave, 'filename')
+}
+
+export function isJson(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
 }

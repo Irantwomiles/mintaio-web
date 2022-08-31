@@ -1,4 +1,5 @@
 import {html} from 'htm/preact';
+import {useEffect, useState} from "preact/compat";
 
 import Router from 'preact-router';
 
@@ -10,7 +11,28 @@ import Information from "./Information.js";
 import Dashboard from "./dashboard/Dashboard";
 import OpenSeaSniperComp from "./opensea/OpenSeaSniperComp";
 
+import io from 'socket.io-client';
+
 function App({state}) {
+
+    /*const [socket, setSocket] = useState(null);
+
+    useEffect(() => {
+        if(socket === null) {
+            const _socket = io.connect('http://localhost:3001');
+            setSocket(_socket);
+        }
+    }, []);
+
+    useEffect(() => {
+        if(socket === null) {
+            return;
+        }
+
+        socket.emit('mintaio-join', `A user is connected to the socket.io client.`);
+
+    }, [socket]);*/
+
     return html`
     <div>
         <${Nav} />

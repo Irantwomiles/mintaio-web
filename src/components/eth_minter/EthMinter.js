@@ -555,8 +555,11 @@ function EthMinter({state}) {
 
         setCreateGroupModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#create-group-modal')));
 
-        setProvider(localStorage.getItem('globalRpc'));
-        setGroups(JSON.parse(localStorage.getItem('eth-groups')));
+        const _provider = localStorage.getItem('globalRpc');
+        const _ethGroups = localStorage.getItem('eth-groups');
+
+        setProvider(_provider === null ? '' : _provider);
+        setGroups(_ethGroups === null ? [] : JSON.parse(_ethGroups));
 
     }, []);
 
@@ -736,7 +739,7 @@ function EthMinter({state}) {
                     </div>
 
                     ${
-                            groups.length > 0 ?
+                            groups !== null && groups.length > 0 ?
                                     html`
                                         ${
                                                 groups.map(g => (
@@ -782,7 +785,7 @@ function EthMinter({state}) {
                                     html`
                                         <hr/>
                                         <div class="${k.length === 0 ? 'd-none' : 'mt-2'}">
-                                            <label class="group-title" style="${k.length === 0 ? 'border: none;' : "border-color: " + groups.find(g => g.name === k).color};">${k}</label>
+                                            <label class="group-title" style="${k.length === 0 ? 'border: none;' : "border-color: " + groups.find(g => g.name === k)?.color};">${k}</label>
                                         </div>
                                         ${
                                             groupedTasks[k].map((t) => (
@@ -949,8 +952,6 @@ function EthMinter({state}) {
                                                         </li>
                                                     `
                                             ))}
-
-
                                         </ul>
                                     </div>
 
@@ -996,7 +997,7 @@ function EthMinter({state}) {
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="dropdown">
                                             ${
-                                                    mintMethods.length === 0 ? '' :
+                                                    mintMethods === null || mintMethods.length === 0 ? '' :
                                                             mintMethods.map((mint) => (
                                                                     html`
                                                                         <li class="dropdown-item" onclick=${() => {
