@@ -1,5 +1,6 @@
 import HDWalletProvider from "@truffle/hdwallet-provider";
 import { OpenSeaSDK, Network } from 'opensea-js'
+import {getOpenSeaCollection} from "./utils";
 
 function fixAddress(address) {
     if(address.startsWith('0x')) {
@@ -41,6 +42,9 @@ class OpenSeaSniper {
 
     fetchAssetListings(state) {
 
+        // After 50 iterations we will fetch floor price
+        let fetchFloorPrice = 0;
+
         let throttleTimer = 0;
         let checking = false;
         this.stopped = false;
@@ -52,7 +56,7 @@ class OpenSeaSniper {
 
         state.postOpenSeaSniperUpdate();
 
-        this.interval = setInterval(() => {
+        this.interval = setInterval(async () => {
 
             if(checking) return;
 
@@ -67,6 +71,26 @@ class OpenSeaSniper {
                 state.postOpenSeaSniperUpdate();
                 return;
             }
+
+            if(fetchFloorPrice <= 0) {
+                const collection = await getOpenSeaCollection(this.slug);
+
+                if(collection.status === 200) {
+                    const data = await collection.json();
+                    const floorPrice = data.collection.stats.floor_price;
+
+                    if(Number.parseFloat(`${floorPrice}`) < Number.parseFloat(`${this.price}`)) {
+                        this.stopFetchingAssets(state);
+                        console.log(`Stopped fetching assets, floor price (${floorPrice}) is lower than search price (${this.price})`);
+                        this.stopped = true;
+                        return;
+                    }
+                }
+
+                fetchFloorPrice = 50;
+            }
+
+            fetchFloorPrice--;
 
             fetch(`https://api.opensea.io/api/v1/events?event_type=created&collection_slug=${this.slug}`, {
                 headers: {
@@ -112,8 +136,6 @@ class OpenSeaSniper {
                     }
 
                     const assetUrl = `https://api.opensea.io/api/v1/assets?include_orders=true&collection_slug=${this.slug}&token_ids=${validTokens.join('&token_ids=')}`
-
-                    console.log(assetUrl);
 
                     fetch(assetUrl, {
                         headers: {
@@ -192,11 +214,9 @@ class OpenSeaSniper {
 
                             validAssets.sort(compare);
 
-                            console.log(validAssets);
                             checking = false;
 
                             clearInterval(this.interval);
-                            console.log("Cleared interval, stopping task here!");
 
                             if(this.stopped) return;
 
@@ -273,7 +293,6 @@ class OpenSeaSniper {
                 }
                 // state.globalWeb3.providers.HttpProvider.prototype.sendAsync = state.globalWeb3.providers.HttpProvider.prototype.send;
 
-                console.log("Chosen RPC:", rpc);
                 this.walletProvider = new HDWalletProvider([fixAddress(this.wallet.account.privateKey)], rpc, 0, 1);
 
                 this.openseaSDK = new OpenSeaSDK(this.walletProvider, {

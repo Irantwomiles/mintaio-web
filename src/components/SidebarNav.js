@@ -27,6 +27,13 @@ function SidebarNav({page}) {
                             <span class="ms-1 d-none d-sm-inline size-2">OpenSea</span>
                         </a>
                     </li>
+
+                    <li class="nav-item sidebar-item w-100 mb-1 ${page === 'nft-watchlist' ? 'active-sidebar' : ''}">
+                        <a href="/nft-watchlist" class="nav-link align-middle px-0">
+                            <i class="fa-solid fa-eye mx-2 size-2"></i>
+                            <span class="ms-1 d-none d-sm-inline size-2">NFT Watch</span>
+                        </a>
+                    </li>
                     
                     <li class="nav-item sidebar-item w-100 mb-1 ${page === 'wallets' ? 'active-sidebar' : ''}">
                         <a href="/wallets" class="nav-link align-middle px-0">

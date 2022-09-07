@@ -73,7 +73,7 @@ function Nav() {
 
         const gasInterval = setInterval(() => {
             updateGasPrices();
-        }, 1000 * 15);
+        }, 1000 * 10);
 
         return () => {
             clearInterval(ethPriceInterval);

@@ -11,6 +11,10 @@ function fixAddress(address) {
     return `0x${address}`.toLowerCase();
 }
 
+function mapByContract(arr) {
+
+}
+
 function NFTDashboard({state}) {
 
     const [wallets, setWallets] = useState([]);
@@ -78,8 +82,6 @@ function NFTDashboard({state}) {
             walletsStream.unsubscribe();
         }
 
-        console.log("called state update");
-
     }, [state]);
 
     useEffect(() => {
@@ -110,7 +112,7 @@ function NFTDashboard({state}) {
                     </ul>
                 </div>
 
-                <button class="button-secondary mt-auto" onclick=${fetchNFTs}>Search Wallets</button>
+                <button class="button-secondary fw-bold mt-auto" onclick=${fetchNFTs}>Search Wallets</button>
             </div>
 
             <div class="d-flex flex-wrap mt-2">

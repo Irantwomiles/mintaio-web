@@ -547,7 +547,7 @@ function Wallets({state}) {
                         <div>
                             <i class="fa-brands fa-ethereum icon-color me-1"></i>
                             <span>${totalBalance} 
-                                <span class="dollar-value ms-1 fw-normal ${ethPrice === 0 ? 'd-none' : ''}">(
+                                <span class="dollar-value ms-1 fw-normal ${ethPrice === 0 ? 'd-none' : ''}">($
                                     ${totalBalance === '--' ? '' : 
                                     Number.parseFloat(`${Number.parseFloat(`${totalBalance * ethPrice}`)}`).toFixed(2)
                                     })

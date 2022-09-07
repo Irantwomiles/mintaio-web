@@ -10,28 +10,9 @@ import Settings from "./Settings.js";
 import Information from "./Information.js";
 import Dashboard from "./dashboard/Dashboard";
 import OpenSeaSniperComp from "./opensea/OpenSeaSniperComp";
-
-import io from 'socket.io-client';
+import NFTWatchList from "./dashboard/NFTWatchList";
 
 function App({state}) {
-
-    /*const [socket, setSocket] = useState(null);
-
-    useEffect(() => {
-        if(socket === null) {
-            const _socket = io.connect('http://localhost:3001');
-            setSocket(_socket);
-        }
-    }, []);
-
-    useEffect(() => {
-        if(socket === null) {
-            return;
-        }
-
-        socket.emit('mintaio-join', `A user is connected to the socket.io client.`);
-
-    }, [socket]);*/
 
     return html`
     <div>
@@ -43,6 +24,7 @@ function App({state}) {
             <${Information} state=${state} path="/info" />
             <${Dashboard} state=${state} path="/dashboard" />
             <${OpenSeaSniperComp} state=${state} path="/opensea" />
+            <${NFTWatchList} state=${state} path="/nft-watchlist" />
         </${Router}>
     </div>
     `

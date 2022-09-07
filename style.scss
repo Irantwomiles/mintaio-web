@@ -617,3 +617,78 @@ hr {
     font-size: 0.85rem;
   }
 }
+
+.nft-watchlist-status {
+  color: $light-gray;
+
+  .pending {
+    background-color: $yellow;
+    padding: 4px 4px;
+    border-radius: 180px;
+  }
+
+  .offline {
+    background-color: $red;
+    padding: 4px 4px;
+    border-radius: 180px;
+  }
+
+  .live {
+    background-color: $green;
+    padding: 4px 4px;
+    animation: pulse 2s infinite;
+    border-radius: 180px;
+  }
+
+  @keyframes pulse {
+    0% {
+      -webkit-box-shadow: 0 0 0 0 rgba(73, 165, 139, 0);
+    }
+
+    10% {
+      -webkit-box-shadow: 0 0 0 3px rgba(73, 165, 139, 0.05);
+    }
+
+    20% {
+      -webkit-box-shadow: 0 0 0 3px rgba(73, 165, 139, 0.1);
+    }
+
+    30% {
+      -webkit-box-shadow: 0 0 0 3px rgba(73, 165, 139, 0.15);
+    }
+
+    40% {
+      -webkit-box-shadow: 0 0 0 3px rgba(73, 165, 139, 0.2);
+    }
+
+    50% {
+      -webkit-box-shadow: 0 0 0 3px rgba(73, 165, 139, 0.25);
+    }
+
+
+    60% {
+      -webkit-box-shadow: 0 0 0 3px rgba(73, 165, 139, 0.3);
+    }
+
+
+    70% {
+      -webkit-box-shadow: 0 0 0 3px rgba(73, 165, 139, 0.25);
+    }
+
+
+    80% {
+      -webkit-box-shadow: 0 0 0 3px rgba(73, 165, 139, 0.20);
+    }
+
+
+    90% {
+      -webkit-box-shadow: 0 0 0 3px rgba(73, 165, 139, 0.15);
+    }
+
+
+    100% {
+      -webkit-box-shadow: 0 0 0 3px rgba(73, 165, 139, 0.1);
+    }
+
+  }
+}

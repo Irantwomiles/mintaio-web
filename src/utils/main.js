@@ -3,6 +3,7 @@ import Web3 from 'web3';
 import NFTManager from './nft_manager';
 import OpenSeaBid from "./opensea_bid";
 import OpenSeaSniper from "./opensea_sniper";
+import io from "socket.io-client";
 
 class Main {
 
@@ -14,6 +15,7 @@ class Main {
         this.ethTasksStream = new BehaviorSubject([]);
         this.openseaBidderStream = new BehaviorSubject([]);
         this.openseaSniperStream = new BehaviorSubject([]);
+        this.nftWatchListStream = new BehaviorSubject([]);
 
         this.webhook = localStorage.getItem('discordWebHook') === null ? '' : localStorage.getItem('discordWebHook');
 
@@ -22,6 +24,9 @@ class Main {
         this.ethTasks = [];
         this.openseaBidders = [];
         this.openseaSnipers = [];
+        this.nftWatchList = [];
+
+        this.mintWatchSocket = null;
 
         this.walletsStream.subscribe((data) => {
             this.wallets = data;
@@ -37,6 +42,10 @@ class Main {
 
         this.openseaSniperStream.subscribe((data) => {
             this.openseaSnipers = data;
+        });
+
+        this.nftWatchListStream.subscribe((data) => {
+            this.nftWatchList = data;
         });
 
         if(localStorage.getItem("abi-list") !== null) {
@@ -78,6 +87,66 @@ class Main {
         //sniper.fetchAssetListings();
 
         console.log("Main state initiated, MintAIO - v0.1-beta");
+    }
+
+    connectMintWatch() {
+        if(this.mintWatchActive()) {
+            return 'LIVE';
+        }
+
+        // https://mintaio-auth.herokuapp.com/
+        // http://localhost:3001/
+
+        try {
+            this.mintWatchSocket = io.connect('https://mintaio-auth.herokuapp.com/');
+
+            this.mintWatchSocket.on('nft-watchlist', (data) => {
+
+                const _clone = [...this.nftWatchList];
+                const _p = _clone.find(p => p.contractAddress === data['contract_address'].toLowerCase());
+
+                if(typeof _p === 'undefined') {
+                    _clone.push({
+                        contractAddress:  data['contract_address'].toLowerCase(),
+                        name: data.name,
+                        totalSupply: data.totalSupply,
+                        value: data.value
+                    })
+
+                    state.nftWatchListStream.next(_clone);
+                    return;
+                }
+
+                _p.contractAddress = data['contract_address'].toLowerCase();
+                _p.name = _p.name === '--' ? data.name : _p.name;
+
+                if(_p.totalSupply === '--' || data.totalSupply !== '--') {
+                    _p.totalSupply = data.totalSupply;
+                }
+
+                _p.value = data.value;
+
+                this.nftWatchListStream.next(_clone);
+            });
+
+            return 'LIVE';
+
+        } catch(e) {
+            return 'OFFLINE'
+        }
+    }
+
+    disconnectMintWatch() {
+        if(!this.mintWatchActive()) {
+            return;
+        }
+
+        this.mintWatchSocket.disconnect();
+        this.mintWatchSocket = null;
+    }
+
+    mintWatchActive() {
+        return this.mintWatchSocket !== null;
     }
 
     async getContractAbi(contract, network) {
