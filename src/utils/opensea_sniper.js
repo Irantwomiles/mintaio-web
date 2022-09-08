@@ -229,6 +229,7 @@ class OpenSeaSniper {
 
                             this.fillOrder(state, validAssets[0].tokenId);
 
+
                         }).catch(e => {
                             checking = false;
                             console.log("[1]", e);
@@ -268,15 +269,27 @@ class OpenSeaSniper {
 
     async fillOrder(state, tokenId) {
 
+        // Stop sending transaction if wallet is locked.
         if(this.wallet.isLocked()) {
             this.status = {
                 message: `Unlock Wallet`,
                 color: OpenSeaSniper.RED
             };
 
+            this.stopped = true;
+
             state.postOpenSeaSniperUpdate();
             return;
         }
+
+        // if it's already stopped, then we don't need to send anymore tx
+        if(this.stopped) {
+            console.log(`${this.slug} Was stopped, not buying`)
+            return;
+        }
+
+        // set stopped to true to prevent another tx from being sent.
+        this.stopped = true;
 
         try {
 
@@ -368,6 +381,8 @@ class OpenSeaSniper {
                 message: `Error Occurred`,
                 color: OpenSeaSniper.RED
             };
+
+            this.stopped = true;
         }
 
     }
