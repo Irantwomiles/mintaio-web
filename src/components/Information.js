@@ -14,6 +14,8 @@ function Information({state}) {
             <div class="info-section">
                 <h5 style="color: white;">Documentation</h5>
                 <p class="q-a">Read the following <a href="https://mintaio.gitbook.io/mintaio-web/mint-bot" target="_blank">documentation</a> on how to properly configure this tool.</p>
+                <h5 style="color: white;">Quick Task extension</h5>
+                <p class="q-a">To download the Quick Task extension follow <a href="https://www.mediafire.com/file/mi78eutodzgyouo/mintaio-quicktask.rar/file" target="_blank">this</a> link. To install the extension open up Chrome and navigate to the <span style="color: white;">chrome://extension</span> path. Enable <span style="color: white;">Developer mode</span> in the top right side of the page, which will allow you to <span style="color: white;">Load Unpacked</span> extensions now. Open the file you downloaded and export the folder inside somewhere you will remember. Hit the <span style="color: white;">Load Unpacked</span> button in the extensions page and select the folder you just extracted. You should now see the extension in Chrome.</p>
             </div>
             
             <h3 class="title mt-3">Security</h3>

@@ -10,6 +10,7 @@
   * Rename wallets
 ###OpenSea
   * OpenSea bidder
+  * OpenSea quick task
   * Better UI for the tasks
   * Look into @opensea for custom gas
   * Look into opensea-js to see if we can intercept the data being sent so that we can instead send our own transaction.
@@ -17,7 +18,6 @@
   * Option to auto list sniped listing.
 ###Mint Bot
   * There is a bug when delete a tasks in a group or when delete a group with some tasks.
-  * Quick Task
 ###New Stuff
   * Gas calculator
   * Fix refresh requiring auth
