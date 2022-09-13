@@ -81,3 +81,11 @@ export function isJson(str) {
     }
     return true;
 }
+
+export function fixAddress(address) {
+    if(address.startsWith('0x')) {
+        return address.toLowerCase();
+    }
+
+    return `0x${address}`.toLowerCase();
+}

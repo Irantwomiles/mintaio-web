@@ -2,14 +2,7 @@ import {html} from 'htm/preact';
 import {useEffect, useState} from "preact/compat";
 import {Toast, Dropdown} from 'bootstrap';
 import logo from '../../images/mintaio-logo.png';
-
-function fixAddress(address) {
-    if(address.startsWith('0x')) {
-        return address.toLowerCase();
-    }
-
-    return `0x${address}`.toLowerCase();
-}
+import {fixAddress} from "../../utils/utils";
 
 function mapByContract(arr) {
 

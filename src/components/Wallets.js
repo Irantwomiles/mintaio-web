@@ -3,18 +3,10 @@ import SidebarNav from "./SidebarNav.js";
 import {Modal, Toast, Dropdown} from 'bootstrap';
 import {useState, useEffect, createRef} from "preact/compat";
 import Wallet from '../utils/wallet.js';
-import {getEthPrice} from "../utils/utils";
+import {fixAddress, getEthPrice} from "../utils/utils";
 
 function shortenAddress(address) {
     return fixAddress(address).slice(0, 5) + "..." + address.slice(address.length - 6);
-}
-
-function fixAddress(address) {
-    if(address.startsWith('0x')) {
-        return address.toLowerCase();
-    }
-
-    return `0x${address}`.toLowerCase();
 }
 
 function Wallets({state}) {

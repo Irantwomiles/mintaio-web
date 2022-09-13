@@ -49,6 +49,8 @@ class Task {
         this.abi = abi;
         this.network = 'mainnet';
 
+        this.customHexData = '';
+
         this.nonce = -1;
         this.pending = false;
 
@@ -94,34 +96,61 @@ class Task {
             return;
         }
 
-        try {
-            const account = this.web3.eth.accounts.privateKeyToAccount(this.wallet.account.privateKey);
-            const contract = new this.web3.eth.Contract(JSON.parse(this.abi), this.contractAddress);
+        console.log(this);
 
+        try {
+
+            const account = this.web3.eth.accounts.privateKeyToAccount(this.wallet.account.privateKey);
             let nonce = await this.web3.eth.getTransactionCount(account.address, 'latest');
 
             if(this.nonce === -1) {
                 this.nonce = nonce;
             }
 
-            const _args = [];
+            let data;
 
-            for (const a of this.args) {
-                _args.push(a.value);
+            // It is not a quick task
+            if(this.customHexData.length === 0) {
+
+                console.log("attempting regular tx", this.customHexData);
+                const contract = new this.web3.eth.Contract(JSON.parse(this.abi), this.contractAddress);
+
+                const _args = [];
+
+                for (const a of this.args) {
+                    _args.push(a.value);
+                }
+
+                if(this.gasLimit === 'AUTO') {
+                    const _gasLimit = await contract.methods[this.functionName.name](..._args).estimateGas(
+                        {
+                            from: account.address,
+                            value: `${this.web3.utils.toWei(`${finalCost}`, 'ether')}`
+                        });
+                    finalGasLimit = _gasLimit;
+                } else {
+                    finalGasLimit = this.gasLimit;
+                }
+
+                data = contract.methods[this.functionName.name](..._args).encodeABI();
             }
-
-            if(this.gasLimit === 'AUTO') {
-                const _gasLimit = await contract.methods[this.functionName.name](..._args).estimateGas(
-                    {
-                        from: account.address,
-                        value: `${this.web3.utils.toWei(`${finalCost}`, 'ether')}`
-                    });
-                finalGasLimit = _gasLimit;
-            } else {
+            // its a quick task
+            else {
+                data = this.customHexData;
                 finalGasLimit = this.gasLimit;
+                console.log("Set customData", data, finalGasLimit);
             }
 
-            const data = contract.methods[this.functionName.name](..._args).encodeABI();
+            if(!data) {
+                this.status = {
+                    message: 'No data was set!',
+                    color: Task.RED
+                };
+
+                state.postTaskUpdate();
+                return;
+            }
+
             const tx = {
                 from: this.wallet.account.address,
                 to: this.contractAddress,
@@ -132,6 +161,8 @@ class Task {
                 gasLimit: Number.parseInt(finalGasLimit),
                 data: data
             };
+
+            console.log("tx:", tx);
 
             const sign = await this.web3.eth.accounts.signTransaction(tx, this.wallet.account.privateKey);
 
@@ -357,7 +388,8 @@ class Task {
             taskGroup: this.taskGroup,
             startMode: this.startMode,
             network: this.network,
-            trigger: this.trigger
+            trigger: this.trigger,
+            customHexData: this.customHexData
         });
 
         localStorage.setItem('eth-tasks', JSON.stringify(_tasks));

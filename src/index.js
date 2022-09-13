@@ -11,8 +11,11 @@ import '../style.scss';
 
 import Task from "./utils/task.js";
 import OpenSeaSniper from "./utils/opensea_sniper";
+import QuickTaskProfile from "./utils/quick_task_profile";
 
 const mainState = new Main();
+
+QuickTaskProfile.loadProfiles(mainState);
 
 if(localStorage.getItem("wallets") === null) {
     localStorage.setItem("wallets", JSON.stringify([]));
@@ -58,6 +61,7 @@ if(localStorage.getItem("eth-tasks") === null) {
                 task.startMode = t.startMode;
                 task.contractReadMethod = t.contractReadMethod;
                 task.readMethodCurrent = t.readMethodCurrent;
+                task.customHexData = t.customHexData;
 
                 task.save();
                 _tasks.push(task);

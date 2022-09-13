@@ -3,14 +3,8 @@ import {useEffect, useState, useRef} from "preact/compat";
 import {Dropdown, Modal, Toast} from "bootstrap";
 import SidebarNav from '../SidebarNav.js';
 import Task from '../../utils/task.js';
-
-function fixAddress(address) {
-    if(address.startsWith('0x')) {
-        return address.toLowerCase();
-    }
-
-    return `0x${address}`.toLowerCase();
-}
+import QuickTaskProfile from "../../utils/quick_task_profile";
+import {fixAddress} from "../../utils/utils";
 
 function groupToKey(arr, key, groups) {
 
@@ -57,6 +51,7 @@ function EthMinter({state}) {
     const [abi, setAbi] = useState("");
     const [mode, setMode] = useState("MANUAL");
     const [trigger, setTrigger] = useState("!=");
+    const [customHexData, setCustomHexData] = useState("");
 
     const [editTask, setEditTask] = useState(null);
 
@@ -82,6 +77,9 @@ function EthMinter({state}) {
     const [selectedTasks, setSelectedTasks] = useState([]);
     const [updateMaxGas, setUpdateMaxGas] = useState("");
     const [updatePriorityGas, setUpdatePriorityGas] = useState("");
+
+    const [profiles, setProfiles] = useState([]);
+    const [profileName, setProfileName] = useState("");
 
     const handleGetContractInfo = async () => {
 
@@ -545,6 +543,48 @@ function EthMinter({state}) {
         });
     }
 
+    const handleCreateQuickTaskProfile = () => {
+
+        if(profileName.length === 0) {
+            setToastInfo({
+                message: 'Set a name for your Profile.',
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        if(selectedWallets.length === 0) {
+            setToastInfo({
+                message: 'Select one or more wallets for this profile.',
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        const existingProfiles = state.quickTaskProfiles;
+
+        if(typeof existingProfiles.find(p => p.name === profileName) !== 'undefined') {
+            setToastInfo({
+                message: 'A profile with that name already exists.',
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        const _wallets = [];
+
+        for(const w of selectedWallets) {
+            _wallets.push(fixAddress(w.account.address));
+        }
+
+        const profile = new QuickTaskProfile(profileName, _wallets);
+        profile.save();
+
+        existingProfiles.push(profile);
+        state.quickTaskProfileStream.next(existingProfiles);
+
+    }
+
     useEffect(() => {
 
         setGroupsDropdown(new Dropdown(globalRef.current.querySelector('#groups-dropdown'), {}));
@@ -594,9 +634,14 @@ function EthMinter({state}) {
             setGroupedTasks(groupToKey(data, 'taskGroup', groups));
         })
 
+        const profilesStream = state.quickTaskProfileStream.subscribe((data) => {
+            setProfiles(data);
+        })
+
         return () => {
             walletsStream.unsubscribe();
             tasksStream.unsubscribe();
+            profilesStream.unsubscribe();
         }
 
     }, [state]);
@@ -723,6 +768,8 @@ function EthMinter({state}) {
                         <input class="input ms-2" style="width: 10rem;" type="number" min="1" step="1" placeholder="Max Gas" value=${updateMaxGas} onchange=${(e) => setUpdateMaxGas(Number.parseInt(e.target.value))} />
                         <input class="input ms-2" style="width: 10rem;" type="number" min="1" step="1" placeholder="Priority Fee" value=${updatePriorityGas} onchange=${(e) => setUpdatePriorityGas(Number.parseInt(e.target.value))} />
                     </div>
+
+                    <button class="button-orange fw-bold ms-auto" onclick=${() => Modal.getOrCreateInstance(document.querySelector('#create-qt-profile-modal')).show()}><i class="fa-solid fa-wind"></i> Quick Tasks</button>
                 </div>
 
                 <hr/>
@@ -1151,7 +1198,18 @@ function EthMinter({state}) {
                             </div>
 
                             <hr/>
+                            
+                            <div class="title">QUICK TASKS <i class="fa-solid fa-gas-pump ms-1"></i></div>
+                            <div class="mt-3">
+                                <div class="label">Custom Hex Data</div>
+                                <input class="input" type="text" value=${customHexData}
+                                       onchange=${(e) => {
+                                           setCustomHexData(e.target.value)
+                                       }} placeholder="0x123abc..."/>
+                            </div>
 
+                            <hr/>
+                            
                             <div class="mt-3">
                                 <div class="title">GAS SETTINGS <i class="fa-solid fa-gas-pump ms-1"></i></div>
                                 <div class="d-flex flex-wrap mt-3">
@@ -1218,6 +1276,69 @@ function EthMinter({state}) {
                 </div>
             </div>
 
+            <div id="create-qt-profile-modal" class="modal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title title">Create Quick Task Profile</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="d-flex align-items-center">
+                                <div class="me-2">
+                                    <div class="label">Profile Name</div>
+                                    <input class="input me-1 flex-grow-1" placeholder="Profile name" value=${profileName}
+                                           onchange=${(e) => {
+                                        setProfileName(e.target.value)
+                                    }}/>
+                                </div>
+
+                                <div class="dropdown">
+                                    <div class="label">Wallets</div>
+                                    <button class="button-dropdown dropdown-toggle" type="button"
+                                            id="qt-wallets-dropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                                            onclick=${() => {
+                                                Dropdown.getOrCreateInstance(document.querySelector('#qt-wallets-dropdown')).show()
+                                            }}>
+                                        Select one or more Wallets
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdown">
+                                        ${
+                                                wallets.length === 0 ? '' :
+                                                        wallets.map((w) => (
+                                                                html`
+                                                                    <li class="dropdown-item" onclick=${() => {
+                                                                    addWallet(w)
+                                                                }}>${w.name}
+                                                                    </li>
+                                                                `
+                                                        ))
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div>
+                                
+                                ${profiles.map(p => (
+                                    html`
+                                    <div>
+                                        <div>${p.name}</div>
+                                    </div>
+                                    `
+                                ))}
+                                
+                                
+                            </div>
+                            
+                        </div>
+                        <div class="modal-footer">
+                            <button class="button-secondary ms-1" onclick=${handleCreateQuickTaskProfile}>Create Profile</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
 
             <div id="toast-message" class="toast align-items-center ${toastInfo === null ? '' : toastInfo.class} end-0 top-0 m-3" style="position: absolute" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="d-flex align-items-center justify-content-between py-3 mx-2">

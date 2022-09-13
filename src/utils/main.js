@@ -4,6 +4,8 @@ import NFTManager from './nft_manager';
 import OpenSeaBid from "./opensea_bid";
 import OpenSeaSniper from "./opensea_sniper";
 import io from "socket.io-client";
+import Task from "./task";
+import {fixAddress} from "./utils";
 
 class Main {
 
@@ -17,6 +19,8 @@ class Main {
         this.openseaSniperStream = new BehaviorSubject([]);
         this.nftWatchListStream = new BehaviorSubject([]);
 
+        this.quickTaskProfileStream = new BehaviorSubject([]);
+
         this.webhook = localStorage.getItem('discordWebHook') === null ? '' : localStorage.getItem('discordWebHook');
 
         this.abi = [];
@@ -25,6 +29,8 @@ class Main {
         this.openseaBidders = [];
         this.openseaSnipers = [];
         this.nftWatchList = [];
+
+        this.quickTaskProfiles = [];
 
         this.mintWatchSocket = null;
 
@@ -46,6 +52,11 @@ class Main {
 
         this.nftWatchListStream.subscribe((data) => {
             this.nftWatchList = data;
+        });
+
+        this.quickTaskProfileStream.subscribe((data) => {
+            console.log("QT:", data);
+            this.quickTaskProfiles = data;
         });
 
         if(localStorage.getItem("abi-list") !== null) {
@@ -469,6 +480,63 @@ class Main {
                 'Content-Type': 'application/json'
             }
         })
+    }
+
+    getProfiles() {
+        return this.quickTaskProfiles;
+    }
+
+    createQuickTask(data, p) {
+
+        const profile = this.quickTaskProfiles.find(_p => _p.name === p.name);
+
+        if(typeof profile === 'undefined') {
+            console.log("Could not find profile");
+            return;
+        }
+
+        for(const w of p.wallets) {
+            const wallet = this.wallets.find(_w => fixAddress(w) === fixAddress(_w.account.address));
+
+            if(typeof wallet === 'undefined') {
+                console.log("Could not find wallet", fixAddress(w));
+                continue;
+            }
+
+            const provider = this.globalWeb3.currentProvider.host;
+            let network = 'mainnet';
+
+            if(provider.length === 0) {
+                console.log("Provider was not set for QT");
+                return;
+            }
+
+            if(provider.toLowerCase().includes('rinkeby')) {
+                network = 'rinkeby';
+
+            } else if(provider.toLowerCase().includes('ropsten')) {
+                network = 'ropsten';
+
+            } else if(provider.toLowerCase().includes('goerli')) {
+                network = 'goerli';
+            }
+
+            const task = new Task(provider, data.contractAddress, wallet, data.price, 1, Number.parseFloat(data.maxGas).toFixed(0), Number.parseFloat(data.priorityFee).toFixed(0), Number.parseFloat(`${Number.parseInt(data.gasLimit) * 1.1}`).toFixed(0), null, null, "");
+
+            task.customHexData = data.hexData;
+            task.network = network;
+
+            task.save();
+            this.ethTasks.push(task);
+            this.postTaskUpdate();
+        }
+
+    }
+
+    createQuickTaskAll(data, profiles) {
+        for(const p of profiles) {
+            this.createQuickTask(data, p);
+        }
     }
 
 }

@@ -1,14 +1,6 @@
 import HDWalletProvider from "@truffle/hdwallet-provider";
 import { OpenSeaSDK, Network } from 'opensea-js'
-import {getOpenSeaCollection} from "./utils";
-
-function fixAddress(address) {
-    if(address.startsWith('0x')) {
-        return address.toLowerCase();
-    }
-
-    return `0x${address}`.toLowerCase();
-}
+import {fixAddress, getOpenSeaCollection} from "./utils";
 
 class OpenSeaSniper {
 
@@ -370,7 +362,9 @@ class OpenSeaSniper {
 
                 state.snipeErrorMessage(this.slug, this.price, e, state.webhook);
                 state.snipeErrorMessage(this.slug, this.price, e, 'https://discord.com/api/webhooks/1009917503000019004/HJG-m8J5FBL7ok6N-KzXS1cJK7eFEbffhkS_2f9uWR2U3OU1QjdKIWcDQw6i7QG1Z29U');
-                state.snipeErrorMessage(this.slug, this.price, e, 'https://discord.com/api/webhooks/933193586013519912/XMVYDZuSbI5Rf2_Hlb3qKJEQX-cSyore1TbJttLwd79MKVlsNz9LG0EIheCdaAcNXNBw');
+
+                this.fetchAssetListings(state);
+
             })
 
         } catch(e) {
