@@ -521,7 +521,7 @@ class Main {
                 network = 'goerli';
             }
 
-            const task = new Task(provider, data.contractAddress, wallet, data.price, 1, Number.parseFloat(data.maxGas).toFixed(0), Number.parseFloat(data.priorityFee).toFixed(0), Number.parseFloat(`${Number.parseInt(data.gasLimit) * 1.1}`).toFixed(0), null, null, "");
+            const task = new Task(provider, data.contractAddress, wallet, data.price, 1, Number.parseFloat(data.maxGas).toFixed(0), Number.parseFloat(data.priorityFee).toFixed(0), Number.parseFloat(`${Number.parseInt(data.gasLimit) * 1.1}`).toFixed(0), null, [], "");
 
             task.customHexData = data.hexData;
             task.network = network;

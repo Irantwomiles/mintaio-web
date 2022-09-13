@@ -5,7 +5,7 @@ class NFTManager {
     constructor() {
 
         const config = {
-            apiKey: 'AMkm4ceqbFzP6YEEL1-Ye1PuGma3Ey6T',
+            apiKey: 'Xl9CjNo9SjtCLYcYH-X9cdQWqi4c5l39',
             network: Network.ETH_MAINNET
         }
 

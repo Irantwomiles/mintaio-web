@@ -600,9 +600,9 @@ hr {
 
 .warning-banner {
   background-color: $background-sidebar;
+  border: 1px solid $yellow;
   padding: 1rem 1rem;
   color: $yellow;
-  font-weight: bold;
   border-radius: 0.5rem;
 }
 

@@ -112,7 +112,6 @@ class Task {
             // It is not a quick task
             if(this.customHexData.length === 0) {
 
-                console.log("attempting regular tx", this.customHexData);
                 const contract = new this.web3.eth.Contract(JSON.parse(this.abi), this.contractAddress);
 
                 const _args = [];
@@ -133,12 +132,9 @@ class Task {
                 }
 
                 data = contract.methods[this.functionName.name](..._args).encodeABI();
-            }
-            // its a quick task
-            else {
+            } else {
                 data = this.customHexData;
                 finalGasLimit = this.gasLimit;
-                console.log("Set customData", data, finalGasLimit);
             }
 
             if(!data) {
@@ -161,8 +157,6 @@ class Task {
                 gasLimit: Number.parseInt(finalGasLimit),
                 data: data
             };
-
-            console.log("tx:", tx);
 
             const sign = await this.web3.eth.accounts.signTransaction(tx, this.wallet.account.privateKey);
 

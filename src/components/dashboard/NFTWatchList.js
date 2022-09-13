@@ -73,6 +73,8 @@ function NFTWatchList({state}) {
             
             <div class="p-3 w-100">
                 
+                <div class="warning-banner mb-3 text-center">This page is under construction right now!</div>
+                
                 <div class="d-flex">
                     <button class="button-primary fw-bold me-2" onclick=${startWatch}><i class="fa-solid fa-circle-play me-1"></i>Start Watch</button>
                     <button class="button-danger fw-bold" onclick=${stopWatch}><i class="fa-solid fa-circle-stop me-1"></i>Stop Watch</button>

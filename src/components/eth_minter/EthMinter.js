@@ -585,6 +585,30 @@ function EthMinter({state}) {
 
     }
 
+    const deleteQuickTaskProfile = (p) => {
+        let _profiles = localStorage.getItem('qt-profiles');
+
+        if(_profiles === null) {
+            setToastInfo({
+                message: "Couldn't find that profile.",
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        _profiles = JSON.parse(localStorage.getItem('qt-profiles'));
+
+        _profiles = _profiles.filter(_p => _p.name !== p.name);
+        state.quickTaskProfileStream.next(_profiles);
+
+        localStorage.setItem('qt-profiles', JSON.stringify(_profiles));
+        setToastInfo({
+            message: "Deleted profile.",
+            class: 'toast-success'
+        });
+        return;
+    }
+
     useEffect(() => {
 
         setGroupsDropdown(new Dropdown(globalRef.current.querySelector('#groups-dropdown'), {}));
@@ -697,35 +721,42 @@ function EthMinter({state}) {
             _group = _group.name;
         }
 
-        setSelectedGroup(editTask.taskGroup.length > 0 ? _group : "");
-        setContractAddress(editTask.contractAddress);
-        setAbi(editTask.abi);
-
-        const contractInfo = state.getContractMethods(editTask.abi);
-
-        if (contractInfo === null) {
-            console.log("Could not get contract info.");
-        } else {
-            setMintMethods(contractInfo.mintMethods);
-            setReadMethods(contractInfo.readMethods);
-        }
-
-        setMintMethod(editTask.functionName);
-
-        setPrice(editTask.price);
-        setAmount(editTask.amount);
-        setMode(editTask.startMode);
-
-        if(editTask.startMode === "AUTOMATIC") {
-            setReadMethod(editTask.contractReadMethod);
-        }
-
-        setTrigger(editTask.trigger);
-        setReadValue(editTask.readMethodCurrent);
-
+        // values not specific to quick task
         setMaxGas(editTask.maxGas);
         setGasPriority(editTask.gasPriority);
         setGasLimit(editTask.gasLimit);
+        setPrice(editTask.price);
+        setAmount(editTask.amount);
+        setMode(editTask.startMode);
+        setContractAddress(editTask.contractAddress);
+
+        if(editTask.customHexData.length === 0) {
+            setSelectedGroup(editTask.taskGroup.length > 0 ? _group : "");
+            setAbi(editTask.abi);
+
+            const contractInfo = state.getContractMethods(editTask.abi);
+
+            if (contractInfo === null) {
+                console.log("Could not get contract info.");
+            } else {
+                setMintMethods(contractInfo.mintMethods);
+                setReadMethods(contractInfo.readMethods);
+            }
+
+            if(editTask.functionName !== null && typeof editTask.functionName !== 'undefined') {
+                setMintMethod(editTask.functionName);
+            }
+
+            if(editTask.startMode === "AUTOMATIC") {
+                setReadMethod(editTask.contractReadMethod);
+            }
+
+            setTrigger(editTask.trigger);
+            setReadValue(editTask.readMethodCurrent);
+
+        } else {
+            setCustomHexData(editTask.customHexData);
+        }
 
         Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).show();
 
@@ -1033,7 +1064,7 @@ function EthMinter({state}) {
                                     </button>
                                 </div>
 
-                                <div class="mt-3">
+                                <div class="mt-3 ${customHexData.length === 0 ? '' : 'd-none'}">
                                     <div class="dropdown">
                                         <div class="label">Mint Function</div>
                                         <button class="button-dropdown dropdown-toggle" type="button" id="mint-dropdown"
@@ -1199,10 +1230,10 @@ function EthMinter({state}) {
 
                             <hr/>
                             
-                            <div class="title">QUICK TASKS <i class="fa-solid fa-gas-pump ms-1"></i></div>
+                            <div class="title">QUICK TASKS <i class="fa-solid fa-wind ms-1"></i></div>
                             <div class="mt-3">
                                 <div class="label">Custom Hex Data</div>
-                                <input class="input" type="text" value=${customHexData}
+                                <input class="input w-100" type="text" value=${customHexData}
                                        onchange=${(e) => {
                                            setCustomHexData(e.target.value)
                                        }} placeholder="0x123abc..."/>
@@ -1284,50 +1315,65 @@ function EthMinter({state}) {
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <div class="d-flex align-items-center">
-                                <div class="me-2">
-                                    <div class="label">Profile Name</div>
-                                    <input class="input me-1 flex-grow-1" placeholder="Profile name" value=${profileName}
-                                           onchange=${(e) => {
-                                        setProfileName(e.target.value)
-                                    }}/>
-                                </div>
-
-                                <div class="dropdown">
-                                    <div class="label">Wallets</div>
-                                    <button class="button-dropdown dropdown-toggle" type="button"
-                                            id="qt-wallets-dropdown" data-bs-toggle="dropdown" aria-expanded="false"
-                                            onclick=${() => {
-                                                Dropdown.getOrCreateInstance(document.querySelector('#qt-wallets-dropdown')).show()
-                                            }}>
-                                        Select one or more Wallets
-                                    </button>
-                                    <ul class="dropdown-menu" aria-labelledby="dropdown">
-                                        ${
-                                                wallets.length === 0 ? '' :
-                                                        wallets.map((w) => (
-                                                                html`
-                                                                    <li class="dropdown-item" onclick=${() => {
-                                                                    addWallet(w)
-                                                                }}>${w.name}
-                                                                    </li>
-                                                                `
-                                                        ))
-                                        }
-                                    </ul>
-                                </div>
+                            <div class="mb-2">
+                                <div class="label">Profile Name</div>
+                                <input class="input me-1 flex-grow-1" placeholder="Profile name" value=${profileName}
+                                       onchange=${(e) => {
+                                    setProfileName(e.target.value)
+                                }}/>
                             </div>
 
+                            <div class="dropdown">
+                                <div class="label">Wallets</div>
+                                <button class="button-dropdown dropdown-toggle" type="button"
+                                        id="qt-wallets-dropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                                        onclick=${() => {
+                                            Dropdown.getOrCreateInstance(document.querySelector('#qt-wallets-dropdown')).show()
+                                        }}>
+                                    Select one or more Wallets
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdown">
+                                    ${
+                                        wallets.length === 0 ? '' :
+                                                wallets.map((w) => (
+                                                        html`
+                                                            <li class="dropdown-item" onclick=${() => {
+                                                            addWallet(w)
+                                                        }}>${w.name}
+                                                            </li>
+                                                        `
+                                                ))
+                                    }
+                                </ul>
+                            </div>
+
+                            <div class="d-flex flex-wrap mt-2">
+                                ${
+                                    selectedWallets.map(w => (
+                                            html`
+                                                <div class="selected-wallet me-1 mb-1" onclick=${() => removeSelectedWallet(w)}>${w.name}
+                                                    <i class="fa-solid fa-xmark icon-color ms-2 delete-icon"></i>
+                                                </div>
+                                            `
+                                    ))
+                                }
+                            </div>
+                            
+                            <hr />
+                            
                             <div>
                                 
                                 ${profiles.map(p => (
                                     html`
-                                    <div>
-                                        <div>${p.name}</div>
+                                    <div class="d-flex justify-content-between mt-2">
+                                        <div style="color: white;">
+                                            <span class="me-2">${p.name}</span>
+                                            <span style="color: gray; font-size: 0.85rem;">${p.wallets.length} Wallet(s)</span>
+                                        </div>
+                                        <i class="fa-solid fa-trash icon-color delete-icon" onclick=${() => deleteQuickTaskProfile(p)}></i>
                                     </div>
                                     `
                                 ))}
-                                
                                 
                             </div>
                             
