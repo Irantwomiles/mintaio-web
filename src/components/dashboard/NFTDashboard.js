@@ -2,7 +2,7 @@ import {html} from 'htm/preact';
 import {useEffect, useState} from "preact/compat";
 import {Toast, Dropdown} from 'bootstrap';
 import logo from '../../images/mintaio-logo.png';
-import {fixAddress} from "../../utils/utils";
+import {fixAddress, getBatchTokenInfo} from "../../utils/utils";
 
 function mapByContract(arr) {
 
@@ -48,6 +48,7 @@ function NFTDashboard({state}) {
 
         state.nftManager.getNFTs(addresses).then((result) => {
             const filtered = result.filter(r => r.ownedNfts.length > 0).map(d => d.ownedNfts);
+            //getBatchTokenInfo(filtered.map(d => {contractAddress: d.contract.address, tokenId: d.tokenId}))
             const flat = [].concat(...filtered);
             setData(flat);
 

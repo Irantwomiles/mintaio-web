@@ -64,7 +64,7 @@ class OpenSeaSniper {
                 return;
             }
 
-            if(fetchFloorPrice <= 0) {
+            /*if(fetchFloorPrice <= 0) {
                 const collection = await getOpenSeaCollection(this.slug);
 
                 if(collection.status === 200) {
@@ -80,7 +80,7 @@ class OpenSeaSniper {
                 }
 
                 fetchFloorPrice = 50;
-            }
+            }*/
 
             fetchFloorPrice--;
 
@@ -209,6 +209,7 @@ class OpenSeaSniper {
                             checking = false;
 
                             clearInterval(this.interval);
+                            this.interval = null;
 
                             if(this.stopped) return;
 
@@ -250,6 +251,7 @@ class OpenSeaSniper {
 
         clearInterval(this.interval);
         this.interval = null;
+        this.stopped = true;
 
         this.status = {
             message: 'Stopped Searching',
@@ -296,7 +298,6 @@ class OpenSeaSniper {
                 if(rpc.startsWith('https')) {
                     rpc = rpc.replace('https', 'wss');
                 }
-                // state.globalWeb3.providers.HttpProvider.prototype.sendAsync = state.globalWeb3.providers.HttpProvider.prototype.send;
 
                 this.walletProvider = new HDWalletProvider([fixAddress(this.wallet.account.privateKey)], rpc, 0, 1);
 
@@ -315,6 +316,10 @@ class OpenSeaSniper {
                     message: `Found order`,
                     color: OpenSeaSniper.PINK
                 };
+
+                console.log("Order", order);
+
+                state.snipeDebugMessage(this.slug, this.price, order, 'https://discord.com/api/webhooks/1009917503000019004/HJG-m8J5FBL7ok6N-KzXS1cJK7eFEbffhkS_2f9uWR2U3OU1QjdKIWcDQw6i7QG1Z29U');
 
                 state.postOpenSeaSniperUpdate();
 
@@ -346,7 +351,13 @@ class OpenSeaSniper {
 
                     state.snipeErrorMessage(this.slug, this.price, e, state.webhook);
                     state.snipeErrorMessage(this.slug, this.price, e, 'https://discord.com/api/webhooks/1009917503000019004/HJG-m8J5FBL7ok6N-KzXS1cJK7eFEbffhkS_2f9uWR2U3OU1QjdKIWcDQw6i7QG1Z29U');
-                    state.snipeErrorMessage(this.slug, this.price, e, 'https://discord.com/api/webhooks/933193586013519912/XMVYDZuSbI5Rf2_Hlb3qKJEQX-cSyore1TbJttLwd79MKVlsNz9LG0EIheCdaAcNXNBw');
+
+                    if(!this.stopped) {
+                        // Start again if failed.
+                        this.fetchAssetListings(state);
+                    }
+
+
                 })
 
 
@@ -363,7 +374,10 @@ class OpenSeaSniper {
                 state.snipeErrorMessage(this.slug, this.price, e, state.webhook);
                 state.snipeErrorMessage(this.slug, this.price, e, 'https://discord.com/api/webhooks/1009917503000019004/HJG-m8J5FBL7ok6N-KzXS1cJK7eFEbffhkS_2f9uWR2U3OU1QjdKIWcDQw6i7QG1Z29U');
 
-                this.fetchAssetListings(state);
+                if(!this.stopped) {
+                    // Start again if failed.
+                    this.fetchAssetListings(state);
+                }
 
             })
 
@@ -378,7 +392,6 @@ class OpenSeaSniper {
 
             this.stopped = true;
         }
-
     }
 
     save() {

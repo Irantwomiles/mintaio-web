@@ -55,7 +55,6 @@ class Main {
         });
 
         this.quickTaskProfileStream.subscribe((data) => {
-            console.log("QT:", data);
             this.quickTaskProfiles = data;
         });
 
@@ -415,7 +414,7 @@ class Main {
                 "embeds": [
                     {
                         "title": "Successfully Sniped!",
-                        "description": `Project: [View on etherscan](https://opensea.io/collection/${slug}) Transaction: [View on etherscan](https://etherscan.io/tx/${tx_hash})\n\n**Price**: ${price} ETH`,
+                        "description": `Project: [View on OpenSea](https://opensea.io/collection/${slug}) Transaction: [View on etherscan](https://etherscan.io/tx/${tx_hash})\n\n**Price**: ${price} ETH`,
                         "color": 3135616,
                         "author": {
                             "name": "MintAIO",
@@ -449,10 +448,41 @@ class Main {
                 "embeds": [
                     {
                         "title": "MintAIO",
-                        "description": `**Project:** ${slug}\n**Project**: [View on OpenSea](https://opensea.io/collection/${slug})\n\n**Price:** ${price} ETH\n\n**Error:** ${error}`,
+                        "description": `**Project:** ${slug} [View on OpenSea](https://opensea.io/collection/${slug})\n\n**Price:** ${price} ETH\n\n**Error:** ${error}`,
                         "color": 13963794
                     }
                 ]
+            }
+
+            fetch(webhook, {
+                method: 'POST',
+                body: JSON.stringify(message),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+
+        } catch {
+
+        }
+    }
+
+    snipeDebugMessage(slug, price, order, webhook) {
+
+        if(webhook.length === 0) {
+            console.log("Webhook not set");
+            return;
+        }
+
+        try {
+            const message = {
+                "embeds": [
+                    {
+                        "title": "MintAIO - Debug",
+                        "description": `**Project**: ${slug} [View on OpenSea](https://opensea.io/collection/${slug})\n**Price**: ${price} ETH\n\n**Order**: ${JSON.stringify(order)}`,
+                        "color": 15773241
+                    }
+                ],
             }
 
             fetch(webhook, {
