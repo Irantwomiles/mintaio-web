@@ -14,13 +14,44 @@ import OpenSeaSniper from "./utils/opensea_sniper";
 import QuickTaskProfile from "./utils/quick_task_profile";
 import {getOpenSeaEventData, getEtherscanDOM, getInternalTransactions, getNormalTransactions} from "./utils/utils";
 
+import _ from 'lodash-es';
+
 const mainState = new Main();
 
 QuickTaskProfile.loadProfiles(mainState);
 
 loadData();
 
-test('0x2eF2780b849F11231558bf9423c141178eC6f34E');
+function lodashTest() {
+
+    const arr1 = [
+        {
+            tokenId: '1',
+            price: 100,
+            status: 'sold'
+        },
+        {
+            tokenId: '1',
+            price: 70,
+            status: 'bought'
+        }
+    ]
+
+    const arr2 = [
+        {
+            id: 0,
+            tokenId: '1',
+            txHash: '0x123'
+        }
+    ]
+
+    console.log(_.intersectionBy(arr1, arr2, 'tokenId'))
+
+}
+
+//lodashTest();
+
+//test('0x2eF2780b849F11231558bf9423c141178eC6f34E');
 
 async function test(address) {
 
@@ -111,8 +142,6 @@ async function test(address) {
 
             const value = mainState.globalWeb3.utils.fromWei(transaction.value, 'ether');
 
-            //console.log(`Mint: ${value} ETH | Gas: ${totalGasPriceEth} ETH (${gasUsed} / ${gas}) | TxHash: ${transaction.hash}`);
-
             if(typeof obj === 'undefined') {
 
                 obj = {
@@ -134,6 +163,8 @@ async function test(address) {
                     transactionHash: txHash
                 })
             } else {
+
+                if(typeof obj.assets.find(o => o.tokenId === transfer.asset.token_id) !== 'undefined') continue;
 
                 obj.totalMintCost += Number.parseFloat(value);
                 obj.totalGasFee += Number.parseFloat(totalGasPriceEth);
@@ -160,27 +191,47 @@ async function test(address) {
         const sale = sales.get(key);
         const exists = typeof sale !== 'undefined';
 
+        let mintedTokens = [];
+        let boughtTokens = [];
+
         if(exists) {
-            console.log("Sale", sale.assets);
             console.log(`%cMint: ${key} | Total Spent: ${mints.get(key).totalMintCost} | Total Gas Spent: ${mints.get(key).totalGasFee} | %cTotal Sales: ${sale.count}`, 'color: orange;', 'color: green;');
+
+            boughtTokens = [...boughtTokens, ..._.xorBy(mints.get(key).assets, sale.assets, 'tokenId')]
+            mintedTokens = [...mintedTokens, ..._.intersectionBy(mints.get(key).assets, sale.assets, 'tokenId')]
+
+            let idk = [];
+
+            for(const token of boughtTokens) {
+               idk = [...idk, ...sale.assets.filter(s => s.tokenId === token.tokenId)];
+            }
+
+            boughtTokens = idk;
+
         } else {
             console.log(`%cMint: ${key} | Total Spent: ${mints.get(key).totalMintCost} | Total Gas Spent: ${mints.get(key).totalGasFee}`, 'color: orange;');
+            mintedTokens = [...mints.get(key).assets];
         }
 
-
-        for(const asset of mints.get(key).assets) {
+        for(const asset of mintedTokens) {
 
             const assetSold = exists ? sale.assets.find(s => s.tokenId === asset.tokenId) : undefined;
 
-            console.log(`${asset.tokenId}: Value: ${asset.value}ETH | Gas: ${asset.gasFee}ETH (${asset.gasUsed}/${asset.gas}) | ${asset.transactionHash} 
-            ${typeof assetSold !== 'undefined' ? `| Sold: ${mainState.globalWeb3.utils.fromWei(assetSold.salePrice, 'ether')}ETH` : ''}`);
+            console.log(`${asset.tokenId}: Value: ${asset.value}ETH | Gas: ${asset.gasFee}ETH (${asset.gasUsed}/${asset.gas}) | ${asset.transactionHash} ${typeof assetSold !== 'undefined' ? `| Sold: ${mainState.globalWeb3.utils.fromWei(assetSold.salePrice, 'ether')}ETH` : ''}`);
+
+        }
+
+        for(const asset of boughtTokens) {
+
+            const assetSold = exists ? sale.assets.find(s => s.tokenId === asset.tokenId) : undefined;
+
+            if(assetSold) {
+                console.log(`${asset.tokenId}: Value: ${mainState.globalWeb3.utils.fromWei(asset.salePrice, 'ether')}ETH | Gas: Unknown | %c${asset.event_type}`, `color: ${asset.event_type === 'sold' ? 'green;' : 'red;'}`);
+            }
         }
 
         console.log("-----------------------------------------------------------------")
     }
-
-    /*console.log(internalTx.result.length, internalTx);
-    console.log(normalTx.result.length, normalTx);*/
 
 }
 

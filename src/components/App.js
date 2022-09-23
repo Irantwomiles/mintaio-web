@@ -11,6 +11,7 @@ import Information from "./Information.js";
 import Dashboard from "./dashboard/Dashboard";
 import OpenSeaSniperComp from "./opensea/OpenSeaSniperComp";
 import NFTWatchList from "./dashboard/NFTWatchList";
+import ProfitAndLoss from "./dashboard/ProfitAndLoss";
 
 function App({state}) {
 
@@ -25,6 +26,7 @@ function App({state}) {
             <${Dashboard} state=${state} path="/dashboard" />
             <${OpenSeaSniperComp} state=${state} path="/opensea" />
             <${NFTWatchList} state=${state} path="/nft-watchlist" />
+            <${ProfitAndLoss} state=${state} path="/profit-tracker" />
         </${Router}>
     </div>
     `

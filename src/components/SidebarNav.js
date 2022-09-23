@@ -28,6 +28,13 @@ function SidebarNav({page}) {
                         </a>
                     </li>
 
+                    <li class="nav-item sidebar-item w-100 mb-1 ${page === 'dashboard' ? 'active-sidebar' : ''}">
+                        <a href="/profit-tracker" class="nav-link align-middle px-0">
+                            <i class="fa-solid fa-newspaper mx-2 size-2"></i>
+                            <span class="ms-1 d-none d-sm-inline size-2">Profit Tracker</span>
+                        </a>
+                    </li>
+                    
                     <li class="nav-item sidebar-item w-100 mb-1 ${page === 'nft-watchlist' ? 'active-sidebar' : ''}">
                         <a href="/nft-watchlist" class="nav-link align-middle px-0">
                             <i class="fa-solid fa-eye mx-2 size-2"></i>

@@ -692,3 +692,46 @@ hr {
 
   }
 }
+
+.pnl-section {
+  background-color: $background-sidebar;
+  padding: 2rem 2rem;
+  border-radius: 0.5rem;
+
+  .pnl-header {
+
+    .contract {
+      font-size: 1.15rem;
+      color: white;
+    }
+
+    .mint-cost, .gas-cost, .total-sales {
+      font-size: 0.95rem;
+      color: $light-gray !important;
+      span, i {
+        color: white;
+      }
+    }
+
+  }
+
+  .pnl-token {
+    .token-id, .price, .gas {
+      color: $light-gray;
+    }
+
+    .sold {
+      color: $green;
+    }
+
+    .bought {
+      color: $red;
+    }
+
+    .price, .gas, .sold, .bought {
+      span, i {
+        color: white;
+      }
+    }
+  }
+}
