@@ -3,11 +3,7 @@ import SidebarNav from "./SidebarNav.js";
 import {Modal, Toast, Dropdown} from 'bootstrap';
 import {useState, useEffect, createRef} from "preact/compat";
 import Wallet from '../utils/wallet.js';
-import {fixAddress, getEthPrice} from "../utils/utils";
-
-function shortenAddress(address) {
-    return fixAddress(address).slice(0, 5) + "..." + address.slice(address.length - 6);
-}
+import {fixAddress, getEthPrice, shortenAddress} from "../utils/utils";
 
 function Wallets({state}) {
 

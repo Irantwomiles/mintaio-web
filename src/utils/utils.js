@@ -118,6 +118,14 @@ export function getNormalTransactions(address, apiKey) {
     return fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=10000&sort=asc&apikey=${apiKey}`);
 }
 
+export function shortenAddress(address) {
+    return fixAddress(address).slice(0, 5) + "..." + address.slice(address.length - 6);
+}
+
+export function shortedText(text) {
+    return text.length > 6 ? text.slice(0, 5) + "..." : text;
+}
+
 // This doesn't work, because etherscan is returning cached pages and preventing us from getting
 // any other page, other than the first one we fetch. This might work if we used proxies and/or a
 // a reverse proxy to fetch the data.

@@ -3,7 +3,7 @@ import {useEffect, useState} from "preact/compat";
 import SidebarNav from "../SidebarNav";
 import io from "socket.io-client";
 import {Toast} from "bootstrap";
-import {getInternalTransactions, getNormalTransactions, getOpenSeaEventData} from "../../utils/utils";
+import {getInternalTransactions, getNormalTransactions, getOpenSeaEventData, shortedText} from "../../utils/utils";
 import _ from "lodash-es";
 
 function ProfitAndLoss({state}) {
@@ -48,6 +48,8 @@ function ProfitAndLoss({state}) {
 
             const sales = new Map();
 
+            //console.log(successData.asset_events);
+
             for(const data of successData.asset_events) {
 
                 if(data.asset === null) {
@@ -74,6 +76,7 @@ function ProfitAndLoss({state}) {
                     obj.assets.push({
                         tokenId: asset.token_id,
                         permalink: asset.permalink,
+                        image: asset.image_url,
                         salePrice: data.total_price,
                         event_type: data.seller.address.toLowerCase() === address.toLowerCase() ? 'sold' : 'bought'
                     })
@@ -85,12 +88,11 @@ function ProfitAndLoss({state}) {
                         tokenId: asset.token_id,
                         permalink: asset.permalink,
                         salePrice: data.total_price,
+                        image: asset.image_url,
                         event_type: data.seller.address.toLowerCase() === address.toLowerCase() ? 'sold' : 'bought'
                     })
 
                 }
-
-                console.log("Adding", obj);
 
                 sales.set(asset.asset_contract.address, obj);
             }
@@ -245,7 +247,7 @@ function ProfitAndLoss({state}) {
                     if(assetSold) {
                         asset.sold = state.globalWeb3.utils.fromWei(assetSold.salePrice, 'ether');
 
-                        console.log(sale);
+                        //console.log(sale);
 
                         const seller_fee = Number.parseInt(sale.sellerFee.seller_fees[Object.keys(sale.sellerFee.seller_fees)[0]]);
                         const os_fee = Number.parseInt(sale.sellerFee.opensea_fees[Object.keys(sale.sellerFee.opensea_fees)[0]]);
@@ -254,7 +256,9 @@ function ProfitAndLoss({state}) {
                         const _finalPrice = _initPrice - (_initPrice / _fee);
                         globalMarketFees += _initPrice / _fee;
 
-                        console.log(`${asset.tokenId} Sold for ${_initPrice} with seller_fee ${seller_fee} and os_fee ${os_fee} total fee ${_fee}% -> ${_finalPrice}`);
+                        //console.log(`${asset.tokenId} Sold for ${_initPrice} with seller_fee ${seller_fee} and os_fee ${os_fee} total fee ${_fee}% -> ${_finalPrice}`);
+
+                        asset.image = assetSold.image;
 
                         globalSaleValue += _finalPrice;
                         globalSold += 1;
@@ -312,7 +316,7 @@ function ProfitAndLoss({state}) {
 
                     const _salePrice = Number.parseFloat(state.globalWeb3.utils.fromWei(asset.salePrice, 'ether'));
 
-                    console.log("Sale Price:", _salePrice);
+                    //("Sale Price:", _salePrice);
 
                     if(asset.event_type === 'sold') {
                         globalSaleValue += _salePrice;
@@ -325,11 +329,23 @@ function ProfitAndLoss({state}) {
                     obj.boughtTokens.push({
                         tokenId: asset.tokenId,
                         salePrice: asset.salePrice,
+                        image: asset.image,
+                        url: asset.permalink,
                         event_type: asset.event_type
                     })
                 }
 
                 output.push(obj)
+            }
+
+            if(output.length === 0) {
+                setToastInfo({
+                    message: 'Could not find any purchase history for this wallet.',
+                    class: 'toast-warning'
+                })
+
+                setLoading(false);
+                return;
             }
 
             let globalSpending = globalMintCost + globalBoughtValue + globalGasCost;
@@ -352,6 +368,8 @@ function ProfitAndLoss({state}) {
                 class: 'toast-success'
             })
 
+            setLoading(false);
+
         } catch(e) {
             console.log('error:', e);
             setLoading(false);
@@ -361,7 +379,6 @@ function ProfitAndLoss({state}) {
                 class: 'toast-error'
             })
         }
-
 
         //console.log("spending:", globalSpending, "mintCost:", globalMintCost, "gasCost:", globalGasCost, "globalSale:", globalSaleValue);
     }
@@ -432,8 +449,8 @@ function ProfitAndLoss({state}) {
                 
                 <div>
                     <input class="input" placeholder="0x123..." type="text" value=${address} onchange=${(e) => {setAddress(e.target.value)}} />
-                    <button class="button-primary fw-bold ms-2" onclick=${checkProfitAndLoss}>Check</button>
-                    <i class="${loading ? '' : 'd-none'} fa-solid fa-spinner loading-icon"></i>
+                    <button class="button-primary fw-bold ms-2 me-2" onclick=${checkProfitAndLoss}>Check</button>
+                    <i class="${loading ? '' : 'd-none'} fa-solid fa-spinner loading-icon fa-1x" style="color: white;"></i>
                 </div>
                 
                 <hr />
@@ -501,7 +518,7 @@ function ProfitAndLoss({state}) {
                         
                     <div class="pnl-section mb-2">
                         <div class="pnl-header d-flex justify-content-between">
-                            <div class="contract">${t.contractAddress} <i class="fa-solid fa-arrow-up-right-from-square icon-color"></i></div>
+                            <div class="contract">${t.contractAddress} <a href="https://etherscan.io/address/${t.contractAddress}" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square icon-color"></i></a></div>
                             <div class="d-flex">
                                 <div class="nav-info mint-cost me-2">Spent <span>${t.totalMintCost}</span><i class="fa-brands fa-ethereum ms-1"></i> Minting</div>
                                 <div class="nav-info gas-cost me-2">Spent <span>${t.totalGasFee}</span><i class="fa-brands fa-ethereum ms-1"></i> on Gas </div>
@@ -516,9 +533,12 @@ function ProfitAndLoss({state}) {
                                 html`
                                 <div class="pnl-token d-flex justify-content-between align-items-center mb-2">
                                     <div class="d-flex align-items-center">
-                                        <div class="nav-info token-id me-3">${m.tokenId}</div>
+                                        <div class="nav-info token-id me-3">${shortedText(m.tokenId)}</div>
+                                        <div class="d-flex align-items-center me-3"><img style="height: 1.5rem; width: 1.5rem;" src=${m.hasOwnProperty('image') ? m.image : '../../images/mintaio-logo.png'} /></div>
                                         <div class="price me-4">Price: <span>${m.value}</span><i class="fa-brands fa-ethereum ms-1"></i></div>
-                                        <div class="gas me-4">Gas: <span>${m.gasFee}</span><i class="fa-brands fa-ethereum ms-1"></i> - (<span>${m.gasUsed}</span> / <span>${m.gas}</span>)<i class="fa-solid fa-gas-pump ms-1"></i></div>
+                                        <div class="gas me-4">Gas: <span>${m.gasFee}</span><i class="fa-brands fa-ethereum ms-1"></i></div>
+                                        <a class="me-1" href="${m.url}" target="_blank"><img style="height: 1.3rem; width: 1.3rem;" src="https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.svg" /></a>
+                                        <a href="https://etherscan.io/tx/${m.transactionHash}" target="_blank"><img style="height: 1.3rem; width: 1.3rem;" src="https://etherscan.io/images/brandassets/etherscan-logo-circle.png" /></a>
                                     </div>
 
                                     <div class="sold nav-info ms-4 ${m.hasOwnProperty('sold') ? '' : 'd-none'}">Sold: <span>${m.hasOwnProperty('sold') ? m.sold : ''}</span><i class="fa-brands fa-ethereum ms-1"></i></div>
@@ -533,8 +553,10 @@ function ProfitAndLoss({state}) {
                                     html`
                                     <div class="pnl-token d-flex justify-content-between align-items-center mb-2">
                                         <div class="d-flex align-items-center">
-                                            <div class="nav-info token-id me-3">${m.tokenId}</div>
+                                            <div class="nav-info token-id me-3">${shortedText(m.tokenId)}</div>
+                                            <div class="d-flex align-items-center me-3"><img style="height: 1.5rem; width: 1.5rem;" src=${m.hasOwnProperty('image') ? m.image : '../../images/mintaio-logo.png'} /></div>
                                             <div class="gas me-4">Gas: <span>Unknown</span></div>
+                                            <a href="${m.url}" target="_blank"><img style="height: 1.3rem; width: 1.3rem;" src="https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.svg" /></a>
                                         </div>
 
                                         <div class="sold nav-info ms-4 ${m.event_type}">${m.event_type === 'sold' ? 'Sold' : 'Bought'}: <span>${state.globalWeb3.utils.fromWei(m.salePrice, 'ether')}</span><i class="fa-brands fa-ethereum ms-1"></i></div>
