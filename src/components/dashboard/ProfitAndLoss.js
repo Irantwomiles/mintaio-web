@@ -20,242 +20,299 @@ function ProfitAndLoss({state}) {
         globalSpending: 0, //
         data: []
     });
-    
-    const test = async (address) => {
 
-        const output = [];
+    const [address, setAddress] = useState("");
+    const [toastInfo, setToastInfo] = useState(null);
 
-        const apiKey = localStorage.getItem('etherscan-api');
+    const [loading, setLoading] = useState(false);
 
-        const successData = await (await getOpenSeaEventData(address, 'successful')).json();
+    const checkProfitAndLoss = async () => {
 
-        const sales = new Map();
-
-        for(const data of successData.asset_events) {
-
-            if(data.asset === null) {
-                console.log("asset was null, skipping");
-                continue;
-            }
-
-            const asset = data.asset;
-
-            let obj = sales.get(asset.asset_contract.address);
-
-            if(typeof obj === 'undefined') {
-                obj = {
-                    contractAddress: asset.asset_contract.address,
-                    slug: data.collection_slug,
-                    name: asset.collection.name,
-                    sellerFee: asset.collection.fees,
-                    assets: [],
-                    count: 1
-                }
-
-                obj.assets.push({
-                    tokenId: asset.token_id,
-                    permalink: asset.permalink,
-                    salePrice: data.total_price,
-                    event_type: data.seller.address.toLowerCase() === address.toLowerCase() ? 'sold' : 'bought'
-                })
-
-            } else {
-                obj.count = obj.count + 1;
-
-                obj.assets.push({
-                    tokenId: asset.token_id,
-                    permalink: asset.permalink,
-                    salePrice: data.total_price,
-                    event_type: data.seller.address.toLowerCase() === address.toLowerCase() ? 'sold' : 'bought'
-                })
-
-            }
-
-            sales.set(asset.asset_contract.address, obj);
+        if(address.length === 0) {
+            setToastInfo({
+                message: 'Please input an address you want to check.',
+                class: 'toast-error'
+            })
+            return;
         }
 
-        const transferData = await (await getOpenSeaEventData(address, 'transfer')).json();
+        try {
 
-        const mints = new Map();
+            setLoading(true);
 
-        //const internalTx = await (await getInternalTransactions(address, apiKey)).json();
-        const normalTx = await (await getNormalTransactions(address, apiKey)).json();
+            const output = [];
 
-        for(const transfer of transferData.asset_events) {
+            const apiKey = localStorage.getItem('etherscan-api');
 
-            if(transfer.asset === null) {
-                console.log("Asset was null in transfer, skipping");
-                continue;
-            }
+            const successData = await (await getOpenSeaEventData(address, 'successful')).json();
 
-            if(transfer.from_account.address === '0x0000000000000000000000000000000000000000') {
+            const sales = new Map();
 
-                let obj = mints.get(transfer.asset.asset_contract.address);
-                const txHash = transfer.transaction.transaction_hash;
+            for(const data of successData.asset_events) {
 
-                const transaction = normalTx.result.find(n => n.hash.toString().toLowerCase() === txHash.toString().toLowerCase());
-                const txExists = typeof transaction !== 'undefined';
-
-                if(!txExists) {
-                    console.log(`Could not find tx ${txHash}`);
+                if(data.asset === null) {
+                    console.log("asset was null, skipping");
                     continue;
                 }
 
-                const gas = transaction.gas;
-                const gasUsed = Number.parseInt(transaction.gasUsed);
-                const gasPrice = state.globalWeb3.utils.fromWei(transaction.gasPrice, 'gwei');
-                const gasPriceFloat = Number.parseFloat(gasPrice);
+                const asset = data.asset;
 
-                const totalGasPriceGwei = gasUsed * gasPriceFloat;
-                const totalGasPriceWei = state.globalWeb3.utils.toWei(`${totalGasPriceGwei.toFixed(3)}`, 'gwei');
-                const totalGasPriceEth = state.globalWeb3.utils.fromWei(`${totalGasPriceWei}`, 'ether');
+                //console.log(data);
 
-                const value = state.globalWeb3.utils.fromWei(transaction.value, 'ether');
+                let obj = sales.get(asset.asset_contract.address);
 
                 if(typeof obj === 'undefined') {
-
                     obj = {
-                        contractAddress: transfer.asset.asset_contract.address,
-                        date: transfer.event_timestamp,
-                        totalMintCost: Number.parseFloat(value),
-                        totalGasFee: Number.parseFloat(totalGasPriceEth),
-                        assets: []
+                        contractAddress: asset.asset_contract.address,
+                        slug: data.collection_slug,
+                        name: asset.collection.name,
+                        sellerFee: asset.collection.fees,
+                        assets: [],
+                        count: 1
                     }
 
                     obj.assets.push({
-                        tokenId: transfer.asset.token_id,
-                        image: transfer.asset.image_url,
-                        url: transfer.asset.permalink,
-                        gasFee: totalGasPriceEth,
-                        gasUsed: gasUsed,
-                        gas: gas,
-                        value: value,
-                        holding: 0,
-                        transactionHash: txHash
+                        tokenId: asset.token_id,
+                        permalink: asset.permalink,
+                        salePrice: data.total_price,
+                        event_type: data.seller.address.toLowerCase() === address.toLowerCase() ? 'sold' : 'bought'
                     })
+
                 } else {
-
-                    if(typeof obj.assets.find(o => o.tokenId === transfer.asset.token_id) !== 'undefined') continue;
-
-                    obj.totalMintCost += Number.parseFloat(value);
-                    obj.totalGasFee += Number.parseFloat(totalGasPriceEth);
+                    obj.count = obj.count + 1;
 
                     obj.assets.push({
-                        tokenId: transfer.asset.token_id,
-                        image: transfer.asset.image_url,
-                        url: transfer.asset.permalink,
-                        gasFee: totalGasPriceEth,
-                        gasUsed: gasUsed,
-                        gas: gas,
-                        value: value,
-                        holding: 0,
-                        transactionHash: txHash
+                        tokenId: asset.token_id,
+                        permalink: asset.permalink,
+                        salePrice: data.total_price,
+                        event_type: data.seller.address.toLowerCase() === address.toLowerCase() ? 'sold' : 'bought'
                     })
+
                 }
 
-                mints.set(transfer.asset.asset_contract.address, obj);
+                console.log("Adding", obj);
+
+                sales.set(asset.asset_contract.address, obj);
             }
 
-        }
+            const transferData = await (await getOpenSeaEventData(address, 'transfer')).json();
 
-        let globalMintCost = 0;
-        let globalGasCost = 0;
-        let globalSaleValue = 0;
-        let globalHolding = 0;
-        let globalSold = 0;
-        let globalBought = 0;
-        let globalBoughtValue = 0;
-        let globalMarketFees = 0;
+            const mints = new Map();
 
-        for(const key of mints.keys()) {
+            //const internalTx = await (await getInternalTransactions(address, apiKey)).json();
+            const normalTx = await (await getNormalTransactions(address, apiKey)).json();
 
-            const minted = mints.get(key);
-            const sale = sales.get(key);
-            const exists = typeof sale !== 'undefined';
+            for(const transfer of transferData.asset_events) {
 
-            let mintedTokens = [];
-            let boughtTokens = [];
-
-            if(exists) {
-                console.log(`%cMint: ${key} | Total Spent: ${minted.totalMintCost} | Total Gas Spent: ${minted.totalGasFee} | %cTotal Sales: ${sale.count}`, 'color: orange;', 'color: green;');
-
-                boughtTokens = [...boughtTokens, ..._.xorBy(minted.assets, sale.assets, 'tokenId')]
-                mintedTokens = [...mintedTokens, ..._.intersectionBy(minted.assets, sale.assets, 'tokenId')]
-
-                // We do this because xorBy only returns Unique values, meaning when a user has bought token 123 and sells token 123 this will only show up once. We need to then filter
-                // the original sale.assets array to get all of the tokens with that tokenId.
-                let allBoughTokens = [];
-
-                for(const token of boughtTokens) {
-                    allBoughTokens = [...allBoughTokens, ...sale.assets.filter(s => s.tokenId === token.tokenId)];
+                if(transfer.asset === null) {
+                    console.log("Asset was null in transfer, skipping");
+                    continue;
                 }
 
-                boughtTokens = allBoughTokens;
+                if(transfer.from_account.address === '0x0000000000000000000000000000000000000000') {
 
-                output.push({
+                    let obj = mints.get(transfer.asset.asset_contract.address);
+                    const txHash = transfer.transaction.transaction_hash;
+
+                    const transaction = normalTx.result.find(n => n.hash.toString().toLowerCase() === txHash.toString().toLowerCase());
+                    const txExists = typeof transaction !== 'undefined';
+
+                    if(!txExists) {
+                        console.log(`Could not find tx ${txHash}`);
+                        continue;
+                    }
+
+                    const gas = transaction.gas;
+                    const gasUsed = Number.parseInt(transaction.gasUsed);
+                    const gasPrice = state.globalWeb3.utils.fromWei(transaction.gasPrice, 'gwei');
+                    const gasPriceFloat = Number.parseFloat(gasPrice);
+
+                    const totalGasPriceGwei = gasUsed * gasPriceFloat;
+                    const totalGasPriceWei = state.globalWeb3.utils.toWei(`${totalGasPriceGwei.toFixed(3)}`, 'gwei');
+                    const totalGasPriceEth = state.globalWeb3.utils.fromWei(`${totalGasPriceWei}`, 'ether');
+
+                    const value = state.globalWeb3.utils.fromWei(transaction.value, 'ether');
+
+                    if(typeof obj === 'undefined') {
+
+                        obj = {
+                            contractAddress: transfer.asset.asset_contract.address,
+                            date: transfer.event_timestamp,
+                            totalMintCost: Number.parseFloat(value),
+                            totalGasFee: Number.parseFloat(totalGasPriceEth),
+                            assets: []
+                        }
+
+                        obj.assets.push({
+                            tokenId: transfer.asset.token_id,
+                            image: transfer.asset.image_url,
+                            url: transfer.asset.permalink,
+                            gasFee: totalGasPriceEth,
+                            gasUsed: gasUsed,
+                            gas: gas,
+                            value: value,
+                            holding: 0,
+                            transactionHash: txHash
+                        })
+                    } else {
+
+                        if(typeof obj.assets.find(o => o.tokenId === transfer.asset.token_id) !== 'undefined') continue;
+
+                        obj.totalMintCost += Number.parseFloat(value);
+                        obj.totalGasFee += Number.parseFloat(totalGasPriceEth);
+
+                        obj.assets.push({
+                            tokenId: transfer.asset.token_id,
+                            image: transfer.asset.image_url,
+                            url: transfer.asset.permalink,
+                            gasFee: totalGasPriceEth,
+                            gasUsed: gasUsed,
+                            gas: gas,
+                            value: value,
+                            holding: 0,
+                            transactionHash: txHash
+                        })
+                    }
+
+                    mints.set(transfer.asset.asset_contract.address, obj);
+                }
+
+            }
+
+            let globalMintCost = 0;
+            let globalGasCost = 0;
+            let globalSaleValue = 0;
+            let globalHolding = 0;
+            let globalSold = 0;
+            let globalBought = 0;
+            let globalBoughtValue = 0;
+            let globalMarketFees = 0;
+
+            for(const key of mints.keys()) {
+
+                const minted = mints.get(key);
+                const sale = sales.get(key);
+                const exists = typeof sale !== 'undefined';
+
+                let mintedTokens = [];
+                let boughtTokens = [];
+
+                if(exists) {
+                    //console.log(`%cMint: ${key} | Total Spent: ${minted.totalMintCost} | Total Gas Spent: ${minted.totalGasFee} | %cTotal Sales: ${sale.count}`, 'color: orange;', 'color: green;');
+
+                    boughtTokens = [...boughtTokens, ..._.xorBy(minted.assets, sale.assets, 'tokenId')]
+                    mintedTokens = [...mintedTokens, ..._.intersectionBy(minted.assets, sale.assets, 'tokenId')]
+
+                    // We do this because xorBy only returns Unique values, meaning when a user has bought token 123 and sells token 123 this will only show up once. We need to then filter
+                    // the original sale.assets array to get all of the tokens with that tokenId.
+                    let allBoughTokens = [];
+
+                    for(const token of boughtTokens) {
+                        allBoughTokens = [...allBoughTokens, ...sale.assets.filter(s => s.tokenId === token.tokenId)];
+                    }
+
+                    boughtTokens = allBoughTokens;
+
+                    output.push({
+                        contractAddress: key,
+                        totalMintCost: minted.totalMintCost,
+                        totalGasFee: minted.totalGasFee,
+                        totalSales: sale.count,
+                        mintedTokens: mintedTokens,
+                        boughtTokens: boughtTokens
+                    })
+
+                }
+                else {
+                    //console.log(`%cMint: ${key} | Total Spent: ${minted.totalMintCost} | Total Gas Spent: ${minted.totalGasFee}`, 'color: orange;');
+
+                    mintedTokens = [...minted.assets];
+
+                    output.push({
+                        contractAddress: key,
+                        totalMintCost: minted.totalMintCost,
+                        totalGasFee: minted.totalGasFee,
+                        mintedTokens: mintedTokens,
+                        boughtTokens: boughtTokens
+                    })
+
+                }
+
+                for(const asset of mintedTokens) {
+
+                    const assetSold = exists ? sale.assets.find(s => s.tokenId === asset.tokenId) : undefined;
+
+                    if(assetSold) {
+                        asset.sold = state.globalWeb3.utils.fromWei(assetSold.salePrice, 'ether');
+
+                        console.log(sale);
+
+                        const seller_fee = Number.parseInt(sale.sellerFee.seller_fees[Object.keys(sale.sellerFee.seller_fees)[0]]);
+                        const os_fee = Number.parseInt(sale.sellerFee.opensea_fees[Object.keys(sale.sellerFee.opensea_fees)[0]]);
+                        const _fee = (isNaN(seller_fee) ? 0 + os_fee : seller_fee + os_fee) / 100;
+                        const _initPrice = Number.parseFloat(asset.sold);
+                        const _finalPrice = _initPrice - (_initPrice / _fee);
+                        globalMarketFees += _initPrice / _fee;
+
+                        console.log(`${asset.tokenId} Sold for ${_initPrice} with seller_fee ${seller_fee} and os_fee ${os_fee} total fee ${_fee}% -> ${_finalPrice}`);
+
+                        globalSaleValue += _finalPrice;
+                        globalSold += 1;
+                    } else {
+                        minted.holding += 1;
+                        globalHolding += 1;
+                    }
+
+                    globalMintCost += Number.parseFloat(asset.value);
+                    globalGasCost += Number.parseFloat(asset.gasFee);
+
+                    //console.log(`${asset.tokenId}: Value: ${asset.value}ETH | Gas: ${asset.gasFee}ETH (${asset.gasUsed}/${asset.gas}) | ${asset.transactionHash} ${typeof assetSold !== 'undefined' ? `| Sold: ${state.globalWeb3.utils.fromWei(assetSold.salePrice, 'ether')}ETH` : ''}`);
+
+                }
+
+                //console.log(boughtTokens);
+
+                for(const asset of boughtTokens) {
+
+                    const assetSold = exists ? sale.assets.find(s => s.tokenId === asset.tokenId) : undefined;
+
+                    if(assetSold) {
+                        //console.log(`${asset.tokenId}: Value: ${state.globalWeb3.utils.fromWei(asset.salePrice, 'ether')}ETH | Gas: Unknown | %c${asset.event_type}`, `color: ${asset.event_type === 'sold' ? 'green;' : 'red;'}`);
+
+                        const _salePrice = Number.parseFloat(state.globalWeb3.utils.fromWei(asset.salePrice, 'ether'));
+
+                        if(asset.event_type === 'sold') {
+                            globalSaleValue += _salePrice;
+                            globalSold += 1;
+                        } else {
+                            globalBought += 1;
+                            globalBoughtValue += _salePrice;
+                        }
+
+                    }
+                }
+
+                //console.log("-----------------------------------------------------------------")
+
+                sales.delete(key);
+            }
+
+            for(const key of sales.keys()) {
+                const sale = sales.get(key);
+
+                const obj = {
                     contractAddress: key,
-                    totalMintCost: minted.totalMintCost,
-                    totalGasFee: minted.totalGasFee,
-                    totalSales: sale.count,
-                    mintedTokens: mintedTokens,
-                    boughtTokens: boughtTokens
-                })
+                    totalMintCost: 0,
+                    totalGasFee: 0,
+                    mintedTokens: [],
+                    boughtTokens: []
+                };
 
-            }
-            else {
-                console.log(`%cMint: ${key} | Total Spent: ${minted.totalMintCost} | Total Gas Spent: ${minted.totalGasFee}`, 'color: orange;');
-
-                mintedTokens = [...minted.assets];
-
-                output.push({
-                    contractAddress: key,
-                    totalMintCost: minted.totalMintCost,
-                    totalGasFee: minted.totalGasFee,
-                    mintedTokens: mintedTokens,
-                    boughtTokens: boughtTokens
-                })
-
-            }
-
-            for(const asset of mintedTokens) {
-
-                const assetSold = exists ? sale.assets.find(s => s.tokenId === asset.tokenId) : undefined;
-
-                if(assetSold) {
-                    asset.sold = state.globalWeb3.utils.fromWei(assetSold.salePrice, 'ether');
-
-                    console.log(sale);
-
-                    const _fee = (Number.parseInt(sale.sellerFee.seller_fees[Object.keys(sale.sellerFee.seller_fees)[0]])
-                        + Number.parseInt(sale.sellerFee.opensea_fees[Object.keys(sale.sellerFee.opensea_fees)[0]])) / 1000;
-                    const _initPrice = Number.parseFloat(asset.sold);
-                    const _finalPrice = _initPrice - (_initPrice * _fee);
-                    globalMarketFees += _initPrice * _fee;
-
-                    console.log(`Sold for ${_initPrice} with ${_fee}% fee -> ${_finalPrice}`);
-
-                    globalSaleValue += _finalPrice;
-                    globalSold += 1;
-                } else {
-                    minted.holding += 1;
-                    globalHolding += 1;
-                }
-
-                globalMintCost += Number.parseFloat(asset.value);
-                globalGasCost += Number.parseFloat(asset.gasFee);
-
-                console.log(`${asset.tokenId}: Value: ${asset.value}ETH | Gas: ${asset.gasFee}ETH (${asset.gasUsed}/${asset.gas}) | ${asset.transactionHash} ${typeof assetSold !== 'undefined' ? `| Sold: ${state.globalWeb3.utils.fromWei(assetSold.salePrice, 'ether')}ETH` : ''}`);
-
-            }
-
-            for(const asset of boughtTokens) {
-
-                const assetSold = exists ? sale.assets.find(s => s.tokenId === asset.tokenId) : undefined;
-
-                if(assetSold) {
-                    console.log(`${asset.tokenId}: Value: ${state.globalWeb3.utils.fromWei(asset.salePrice, 'ether')}ETH | Gas: Unknown | %c${asset.event_type}`, `color: ${asset.event_type === 'sold' ? 'green;' : 'red;'}`);
+                for(const asset of sale.assets) {
 
                     const _salePrice = Number.parseFloat(state.globalWeb3.utils.fromWei(asset.salePrice, 'ether'));
+
+                    console.log("Sale Price:", _salePrice);
 
                     if(asset.event_type === 'sold') {
                         globalSaleValue += _salePrice;
@@ -265,32 +322,60 @@ function ProfitAndLoss({state}) {
                         globalBoughtValue += _salePrice;
                     }
 
+                    obj.boughtTokens.push({
+                        tokenId: asset.tokenId,
+                        salePrice: asset.salePrice,
+                        event_type: asset.event_type
+                    })
                 }
+
+                output.push(obj)
             }
 
-            console.log("-----------------------------------------------------------------")
+            let globalSpending = globalMintCost + globalBoughtValue + globalGasCost;
+
+            setData({
+                globalMintCost,
+                globalGasCost,
+                globalSaleValue,
+                globalHolding,
+                globalSold,
+                globalBought,
+                globalBoughtValue,
+                globalMarketFees,
+                globalSpending,
+                data: output
+            });
+
+            setToastInfo({
+                message: 'Loaded purchase history.',
+                class: 'toast-success'
+            })
+
+        } catch(e) {
+            console.log('error:', e);
+            setLoading(false);
+
+            setToastInfo({
+                message: 'Error while loading history, check console for more info.',
+                class: 'toast-error'
+            })
         }
 
-        let globalSpending = globalMintCost + globalBoughtValue + globalGasCost;
 
-        setData({
-            globalMintCost,
-            globalGasCost,
-            globalSaleValue,
-            globalHolding,
-            globalSold,
-            globalBought,
-            globalBoughtValue,
-            globalMarketFees,
-            globalSpending,
-            data: output
-        });
+        //console.log("spending:", globalSpending, "mintCost:", globalMintCost, "gasCost:", globalGasCost, "globalSale:", globalSaleValue);
     }
 
     useEffect(() => {
-        test('0x2ef2780b849f11231558bf9423c141178ec6f34e');
+        //checkProfitAndLoss('0x2ef2780b849f11231558bf9423c141178ec6f34e');
     }, [])
-    
+
+    useEffect(() => {
+        if(toastInfo === null) return;
+
+        Toast.getOrCreateInstance(document.querySelector('#toast-message')).show();
+    }, [toastInfo]);
+
     return html`
         <div class="d-flex" style="position: relative;">
             <${SidebarNav} page="profit-tracker" />
@@ -345,7 +430,15 @@ function ProfitAndLoss({state}) {
                     
                 </div>-->
                 
-                <div class="${data.data.length === 0 ? 'd-none' : ''} pnl-global d-flex justify-content-between align-items-center">
+                <div>
+                    <input class="input" placeholder="0x123..." type="text" value=${address} onchange=${(e) => {setAddress(e.target.value)}} />
+                    <button class="button-primary fw-bold ms-2" onclick=${checkProfitAndLoss}>Check</button>
+                    <i class="${loading ? '' : 'd-none'} fa-solid fa-spinner loading-icon"></i>
+                </div>
+                
+                <hr />
+                
+                <div class="${data.data.length === 0 ? 'd-none' : ''} pnl-global d-flex justify-content-between align-items-center mb-3">
                     
                     <div class="d-flex align-items-center">
                         <div class="global-info me-2 text-center">
@@ -355,11 +448,11 @@ function ProfitAndLoss({state}) {
 
                         <div class="global-info text-center d-flex align-items-center">
                             <div>
-                                <div class="value ${data.globalSaleValue > 0 ? 'green' : 'red'}">${Number.parseFloat(data.globalSaleValue).toFixed(5)} <i class="fa-brands fa-ethereum ms-1"></i></div>
-                                <div class="name">Total Profit</div>
+                                <div class="value ${data.globalSaleValue - data.globalSpending > 0 ? 'green' : 'red'}">${Number.parseFloat(`${data.globalSaleValue - data.globalSpending}`).toFixed(5)} <i class="fa-brands fa-ethereum ms-1"></i></div>
+                                <div class="name">Net Profit</div>
                             </div>
-                            <i class="up-arrow fa-solid fa-arrow-up ms-1 fa-2x ${data.globalSaleValue > 0 ? '' : 'd-none'}"></i>
-                            <i class="down-arrow fa-solid fa-arrow-down ms-1 fa-2x ${data.globalSaleValue < 0 ? '' : 'd-none'}"></i>
+                            <i class="up-arrow fa-solid fa-arrow-up ms-1 fa-2x ${data.globalSaleValue - data.globalSpending > 0 ? '' : 'd-none'}"></i>
+                            <i class="down-arrow fa-solid fa-arrow-down ms-1 fa-2x ${data.globalSaleValue - data.globalSpending < 0 ? '' : 'd-none'}"></i>
                         </div>
                     </div>
                     
@@ -375,6 +468,16 @@ function ProfitAndLoss({state}) {
                             <div class="name">Total Gas Spent</div>
                         </div>
 
+                        <div class="global-info ms-2 text-center">
+                            <div class="value">${Number.parseFloat(data.globalSaleValue).toFixed(5)} <i class="fa-brands fa-ethereum ms-1"></i></div>
+                            <div class="name">Gross Profit</div>
+                        </div>
+                        
+                        <div class="global-info ms-2 text-center">
+                            <div class="value">${Number.parseFloat(data.globalMarketFees).toFixed(5)} <i class="fa-brands fa-ethereum ms-1"></i></div>
+                            <div class="name">Total Market Fee</div>
+                        </div>
+                        
                         <div class="global-info ms-2 text-center">
                             <div class="value">${data.globalHolding}</div>
                             <div class="name">Total Holding</div>
@@ -392,7 +495,6 @@ function ProfitAndLoss({state}) {
                     </div>
                 </div>
                 
-                <hr />
                 
                 ${data.data.map(t => (
                     html`
@@ -447,6 +549,17 @@ function ProfitAndLoss({state}) {
                 ))}
                 
             </div>
+
+
+            <div id="toast-message" class="toast align-items-center ${toastInfo === null ? '' : toastInfo.class} end-0 top-0 m-3" style="position: absolute" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex align-items-center justify-content-between py-3 mx-2">
+                    <div class="toast-body">
+                        ${toastInfo === null ? '' : toastInfo.message}
+                    </div>
+                    <i class="fa-regular fa-circle-xmark" data-bs-dismiss="toast"></i>
+                </div>
+            </div>
+            
         </div>
     
     `

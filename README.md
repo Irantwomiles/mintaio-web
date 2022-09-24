@@ -19,14 +19,7 @@
 ###Mint Bot
   * There is a bug when delete a tasks in a group or when delete a group with some tasks.
 ###Profit Tracker
-  * Get Successes from OpenSea
-    * Need to add total profit/loss to the object.
-  * Get mints from OpenSea
-    * Compare from_address to see if NullAddress
-    * Keep track of transactions hash and compare to the etherscan page.
-      * Need to parse response from etherscan tx page using DOMParser
-      * https://stackoverflow.com/questions/10585029/parse-an-html-string-with-js
-    * Compare transfer data with parsed data
+  * Check etherscan for failed transactions so that we can add the gas of those as well to the total gas spent.
 ###New Stuff
   * Gas calculator
   * Fix refresh requiring auth
