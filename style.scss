@@ -735,3 +735,45 @@ hr {
     }
   }
 }
+
+.pnl-global {
+
+  .global-info {
+    background-color: $background-sidebar;
+    padding: 0.5rem 0.5rem;
+    border-radius: 0.3rem;
+
+    .value {
+      color: white;
+      font-weight: bold;
+      font-size: 1.2rem;
+
+      i {
+        color: $light-gray;
+      }
+    }
+
+    .name {
+      color: $light-gray;
+      font-size: 0.9rem;
+    }
+
+    .up-arrow {
+      color: $green;
+    }
+
+    .down-arrow {
+      color: $red;
+    }
+
+    .red {
+      color: $red !important;
+    }
+
+    .green {
+      color: $green !important;
+    }
+
+  }
+
+}

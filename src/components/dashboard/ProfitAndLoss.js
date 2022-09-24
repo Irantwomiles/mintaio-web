@@ -8,7 +8,18 @@ import _ from "lodash-es";
 
 function ProfitAndLoss({state}) {
 
-    const [data, setData] = useState([]);
+    const [data, setData] = useState({
+        globalMintCost: 0, //
+        globalGasCost: 0, //
+        globalSaleValue: 0, //
+        globalHolding: 0,
+        globalSold: 0, //
+        globalBought: 0, //
+        globalBoughtValue: 0,
+        globalMarketFees: 0,
+        globalSpending: 0, //
+        data: []
+    });
     
     const test = async (address) => {
 
@@ -119,6 +130,7 @@ function ProfitAndLoss({state}) {
                         gasUsed: gasUsed,
                         gas: gas,
                         value: value,
+                        holding: 0,
                         transactionHash: txHash
                     })
                 } else {
@@ -136,6 +148,7 @@ function ProfitAndLoss({state}) {
                         gasUsed: gasUsed,
                         gas: gas,
                         value: value,
+                        holding: 0,
                         transactionHash: txHash
                     })
                 }
@@ -145,8 +158,18 @@ function ProfitAndLoss({state}) {
 
         }
 
+        let globalMintCost = 0;
+        let globalGasCost = 0;
+        let globalSaleValue = 0;
+        let globalHolding = 0;
+        let globalSold = 0;
+        let globalBought = 0;
+        let globalBoughtValue = 0;
+        let globalMarketFees = 0;
+
         for(const key of mints.keys()) {
 
+            const minted = mints.get(key);
             const sale = sales.get(key);
             const exists = typeof sale !== 'undefined';
 
@@ -154,38 +177,40 @@ function ProfitAndLoss({state}) {
             let boughtTokens = [];
 
             if(exists) {
-                console.log(`%cMint: ${key} | Total Spent: ${mints.get(key).totalMintCost} | Total Gas Spent: ${mints.get(key).totalGasFee} | %cTotal Sales: ${sale.count}`, 'color: orange;', 'color: green;');
+                console.log(`%cMint: ${key} | Total Spent: ${minted.totalMintCost} | Total Gas Spent: ${minted.totalGasFee} | %cTotal Sales: ${sale.count}`, 'color: orange;', 'color: green;');
 
+                boughtTokens = [...boughtTokens, ..._.xorBy(minted.assets, sale.assets, 'tokenId')]
+                mintedTokens = [...mintedTokens, ..._.intersectionBy(minted.assets, sale.assets, 'tokenId')]
 
-                boughtTokens = [...boughtTokens, ..._.xorBy(mints.get(key).assets, sale.assets, 'tokenId')]
-                mintedTokens = [...mintedTokens, ..._.intersectionBy(mints.get(key).assets, sale.assets, 'tokenId')]
-
-                let idk = [];
+                // We do this because xorBy only returns Unique values, meaning when a user has bought token 123 and sells token 123 this will only show up once. We need to then filter
+                // the original sale.assets array to get all of the tokens with that tokenId.
+                let allBoughTokens = [];
 
                 for(const token of boughtTokens) {
-                    idk = [...idk, ...sale.assets.filter(s => s.tokenId === token.tokenId)];
+                    allBoughTokens = [...allBoughTokens, ...sale.assets.filter(s => s.tokenId === token.tokenId)];
                 }
 
-                boughtTokens = idk;
+                boughtTokens = allBoughTokens;
 
                 output.push({
                     contractAddress: key,
-                    totalMintCost: mints.get(key).totalMintCost,
-                    totalGasFee: mints.get(key).totalGasFee,
+                    totalMintCost: minted.totalMintCost,
+                    totalGasFee: minted.totalGasFee,
                     totalSales: sale.count,
                     mintedTokens: mintedTokens,
                     boughtTokens: boughtTokens
                 })
 
-            } else {
-                console.log(`%cMint: ${key} | Total Spent: ${mints.get(key).totalMintCost} | Total Gas Spent: ${mints.get(key).totalGasFee}`, 'color: orange;');
+            }
+            else {
+                console.log(`%cMint: ${key} | Total Spent: ${minted.totalMintCost} | Total Gas Spent: ${minted.totalGasFee}`, 'color: orange;');
 
-                mintedTokens = [...mints.get(key).assets];
+                mintedTokens = [...minted.assets];
 
                 output.push({
                     contractAddress: key,
-                    totalMintCost: mints.get(key).totalMintCost,
-                    totalGasFee: mints.get(key).totalGasFee,
+                    totalMintCost: minted.totalMintCost,
+                    totalGasFee: minted.totalGasFee,
                     mintedTokens: mintedTokens,
                     boughtTokens: boughtTokens
                 })
@@ -198,7 +223,26 @@ function ProfitAndLoss({state}) {
 
                 if(assetSold) {
                     asset.sold = state.globalWeb3.utils.fromWei(assetSold.salePrice, 'ether');
+
+                    console.log(sale);
+
+                    const _fee = (Number.parseInt(sale.sellerFee.seller_fees[Object.keys(sale.sellerFee.seller_fees)[0]])
+                        + Number.parseInt(sale.sellerFee.opensea_fees[Object.keys(sale.sellerFee.opensea_fees)[0]])) / 1000;
+                    const _initPrice = Number.parseFloat(asset.sold);
+                    const _finalPrice = _initPrice - (_initPrice * _fee);
+                    globalMarketFees += _initPrice * _fee;
+
+                    console.log(`Sold for ${_initPrice} with ${_fee}% fee -> ${_finalPrice}`);
+
+                    globalSaleValue += _finalPrice;
+                    globalSold += 1;
+                } else {
+                    minted.holding += 1;
+                    globalHolding += 1;
                 }
+
+                globalMintCost += Number.parseFloat(asset.value);
+                globalGasCost += Number.parseFloat(asset.gasFee);
 
                 console.log(`${asset.tokenId}: Value: ${asset.value}ETH | Gas: ${asset.gasFee}ETH (${asset.gasUsed}/${asset.gas}) | ${asset.transactionHash} ${typeof assetSold !== 'undefined' ? `| Sold: ${state.globalWeb3.utils.fromWei(assetSold.salePrice, 'ether')}ETH` : ''}`);
 
@@ -210,17 +254,41 @@ function ProfitAndLoss({state}) {
 
                 if(assetSold) {
                     console.log(`${asset.tokenId}: Value: ${state.globalWeb3.utils.fromWei(asset.salePrice, 'ether')}ETH | Gas: Unknown | %c${asset.event_type}`, `color: ${asset.event_type === 'sold' ? 'green;' : 'red;'}`);
+
+                    const _salePrice = Number.parseFloat(state.globalWeb3.utils.fromWei(asset.salePrice, 'ether'));
+
+                    if(asset.event_type === 'sold') {
+                        globalSaleValue += _salePrice;
+                        globalSold += 1;
+                    } else {
+                        globalBought += 1;
+                        globalBoughtValue += _salePrice;
+                    }
+
                 }
             }
 
             console.log("-----------------------------------------------------------------")
         }
 
-        setData(output);
+        let globalSpending = globalMintCost + globalBoughtValue + globalGasCost;
+
+        setData({
+            globalMintCost,
+            globalGasCost,
+            globalSaleValue,
+            globalHolding,
+            globalSold,
+            globalBought,
+            globalBoughtValue,
+            globalMarketFees,
+            globalSpending,
+            data: output
+        });
     }
 
     useEffect(() => {
-        //test('0x285df64ed4c7dc3e33c144c035e4056bb18d7da7');
+        test('0x2ef2780b849f11231558bf9423c141178ec6f34e');
     }, [])
     
     return html`
@@ -277,7 +345,56 @@ function ProfitAndLoss({state}) {
                     
                 </div>-->
                 
-                ${data.map(t => (
+                <div class="${data.data.length === 0 ? 'd-none' : ''} pnl-global d-flex justify-content-between align-items-center">
+                    
+                    <div class="d-flex align-items-center">
+                        <div class="global-info me-2 text-center">
+                            <div class="value">${Number.parseFloat(data.globalSpending).toFixed(5)} <i class="fa-brands fa-ethereum ms-1"></i></div>
+                            <div class="name">Total Spending</div>
+                        </div>
+
+                        <div class="global-info text-center d-flex align-items-center">
+                            <div>
+                                <div class="value ${data.globalSaleValue > 0 ? 'green' : 'red'}">${Number.parseFloat(data.globalSaleValue).toFixed(5)} <i class="fa-brands fa-ethereum ms-1"></i></div>
+                                <div class="name">Total Profit</div>
+                            </div>
+                            <i class="up-arrow fa-solid fa-arrow-up ms-1 fa-2x ${data.globalSaleValue > 0 ? '' : 'd-none'}"></i>
+                            <i class="down-arrow fa-solid fa-arrow-down ms-1 fa-2x ${data.globalSaleValue < 0 ? '' : 'd-none'}"></i>
+                        </div>
+                    </div>
+                    
+
+                    <div class="d-flex align-items-center">
+                        <div class="global-info text-center">
+                            <div class="value">${Number.parseFloat(data.globalMintCost).toFixed(5)} <i class="fa-brands fa-ethereum ms-1"></i></div>
+                            <div class="name">Total Mint Cost</div>
+                        </div>
+                        
+                        <div class="global-info ms-2 text-center">
+                            <div class="value">${Number.parseFloat(data.globalGasCost).toFixed(5)} <i class="fa-brands fa-ethereum ms-1"></i></div>
+                            <div class="name">Total Gas Spent</div>
+                        </div>
+
+                        <div class="global-info ms-2 text-center">
+                            <div class="value">${data.globalHolding}</div>
+                            <div class="name">Total Holding</div>
+                        </div>
+                        
+                        <div class="global-info ms-2 text-center">
+                            <div class="value green">${data.globalSold}</div>
+                            <div class="name">Total Sold</div>
+                        </div>
+
+                        <div class="global-info ms-2 text-center">
+                            <div class="value red">${data.globalBought}</div>
+                            <div class="name">Total Bought</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr />
+                
+                ${data.data.map(t => (
                     html`
                         
                     <div class="pnl-section mb-2">
