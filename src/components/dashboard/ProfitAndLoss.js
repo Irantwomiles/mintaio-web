@@ -2,7 +2,7 @@ import {html} from 'htm/preact';
 import {useEffect, useState} from "preact/compat";
 import SidebarNav from "../SidebarNav";
 import {Toast} from "bootstrap";
-import {getInternalTransactions, getNormalTransactions, getOpenSeaEventData, shortedText} from "../../utils/utils";
+import {getNormalTransactions, getOpenSeaEventData, shortedText} from "../../utils/utils";
 import _ from "lodash-es";
 
 import logo from '../../images/mintaio-logo.png';
@@ -257,7 +257,7 @@ function ProfitAndLoss({state}) {
 
                         const seller_fee = Number.parseInt(sale.sellerFee.seller_fees[Object.keys(sale.sellerFee.seller_fees)[0]]);
                         const os_fee = Number.parseInt(sale.sellerFee.opensea_fees[Object.keys(sale.sellerFee.opensea_fees)[0]]);
-                        const _fee = (isNaN(seller_fee) ? 0 + os_fee : seller_fee + os_fee) / 100;
+                        const _fee = (isNaN(seller_fee) ? os_fee : seller_fee + os_fee) / 100;
                         const _initPrice = Number.parseFloat(asset.sold);
                         const _finalPrice = _initPrice - (_initPrice / _fee);
                         globalMarketFees += _initPrice / _fee;
@@ -481,7 +481,6 @@ function ProfitAndLoss({state}) {
                         </div>
                     </div>
                     
-
                     <div class="d-flex align-items-center">
                         <div class="global-info text-center">
                             <div class="value">${Number.parseFloat(data.globalMintCost).toFixed(5)} <i class="fa-brands fa-ethereum ms-1"></i></div>
@@ -525,6 +524,7 @@ function ProfitAndLoss({state}) {
                     html`
                         
                     <div class="pnl-section mb-2">
+                        
                         <div class="pnl-header d-flex justify-content-between">
                             <div class="contract align-items-center">
                                 <img class="me-2" style="height: 3rem; width: 3rem;" src="${t.collection_image ? t.collection_image : logo}" />
@@ -572,7 +572,6 @@ function ProfitAndLoss({state}) {
 
                                         <div class="sold nav-info ms-4 ${m.event_type}">${m.event_type === 'sold' ? 'Sold' : 'Bought'}: <span>${state.globalWeb3.utils.fromWei(m.salePrice, 'ether')}</span><i class="fa-brands fa-ethereum ms-1"></i></div>
                                     </div>
-                                    
                                 `
                             ))}
                         </div>
