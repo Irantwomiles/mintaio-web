@@ -1,10 +1,11 @@
 import {html} from 'htm/preact';
 import {useEffect, useState} from "preact/compat";
 import SidebarNav from "../SidebarNav";
-import io from "socket.io-client";
 import {Toast} from "bootstrap";
 import {getInternalTransactions, getNormalTransactions, getOpenSeaEventData, shortedText} from "../../utils/utils";
 import _ from "lodash-es";
+
+import logo from '../../images/mintaio-logo.png';
 
 function ProfitAndLoss({state}) {
 
@@ -104,6 +105,8 @@ function ProfitAndLoss({state}) {
             //const internalTx = await (await getInternalTransactions(address, apiKey)).json();
             const normalTx = await (await getNormalTransactions(address, apiKey)).json();
 
+            console.log(transferData.asset_events);
+
             for(const transfer of transferData.asset_events) {
 
                 if(transfer.asset === null) {
@@ -142,6 +145,7 @@ function ProfitAndLoss({state}) {
                             date: transfer.event_timestamp,
                             totalMintCost: Number.parseFloat(value),
                             totalGasFee: Number.parseFloat(totalGasPriceEth),
+                            collection_image: transfer.asset.collection.image_url,
                             assets: []
                         }
 
@@ -220,6 +224,7 @@ function ProfitAndLoss({state}) {
                         totalMintCost: minted.totalMintCost,
                         totalGasFee: minted.totalGasFee,
                         totalSales: sale.count,
+                        collection_image: minted.collection_image,
                         mintedTokens: mintedTokens,
                         boughtTokens: boughtTokens
                     })
@@ -234,6 +239,7 @@ function ProfitAndLoss({state}) {
                         contractAddress: key,
                         totalMintCost: minted.totalMintCost,
                         totalGasFee: minted.totalGasFee,
+                        collection_image: minted.collection_image,
                         mintedTokens: mintedTokens,
                         boughtTokens: boughtTokens
                     })
@@ -367,6 +373,8 @@ function ProfitAndLoss({state}) {
                 message: 'Loaded purchase history.',
                 class: 'toast-success'
             })
+
+            console.log(output);
 
             setLoading(false);
 
@@ -518,8 +526,11 @@ function ProfitAndLoss({state}) {
                         
                     <div class="pnl-section mb-2">
                         <div class="pnl-header d-flex justify-content-between">
-                            <div class="contract">${t.contractAddress} <a href="https://etherscan.io/address/${t.contractAddress}" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square icon-color"></i></a></div>
-                            <div class="d-flex">
+                            <div class="contract align-items-center">
+                                <img class="me-2" style="height: 3rem; width: 3rem;" src="${t.collection_image ? t.collection_image : logo}" />
+                                ${t.contractAddress} 
+                                <a href="https://etherscan.io/address/${t.contractAddress}" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square ms-2 icon-color"></i></a></div>
+                            <div class="d-flex align-items-center">
                                 <div class="nav-info mint-cost me-2">Spent <span>${t.totalMintCost}</span><i class="fa-brands fa-ethereum ms-1"></i> Minting</div>
                                 <div class="nav-info gas-cost me-2">Spent <span>${t.totalGasFee}</span><i class="fa-brands fa-ethereum ms-1"></i> on Gas </div>
                                 <div class="nav-info total-sales ${t.hasOwnProperty('totalSales') ? '' : 'd-none'}">Total of <span>${t.hasOwnProperty('totalSales') ? t.totalSales : ''}</span> Sales/Purchases</div>
