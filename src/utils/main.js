@@ -282,6 +282,8 @@ class Main {
             return;
         }
 
+        _task.stopFetchingAssets(this);
+
         _task.delete();
 
         const _tasks = this.openseaSnipers.filter(t => t.id !== id);

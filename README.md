@@ -20,6 +20,7 @@
   * There is a bug when delete a tasks in a group or when delete a group with some tasks.
 ###Profit Tracker
   * Check etherscan for failed transactions so that we can add the gas of those as well to the total gas spent.
+  * Add x2y2 support
 ###New Stuff
   * Gas calculator
   * Fix refresh requiring auth

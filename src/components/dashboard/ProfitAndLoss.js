@@ -194,6 +194,8 @@ function ProfitAndLoss({state}) {
             let globalBoughtValue = 0;
             let globalMarketFees = 0;
 
+            const visitedTxs = [];
+
             for(const key of mints.keys()) {
 
                 const minted = mints.get(key);
@@ -273,8 +275,12 @@ function ProfitAndLoss({state}) {
                         globalHolding += 1;
                     }
 
-                    globalMintCost += Number.parseFloat(asset.value);
-                    globalGasCost += Number.parseFloat(asset.gasFee);
+                    if(!visitedTxs.includes(asset.transactionHash)) {
+                        globalMintCost += Number.parseFloat(asset.value);
+                        globalGasCost += Number.parseFloat(asset.gasFee);
+
+                        visitedTxs.push(asset.transactionHash);
+                    }
 
                     //console.log(`${asset.tokenId}: Value: ${asset.value}ETH | Gas: ${asset.gasFee}ETH (${asset.gasUsed}/${asset.gas}) | ${asset.transactionHash} ${typeof assetSold !== 'undefined' ? `| Sold: ${state.globalWeb3.utils.fromWei(assetSold.salePrice, 'ether')}ETH` : ''}`);
 
