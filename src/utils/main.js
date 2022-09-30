@@ -32,6 +32,8 @@ class Main {
 
         this.quickTaskProfiles = [];
 
+        this.logs = [];
+
         this.mintWatchSocket = null;
 
         this.walletsStream.subscribe((data) => {
@@ -83,20 +85,11 @@ class Main {
 
         this.disperseABI = [{"constant":false,"inputs":[{"name":"token","type":"address"},{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseTokenSimple","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"token","type":"address"},{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseToken","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseEther","outputs":[],"payable":true,"stateMutability":"payable","type":"function"}];
 
-        /*const sniper = new OpenSeaSniper({
-            state: this,
-            slug: 'grandpaapecountryclub',
-            price: '0.9',
-            wallet: null,
-            contractAddress: '',
-            traits: ['background|m|purple', `headwear|m|king's crown`]
-        });
-
-        sniper.fetchAssetListings();*/
-
-        //sniper.fetchAssetListings();
-
         console.log("Main state initiated, MintAIO - v0.1-beta");
+    }
+
+    addLog(str) {
+        this.logs.push(`[${new Date().toLocaleString()}][LOG]` + str);
     }
 
     connectMintWatch() {

@@ -18,6 +18,7 @@
   * Option to auto list sniped listing.
 ###Mint Bot
   * There is a bug when delete a tasks in a group or when delete a group with some tasks.
+  * Move starting, stopping, and deleting tasks to the state class (like os sniper)
 ###Profit Tracker
   * Check etherscan for failed transactions so that we can add the gas of those as well to the total gas spent.
   * Add x2y2 support

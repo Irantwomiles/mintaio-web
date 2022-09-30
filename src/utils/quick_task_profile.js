@@ -4,10 +4,13 @@ class QuickTaskProfile {
 
     static loadProfiles(state) {
 
+        state.addLog('Loading QuickTask profiles.');
+
         let profiles = localStorage.getItem('qt-profiles');
 
         if(profiles === null) {
             localStorage.setItem('qt-profiles', JSON.stringify([]));
+            state.addLog('No QuickTask profiles found, setting to empty array.');
         }
 
         profiles = JSON.parse(localStorage.getItem('qt-profiles'));
@@ -15,9 +18,12 @@ class QuickTaskProfile {
         const _profiles = [];
         for(const p of profiles) {
             _profiles.push(new QuickTaskProfile(p.name, p.wallets));
+
+            state.addLog(`Loading QuickTask profile ${p.name}`);
         }
 
         state.quickTaskProfileStream.next(_profiles);
+        state.addLog('Finished loading QuickTask profiles.');
     }
 
     constructor(name, wallets) {
@@ -26,6 +32,9 @@ class QuickTaskProfile {
     }
 
     save() {
+
+        state.addLog('Saving QuickTask profile.');
+
         if(localStorage.getItem('qt-profiles') === null) {
             localStorage.setItem('qt-profiles', JSON.stringify([]));
         }
@@ -38,9 +47,9 @@ class QuickTaskProfile {
             wallets: this.wallets
         })
 
-        console.log(profiles);
-
         localStorage.setItem('qt-profiles', JSON.stringify(profiles));
+        state.addLog(`Saved QuickTask profile ${p.name}.`);
+
     }
 
 }

@@ -1,11 +1,16 @@
+import {fixAddress} from "./utils";
+
 class Wallet {
 
     static loadWallets(state) {
+
+        state.addLog('Loading Wallets.');
 
         let wallets = localStorage.getItem("wallets");
 
         if (wallets === null) {
             localStorage.setItem("wallets", JSON.stringify([]));
+            state.addLog('No Wallets founds, setting empty array.');
         }
 
         const encryptedWallets = JSON.parse(localStorage.getItem("wallets"));
@@ -15,11 +20,13 @@ class Wallet {
             const wallet = new Wallet(w.name, w.account);
             wallet.getBalance(state)
             _wallets.push(wallet);
+            state.addLog(`Loading Wallet ${w.name} ${fixAddress(w.account.address)}.`);
         }
 
         // We also set wallets here even though we set it in the Behavior subscription in case we need to access it right away after load.
         state.wallets = _wallets;
         state.walletsStream.next(_wallets);
+        state.addLog(`Loaded  ${_wallets.length} wallets.`);
     }
 
     constructor(name, account) {
