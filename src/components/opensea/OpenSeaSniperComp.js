@@ -157,15 +157,15 @@ function OpenSeaSniperComp({state}) {
             return;
         }
 
-        if(tasks.length > 0) {
+        /*if(state.openseaSnipers.length > 0) {
             setToastInfo({
                 message: "While we are testing, the sniper is limited to 1.",
                 class: 'toast-error'
             });
             return;
-        }
+        }*/
 
-        const sniper = new OpenSeaSniper({
+        state.createOpenSeaSniper({
             state: state,
             slug: slug,
             contractAddress: contractAddress,
@@ -173,13 +173,6 @@ function OpenSeaSniperComp({state}) {
             price: price,
             traits: selectedTraits
         });
-
-        sniper.save();
-
-        const clone = [...state.openseaSnipers];
-        clone.push(sniper);
-
-        state.openseaSniperStream.next(clone);
     }
 
     useEffect(() => {
@@ -195,7 +188,8 @@ function OpenSeaSniperComp({state}) {
         }
 
         const sniperStream = state.openseaSniperStream.subscribe((data) => {
-            setTasks(data);
+            const clone = [...data];
+            setTasks(clone);
         })
 
         const walletsStream = state.walletsStream.subscribe((data) => {
@@ -207,7 +201,7 @@ function OpenSeaSniperComp({state}) {
             sniperStream.unsubscribe();
         }
 
-    }, [state]);
+    }, []);
 
     return html`
         
@@ -252,11 +246,11 @@ function OpenSeaSniperComp({state}) {
                                     <div class="actions p-2 col-1 text-center">
                                         <i class="fa-solid fa-circle-play me-2 icon-color start-icon"
                                            onclick=${() => {
-                                               t.fetchAssetListings(state)
+                                               state.startOpenSeaSniper(t.id);
                                            }}></i>
                                         <i class="fa-solid fa-circle-stop me-2 icon-color stop-icon"
                                            onclick=${() => {
-                                               t.stopFetchingAssets(state)
+                                               state.stopOpenSeaSniper(t.id);
                                            }}></i>
 
                                         <i class="fa-solid fa-trash icon-color delete-icon"

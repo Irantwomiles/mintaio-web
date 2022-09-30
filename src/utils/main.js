@@ -268,9 +268,11 @@ class Main {
             return;
         }
 
-        _task.delete();
+        _task.delete(this);
 
         const _tasks = this.ethTasks.filter(t => t.id !== id);
+
+        this.ethTasks = _tasks;
         this.ethTasksStream.next(_tasks);
     }
 
@@ -282,11 +284,11 @@ class Main {
             return;
         }
 
-        _task.stopFetchingAssets(this);
-
-        _task.delete();
+        _task.delete(this);
 
         const _tasks = this.openseaSnipers.filter(t => t.id !== id);
+
+        this.openseaSnipers = _tasks;
         this.openseaSniperStream.next(_tasks);
     }
 
@@ -571,6 +573,37 @@ class Main {
         }
     }
 
+    createOpenSeaSniper(options) {
+
+        const sniper = new OpenSeaSniper(options);
+
+        sniper.save();
+
+        this.openseaSnipers.push(sniper);
+        this.openseaSniperStream.next(this.openseaSnipers);
+
+        console.log("Created sniper");
+    }
+
+    startOpenSeaSniper(id) {
+        const sniper = this.openseaSnipers.find(t => t.id === id);
+
+        if(typeof sniper === 'undefined') {
+            return false;
+        }
+
+        sniper.fetchAssetListings(this);
+    }
+
+    stopOpenSeaSniper(id) {
+        const sniper = this.openseaSnipers.find(t => t.id === id);
+
+        if(typeof sniper === 'undefined') {
+            return false;
+        }
+
+        sniper.stopFetchingAssets(this);
+    }
 }
 
 export default Main;

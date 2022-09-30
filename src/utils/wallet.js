@@ -1,4 +1,27 @@
 class Wallet {
+
+    static loadWallets(state) {
+
+        let wallets = localStorage.getItem("wallets");
+
+        if (wallets === null) {
+            localStorage.setItem("wallets", JSON.stringify([]));
+        }
+
+        const encryptedWallets = JSON.parse(localStorage.getItem("wallets"));
+        const _wallets = [];
+
+        for(const w of encryptedWallets) {
+            const wallet = new Wallet(w.name, w.account);
+            wallet.getBalance(state)
+            _wallets.push(wallet);
+        }
+
+        // We also set wallets here even though we set it in the Behavior subscription in case we need to access it right away after load.
+        state.wallets = _wallets;
+        state.walletsStream.next(_wallets);
+    }
+
     constructor(name, account) {
         this.name = name;
         this.account = account;

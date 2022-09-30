@@ -12,6 +12,41 @@ class OpenSeaSniper {
     static BLUE = '#3674e0';
     static PINK = '#d58ce0';
 
+    static loadOpenSeaSnipers(state) {
+
+        if(localStorage.getItem("os-snipers") === null) {
+            localStorage.setItem("os-snipers", JSON.stringify([]));
+        }
+
+        const snipers = JSON.parse(localStorage.getItem("os-snipers"));
+        const _snipers = [];
+
+        for(const s of snipers) {
+
+            const wallet = state.wallets.find((w, index) => {
+                const _address = fixAddress(w.account.address);
+                const _sAddress = fixAddress(s.wallet);
+
+                return _sAddress.toLowerCase() === _address.toLowerCase();
+            });
+
+            if(typeof wallet === 'undefined') continue;
+
+            const sniper = new OpenSeaSniper({
+                slug: s.slug,
+                contractAddress: s.contractAddress,
+                wallet: wallet,
+                price: s.price,
+                traits: s.traits
+            });
+
+            _snipers.push(sniper);
+        }
+
+        state.openseaSnipers = _snipers;
+        state.openseaSniperStream.next(_snipers);
+    }
+
     constructor({slug, contractAddress, wallet, price, traits = []}) {
         this.id = OpenSeaSniper.ID++;
         this.slug = slug;
@@ -34,6 +69,11 @@ class OpenSeaSniper {
 
     fetchAssetListings(state) {
 
+        if(this.interval !== null) {
+            console.log("Sniper already active");
+            return;
+        }
+
         // After 50 iterations we will fetch floor price
         let fetchFloorPrice = 0;
 
@@ -49,6 +89,8 @@ class OpenSeaSniper {
         state.postOpenSeaSniperUpdate();
 
         this.interval = setInterval(async () => {
+
+            console.log(`"Checking ${this.slug} for ${this.price}`);
 
             if(checking) return;
 
@@ -415,12 +457,14 @@ class OpenSeaSniper {
         localStorage.setItem('os-snipers', JSON.stringify(_snipers));
     }
 
-    delete() {
+    delete(state) {
         if(localStorage.getItem('os-snipers') === null) {
             localStorage.setItem('os-snipers', JSON.stringify([]));
         }
 
         let _snipers = JSON.parse(localStorage.getItem('os-snipers'));
+
+        this.stopFetchingAssets(state);
 
         _snipers = _snipers.filter(t => t.id !== this.id);
         localStorage.setItem('os-snipers', JSON.stringify(_snipers));

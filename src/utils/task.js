@@ -1,5 +1,6 @@
 import Web3 from 'web3';
 import {html} from "htm/preact";
+import {fixAddress} from "./utils";
 
 class Task {
 
@@ -9,6 +10,53 @@ class Task {
     static RED = '#f58686';
     static WHITE = '#FFF';
     static BLUE = '#3674e0';
+
+    static async loadEthTasks(state) {
+
+        if(localStorage.getItem("eth-tasks") === null) {
+            localStorage.setItem("eth-tasks", JSON.stringify([]));
+        }
+
+        const tasks = JSON.parse(localStorage.getItem("eth-tasks"));
+        const _tasks = [];
+
+        for(const t of tasks) {
+
+            const wallet = state.wallets.find((w, index) => {
+                const _address = fixAddress(w.account.address);
+                const _tAddress = fixAddress(t.wallet);
+
+                return _tAddress.toLowerCase() === _address.toLowerCase();
+            });
+
+            if(typeof wallet !== 'undefined') {
+
+                const abi = await state.getContractAbi(t.contractAddress, t.network);
+
+                const task = new Task(t.provider, t.contractAddress, wallet, t.price, t.amount, t.maxGas, t.gasPriority, t.gasLimit, t.functionName, t.args, abi);
+
+                task.network = t.network;
+                task.taskGroup = t.taskGroup;
+                task.trigger = t.trigger;
+                task.startMode = t.startMode;
+                task.contractReadMethod = t.contractReadMethod;
+                task.readMethodCurrent = t.readMethodCurrent;
+                task.customHexData = t.customHexData;
+
+                task.save();
+                _tasks.push(task);
+
+            } else {
+                console.log("Wallet was null, not adding eth-task to list");
+            }
+
+        }
+
+        // We also set ethTasks here even though we set it in the Behavior subscription in case we need to access it right away after load.
+        state.ethTasks = _tasks;
+        state.ethTasksStream.next(_tasks);
+
+    }
 
     /**
      *
@@ -393,14 +441,16 @@ class Task {
      * Delete a task and update localStorage. This does NOT update the stream. To update the stream, call deleteEthTask
      * inside the main state.
      */
-    delete() {
+    delete(state) {
         if(localStorage.getItem('eth-tasks') === null) {
             localStorage.setItem('eth-tasks', JSON.stringify([]));
         }
 
         let _tasks = JSON.parse(localStorage.getItem('eth-tasks'));
 
+        this.stop(state);
         _tasks = _tasks.filter(t => t.id !== this.id);
+
         localStorage.setItem('eth-tasks', JSON.stringify(_tasks));
     }
 
