@@ -89,7 +89,7 @@ class Main {
     }
 
     addLog(str) {
-        this.logs.push(`[${new Date().toLocaleString()}][LOG]` + str);
+        //this.logs.push(`[${new Date().toLocaleString()}][LOG]` + str);
     }
 
     connectMintWatch() {

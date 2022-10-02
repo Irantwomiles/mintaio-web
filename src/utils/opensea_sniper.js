@@ -69,6 +69,8 @@ class OpenSeaSniper {
 
     fetchAssetListings(state) {
 
+        state.addLog(`Fetching asset listings ${this.slug} ${this.price}`);
+
         if(this.interval !== null) {
             console.log("Sniper already active");
             return;
@@ -291,6 +293,8 @@ class OpenSeaSniper {
             return;
         }
 
+        state.addLog(`Stopped fetching asset listings ${this.slug} ${this.price}`);
+
         clearInterval(this.interval);
         this.interval = null;
         this.stopped = true;
@@ -454,6 +458,8 @@ class OpenSeaSniper {
             wallet: this.wallet.account.address
         });
 
+        state.addLog(`Saving sniper ${this.id} ${this.slug} ${this.price}`);
+
         localStorage.setItem('os-snipers', JSON.stringify(_snipers));
     }
 
@@ -465,6 +471,8 @@ class OpenSeaSniper {
         let _snipers = JSON.parse(localStorage.getItem('os-snipers'));
 
         this.stopFetchingAssets(state);
+
+        state.addLog(`Deleting sniper ${this.id} ${this.slug} ${this.price}`);
 
         _snipers = _snipers.filter(t => t.id !== this.id);
         localStorage.setItem('os-snipers', JSON.stringify(_snipers));

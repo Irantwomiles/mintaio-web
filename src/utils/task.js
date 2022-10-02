@@ -434,6 +434,8 @@ class Task {
             customHexData: this.customHexData
         });
 
+        state.addLog(`Saving eth-task ${this.id} ${this.contractAddress}`);
+
         localStorage.setItem('eth-tasks', JSON.stringify(_tasks));
     }
 
@@ -450,6 +452,8 @@ class Task {
 
         this.stop(state);
         _tasks = _tasks.filter(t => t.id !== this.id);
+
+        state.addLog(`Deleting eth-task ${this.id} ${this.contractAddress}`);
 
         localStorage.setItem('eth-tasks', JSON.stringify(_tasks));
     }
