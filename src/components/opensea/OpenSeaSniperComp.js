@@ -157,13 +157,21 @@ function OpenSeaSniperComp({state}) {
             return;
         }
 
-        /*if(state.openseaSnipers.length > 0) {
+        if(maxGas.length === 0 || priorityFee.length === 0) {
             setToastInfo({
-                message: "While we are testing, the sniper is limited to 1.",
+                message: "Gas fields must be filled out.",
                 class: 'toast-error'
             });
             return;
-        }*/
+        }
+
+        if(state.openseaSnipers.length > 3) {
+            setToastInfo({
+                message: "While we are testing, the sniper is limited to 3.",
+                class: 'toast-error'
+            });
+            return;
+        }
 
         state.createOpenSeaSniper({
             state: state,
@@ -171,8 +179,12 @@ function OpenSeaSniperComp({state}) {
             contractAddress: contractAddress,
             wallet: selectedWallet,
             price: price,
-            traits: selectedTraits
+            traits: selectedTraits,
+            maxGas: maxGas,
+            priorityFee: priorityFee
         });
+
+        Modal.getOrCreateInstance(document.querySelector('#sniper-modal')).hide();
     }
 
     useEffect(() => {
@@ -373,6 +385,30 @@ function OpenSeaSniperComp({state}) {
 
                                 </div>
 
+                                <div class="d-flex">
+
+                                    <div class="me-2">
+                                        <div class="label mt-2">Max Gas</div>
+                                        <div>
+                                            <input class="input" value=${maxGas}
+                                                   onchange=${(e) => {
+                                                       setMaxGas(e.target.value)
+                                                   }} placeholder="Max Gas"/>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex flex-wrap mt-2">
+                                        <div class="me-2">
+                                            <div class="label">Priority Fee</div>
+                                            <input class="input" type="text" value=${priorityFee}
+                                                   onchange=${(e) => {
+                                                       setPriorityFee(e.target.value)
+                                                   }} placeholder="Priority Fee"/>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                
                                 ${collectionData !== null && Object.keys(collectionData.traits).length > 0 ? html`
                                     <div class="title mt-2">TRAITS <i class="fa-regular fa-face-grin ms-1"></i>
                                     </div>` : ''}

@@ -37,7 +37,9 @@ class OpenSeaSniper {
                 contractAddress: s.contractAddress,
                 wallet: wallet,
                 price: s.price,
-                traits: s.traits
+                traits: s.traits,
+                maxGas: s.maxGas,
+                priorityFee: s.priorityFee
             });
 
             _snipers.push(sniper);
@@ -47,7 +49,7 @@ class OpenSeaSniper {
         state.openseaSniperStream.next(_snipers);
     }
 
-    constructor({slug, contractAddress, wallet, price, traits = []}) {
+    constructor({slug, contractAddress, wallet, price, maxGas, priorityFee, traits = []}) {
         this.id = OpenSeaSniper.ID++;
         this.slug = slug;
         this.contractAddress = contractAddress;
@@ -57,6 +59,8 @@ class OpenSeaSniper {
         this.walletProvider = null;
         this.openseaSDK = null;
         this.stopped = true;
+        this.maxGas = maxGas;
+        this.priorityFee = priorityFee;
 
         this.interval = null;
 
@@ -341,9 +345,9 @@ class OpenSeaSniper {
                     return;
                 }
 
-                if(rpc.startsWith('https')) {
+                /*if(rpc.startsWith('https')) {
                     rpc = rpc.replace('https', 'wss');
-                }
+                }*/
 
                 this.walletProvider = new HDWalletProvider([fixAddress(this.wallet.account.privateKey)], rpc, 0, 1);
 
@@ -363,15 +367,18 @@ class OpenSeaSniper {
                     color: OpenSeaSniper.PINK
                 };
 
-                console.log("Order", order);
-
                 state.snipeDebugMessage(this.slug, this.price, order, 'https://discord.com/api/webhooks/1009917503000019004/HJG-m8J5FBL7ok6N-KzXS1cJK7eFEbffhkS_2f9uWR2U3OU1QjdKIWcDQw6i7QG1Z29U');
 
                 state.postOpenSeaSniperUpdate();
 
+                const maxFeePerGas = state.globalWeb3.utils.toWei(this.maxGas, 'gwei');
+                const maxPriorityFeePerGas = state.globalWeb3.utils.toWei(this.priorityFee, 'gwei');
+
                 this.openseaSDK.fulfillOrder({
                     order,
-                    accountAddress: fixAddress(this.wallet.account.address)
+                    accountAddress: fixAddress(this.wallet.account.address),
+                    maxFeePerGas,
+                    maxPriorityFeePerGas
                 }).then(transaction => {
 
                     this.status = {
@@ -455,7 +462,9 @@ class OpenSeaSniper {
             contractAddress: this.contractAddress,
             price: this.price,
             traits: this.traits,
-            wallet: this.wallet.account.address
+            wallet: this.wallet.account.address,
+            maxGas: this.maxGas,
+            priorityFee: this.priorityFee
         });
 
         state.addLog(`Saving sniper ${this.id} ${this.slug} ${this.price}`);
