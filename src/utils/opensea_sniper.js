@@ -112,24 +112,6 @@ class OpenSeaSniper {
                 return;
             }
 
-            /*if(fetchFloorPrice <= 0) {
-                const collection = await getOpenSeaCollection(this.slug);
-
-                if(collection.status === 200) {
-                    const data = await collection.json();
-                    const floorPrice = data.collection.stats.floor_price;
-
-                    if(Number.parseFloat(`${floorPrice}`) < Number.parseFloat(`${this.price}`)) {
-                        this.stopFetchingAssets(state);
-                        console.log(`Stopped fetching assets, floor price (${floorPrice}) is lower than search price (${this.price})`);
-                        this.stopped = true;
-                        return;
-                    }
-                }
-
-                fetchFloorPrice = 50;
-            }*/
-
             fetchFloorPrice--;
 
             fetch(`https://api.opensea.io/api/v1/events?event_type=created&collection_slug=${this.slug}`, {

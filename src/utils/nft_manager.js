@@ -3,6 +3,8 @@ import {Alchemy, Network} from "alchemy-sdk";
 class NFTManager {
 
     constructor() {
+        // Xl9CjNo9SjtCLYcYH-X9cdQWqi4c5l39 mainnet
+        // FHr5dIpL6Ka1lT4cfcuwePt1S_WfDWiA Goerli
 
         const config = {
             apiKey: 'Xl9CjNo9SjtCLYcYH-X9cdQWqi4c5l39',
@@ -10,7 +12,6 @@ class NFTManager {
         }
 
         this.alchemy = new Alchemy(config);
-
     }
 
     getNFTs(addresses) {

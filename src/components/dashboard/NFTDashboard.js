@@ -3,6 +3,8 @@ import {useEffect, useState} from "preact/compat";
 import {Toast, Dropdown} from 'bootstrap';
 import logo from '../../images/mintaio-logo.png';
 import {fixAddress, getBatchTokenInfo} from "../../utils/utils";
+import OpenSeaListing from '../../utils/opensea_listing';
+import {Modal, Toast, Dropdown} from 'bootstrap';
 
 function mapByContract(arr) {
 
@@ -14,8 +16,17 @@ function NFTDashboard({state}) {
     const [selectedWallets, setSelectedWallets] = useState([]);
     const [data, setData] = useState([]);
     const [toastInfo, setToastInfo] = useState(null)
+    const [selectedAssets, setSelectedAssets] = useState([]);
+
+    const [price, setPrice] = useState(0);
+    const [expiration, setExpiration] = useState(0);
 
     const addWallet = (wallet) => {
+
+        if(selectedWallets.length > 0) {
+            return;
+        }
+
         if (selectedWallets.find(w => w.account.address === wallet.account.address)) {
             return;
         }
@@ -48,10 +59,8 @@ function NFTDashboard({state}) {
 
         state.nftManager.getNFTs(addresses).then((result) => {
             const filtered = result.filter(r => r.ownedNfts.length > 0).map(d => d.ownedNfts);
-            //getBatchTokenInfo(filtered.map(d => {contractAddress: d.contract.address, tokenId: d.tokenId}))
             const flat = [].concat(...filtered);
             setData(flat);
-
         }).catch(e => {
             console.log(e);
         })
@@ -60,6 +69,23 @@ function NFTDashboard({state}) {
             message: `Checking ${selectedWallets.length} wallets, please wait a few seconds.`,
             class: 'toast-success'
         });
+    }
+
+    const addAssetToSelection = (d) => {
+
+        let clone = [...selectedAssets];
+
+        if(typeof clone.find(c => (c.contract.address + ":" + c.tokenId) === (d.contract.address + ":" + d.tokenId)) === 'undefined') {
+            setSelectedAssets([...clone, d]);
+        } else {
+            clone = clone.filter(c => (c.contract.address + ":" + c.tokenId) !== (d.contract.address + ":" + d.tokenId))
+            setSelectedAssets(clone);
+        }
+
+    }
+
+    const createListing = () => {
+
     }
 
     useEffect(() => {
@@ -107,6 +133,7 @@ function NFTDashboard({state}) {
                 </div>
 
                 <button class="button-secondary fw-bold mt-auto" onclick=${fetchNFTs}>Search Wallets</button>
+                <button class="button-orange fw-bold ms-auto mt-auto" onclick=${() => Modal.getOrCreateInstance(document.querySelector('#create-listing-modal')).show()}>Create Listings</button>
             </div>
 
             <div class="d-flex flex-wrap mt-2">
@@ -127,7 +154,7 @@ function NFTDashboard({state}) {
                 ${
                         data.map(d => (
                                 html`
-                        <div class="nft me-2 mb-2">
+                        <div class="nft me-2 mb-2 ${typeof selectedAssets.find(c => (c.contract.address + ":" + c.tokenId) === (d.contract.address + ":" + d.tokenId)) !== 'undefined' ? 'nft-selected' : ''}" onclick=${() => addAssetToSelection(d)}>
                             <div class="nft-image h-100 m-3">
                                 <img class="w-100 h-100" src=${d.media.length === 0 ? logo : d.media[0].gateway} alt="Image missing" />
                             </div>
@@ -148,7 +175,37 @@ function NFTDashboard({state}) {
                 }
             </div>
 
+            <div id="create-listing-modal" class="modal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        
+                        <div class="modal-header">
+                            <h5 class="modal-title title">Create Listing</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
 
+                            <div>
+                                <div class="label">Price</div>
+                                <input class="input" placeholder="0.0" type="number" min="0" value=${price} onchange=${(e) => {setPrice(e.target.value)}} />
+                            </div>
+
+                            <div>
+                                <div class="label">Expiration (in hours)</div>
+                                <input class="input" placeholder="0" type="number" min="0" step="1" value=${expiration} onchange=${(e) => {setExpiration(e.target.value)}} />
+                            </div>
+                            
+                            <div class="label mt-2">You have selected ${selectedAssets.length} to list.</div>
+                            
+                        </div>
+                        <div class="modal-footer">
+                            <button class="button-outline-cancel" data-bs-dismiss="modal">Cancel</button>
+                            <button class="button-primary" onclick=${createListing}>Start Listing</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div id="toast-message" class="toast align-items-center ${toastInfo === null ? '' : toastInfo.class} end-0 top-0 m-3" style="position: absolute" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="d-flex align-items-center justify-content-between py-3 mx-2">
                     <div class="toast-body">

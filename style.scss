@@ -548,6 +548,7 @@ hr {
 
   position: relative;
   background-color: $background-sidebar;
+  border-color: $background-sidebar;
   border-radius: 0.5rem;
 
   min-width: 15rem;
@@ -570,6 +571,11 @@ hr {
     right: 1rem;
   }
 
+}
+
+.nft-selected {
+  border: 2px solid;
+  border-color: $green !important;
 }
 
 .success-transaction {

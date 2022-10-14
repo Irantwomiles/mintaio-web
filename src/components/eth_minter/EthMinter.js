@@ -85,25 +85,32 @@ function EthMinter({state}) {
 
         setLoadingAbi(true);
 
-        let abi = await state.getContractAbi(contractAddress, network);
+        let _abi;
 
-        setTimeout(() => {
+        if(abi.length === 0) {
+            _abi = await state.getContractAbi(contractAddress, network);
+
+            setTimeout(() => {
+                setLoadingAbi(false);
+            }, 500);
+
+            if (_abi === null) {
+                setToastInfo({
+                    message: 'Error while getting ABI.',
+                    class: 'toast-error'
+                });
+
+                console.log("ABI was null.");
+                return;
+            }
+
+            setAbi(_abi);
+        } else {
+            _abi = abi;
             setLoadingAbi(false);
-        }, 750);
-
-        if (abi === null) {
-            setToastInfo({
-                message: 'Error while getting ABI.',
-                class: 'toast-error'
-            });
-
-            console.log("ABI was null.");
-            return;
         }
 
-        setAbi(abi);
-
-        const contractInfo = state.getContractMethods(abi);
+        const contractInfo = state.getContractMethods(_abi);
 
         if (contractInfo === null) {
             setToastInfo({
@@ -1064,6 +1071,13 @@ function EthMinter({state}) {
                                     </button>
                                 </div>
 
+                                <div class="label mt-2">Contract ABI</div>
+                                <div>
+                                    <input class="input flex-grow-1" value=${abi} onchange=${(e) => {
+                                        setAbi(e.target.value)
+                                    }} placeholder="Paste contract ABI here..."/>
+                                </div>
+                                
                                 <div class="mt-3 ${customHexData.length === 0 ? '' : 'd-none'}">
                                     <div class="dropdown">
                                         <div class="label">Mint Function</div>

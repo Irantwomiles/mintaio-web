@@ -61,8 +61,9 @@ function OpenSeaSniperComp({state}) {
                 class: 'toast-success'
             });
 
-
             response.json().then(result => {
+
+                console.log(result);
 
                 const totalSupply = result.collection.stats.total_supply;
 

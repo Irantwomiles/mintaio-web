@@ -90,10 +90,6 @@ export function fixAddress(address) {
     return `0x${address}`.toLowerCase();
 }
 
-export function getBatchTokenInfo(tokens) {
-    return fetch('')
-}
-
 export function getOpenSeaEventData(address, event) {
     return fetch(`https://api.opensea.io/api/v1/events?only_opensea=false&account_address=${address}&event_type=${event}&limit=300`,{
         headers: {

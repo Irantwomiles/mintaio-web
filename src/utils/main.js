@@ -6,6 +6,7 @@ import OpenSeaSniper from "./opensea_sniper";
 import io from "socket.io-client";
 import Task from "./task";
 import {fixAddress} from "./utils";
+import OpenSeaListing from "./opensea_listing";
 
 class Main {
 
@@ -18,8 +19,8 @@ class Main {
         this.openseaBidderStream = new BehaviorSubject([]);
         this.openseaSniperStream = new BehaviorSubject([]);
         this.nftWatchListStream = new BehaviorSubject([]);
-
         this.quickTaskProfileStream = new BehaviorSubject([]);
+        this.openseaListingsStream = new BehaviorSubject([]);
 
         this.webhook = localStorage.getItem('discordWebHook') === null ? '' : localStorage.getItem('discordWebHook');
 
@@ -29,8 +30,8 @@ class Main {
         this.openseaBidders = [];
         this.openseaSnipers = [];
         this.nftWatchList = [];
-
         this.quickTaskProfiles = [];
+        this.openseaListings = [];
 
         this.logs = [];
 
@@ -86,6 +87,36 @@ class Main {
         this.disperseABI = [{"constant":false,"inputs":[{"name":"token","type":"address"},{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseTokenSimple","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"token","type":"address"},{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseToken","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseEther","outputs":[],"payable":true,"stateMutability":"payable","type":"function"}];
 
         console.log("Main state initiated, MintAIO - v0.1-beta");
+    }
+
+    /**
+     * Create a new opensea listing. There can only be 1 per wallet.
+     * @param wallet
+     * @returns {*}
+     */
+
+    createOpenSeaListing(wallet) {
+
+        for(const listing of this.openseaListings) {
+            if(fixAddress(listing.wallet.account.address) === fixAddress(wallet.account.address)) {
+                return;
+            }
+        }
+
+        const listing = new OpenSeaListing({wallet});
+
+        this.openseaListings.push(listing);
+        this.openseaListingsStream.next(this.openseaListings);
+    }
+
+    getOpenSeaListing(wallet) {
+        for(const listing of this.openseaListings) {
+            if(fixAddress(listing.wallet.account.address) === fixAddress(wallet.account.address)) {
+                return listing;
+            }
+        }
+
+        return null;
     }
 
     addLog(str) {
@@ -153,6 +184,7 @@ class Main {
     }
 
     async getContractAbi(contract, network) {
+
         let output = this.abi.find(a => a.contractAddress === contract);
 
         if(typeof output !== 'undefined' && output.abi === 'Contract source code not verified') {
