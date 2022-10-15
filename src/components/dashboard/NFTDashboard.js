@@ -21,6 +21,8 @@ function NFTDashboard({state}) {
     const [price, setPrice] = useState(0);
     const [expiration, setExpiration] = useState(0);
 
+    const [listings, setListings] = useState([]);
+
     const addWallet = (wallet) => {
 
         if(selectedWallets.length > 0) {
@@ -85,7 +87,47 @@ function NFTDashboard({state}) {
     }
 
     const createListing = () => {
+        const listing = state.createOpenSeaListing(selectedWallets[0]);
 
+        if(listing === null) {
+            setToastInfo({
+                message: `You must unlock your wallet before creating listings.`,
+                class: 'toast-error'
+            });
+            return;
+        }
+
+        let count = 0;
+
+        for(const asset of selectedAssets) {
+            const added = listing.addListingToList({
+                contractAddress: asset.contract.address,
+                tokenId: asset.tokenId,
+                price: price.toString(),
+                expiration
+            });
+
+            if(added) count++;
+        }
+
+        if(count > 0) {
+            setToastInfo({
+                message: `Added ${count} asset(s) to be listed.`,
+                class: 'toast-success'
+            });
+            return;
+        }
+
+        setToastInfo({
+            message: `Did not add any assets to be listed.`,
+            class: 'toast-warning'
+        });
+    }
+
+    const startListingAll = () => {
+        for(const listing of state.openseaListings) {
+            listing.startListingAssets(state);
+        }
     }
 
     useEffect(() => {
@@ -98,8 +140,13 @@ function NFTDashboard({state}) {
             setWallets(data);
         })
 
+        const listingsStream = state.openseaListingsStream.subscribe((data) => {
+            setListings(data);
+        })
+
         return () => {
             walletsStream.unsubscribe();
+            listingsStream.unsubscribe();
         }
 
     }, [state]);
@@ -133,7 +180,8 @@ function NFTDashboard({state}) {
                 </div>
 
                 <button class="button-secondary fw-bold mt-auto" onclick=${fetchNFTs}>Search Wallets</button>
-                <button class="button-orange fw-bold ms-auto mt-auto" onclick=${() => Modal.getOrCreateInstance(document.querySelector('#create-listing-modal')).show()}>Create Listings</button>
+                <button class="button-secondary fw-bold ms-auto me-2 mt-auto" onclick=${() => Modal.getOrCreateInstance(document.querySelector('#create-listing-modal')).show()}>Create Listings</button>
+                <div class="button-outline-secondary fw-bold mt-auto" onclick=${() => Modal.getOrCreateInstance(document.querySelector('#view-listing-modal')).show()}><i class="fa-solid fa-bars"></i></div>
             </div>
 
             <div class="d-flex flex-wrap mt-2">
@@ -186,7 +234,7 @@ function NFTDashboard({state}) {
                         <div class="modal-body">
 
                             <div>
-                                <div class="label">Price</div>
+                                <div class="label">Price (in ETH)</div>
                                 <input class="input" placeholder="0.0" type="number" min="0" value=${price} onchange=${(e) => {setPrice(e.target.value)}} />
                             </div>
 
@@ -200,7 +248,42 @@ function NFTDashboard({state}) {
                         </div>
                         <div class="modal-footer">
                             <button class="button-outline-cancel" data-bs-dismiss="modal">Cancel</button>
-                            <button class="button-primary" onclick=${createListing}>Start Listing</button>
+                            <button class="button-primary" onclick=${createListing}>Create Listing</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="view-listing-modal" class="modal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        
+                        <div class="modal-header">
+                            <h5 class="modal-title title">Listings</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+
+                            ${listings.map(l => (
+                                html`
+                                <div class="d-flex task p-2 justify-content-between align-items-center">
+                                    <div class="label fw-bold">${l.wallet.name}<span class="ms-2 fw-normal" style="color: #a1a1a1; font-size: 0.85rem;">(${fixAddress(l.wallet.account.address)})</span></div>
+                                    
+                                    <div class="d-flex align-items-center listing-pill fw-bold p-1" style="color: #a1a1a1;">
+                                        <div class="me-1" style="color: white;">${l.waiting}</div>
+                                        <div>/</div>
+                                        <div class="ms-1 me-1" style="color: #49a58b;">${l.success}</div>
+                                        <div>/</div>
+                                        <div class="ms-1" style="color: #f58686;">${l.failed}</div>
+                                    </div>
+                                </div>
+                                `
+                            ))}
+                            
+                        </div>
+                        <div class="modal-footer">
+                            <button class="button-outline-cancel" data-bs-dismiss="modal">Close</button>
+                            <button class="button-primary" onclick=${startListingAll}>List All</button>
                         </div>
                     </div>
                 </div>

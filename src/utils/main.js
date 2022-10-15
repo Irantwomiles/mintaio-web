@@ -97,9 +97,13 @@ class Main {
 
     createOpenSeaListing(wallet) {
 
+        if(wallet.isLocked()) {
+            return null;
+        }
+
         for(const listing of this.openseaListings) {
             if(fixAddress(listing.wallet.account.address) === fixAddress(wallet.account.address)) {
-                return;
+                return listing;
             }
         }
 
@@ -107,6 +111,8 @@ class Main {
 
         this.openseaListings.push(listing);
         this.openseaListingsStream.next(this.openseaListings);
+
+        return listing;
     }
 
     getOpenSeaListing(wallet) {
@@ -327,6 +333,12 @@ class Main {
         // we have to create a clone because rxjs doesn't detect a change when we just assign this.ethTasks as the next value.
         const clone = [...this.openseaSnipers];
         this.openseaSniperStream.next(clone);
+    }
+
+    postOpenSeaListingUpdate() {
+        // we have to create a clone because rxjs doesn't detect a change when we just assign this.ethTasks as the next value.
+        const clone = [...this.openseaListings];
+        this.openseaListingsStream.next(clone);
     }
 
     refreshAllBalance() {

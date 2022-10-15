@@ -4,9 +4,22 @@ import {fixAddress} from "./utils";
 
 export default class OpenSeaListing {
 
+    static getTimerMultiplier() {
+        if(this.multiplier) {
+            return ++this.multiplier;
+        }
+
+        this.multiplier = 1;
+        return this.multiplier;
+    }
+
     constructor({wallet}) {
         this.wallet = wallet;
         this.assets = [];
+
+        this.waiting = 0;
+        this.success = 0;
+        this.failed = 0;
 
         this.walletProvider = null;
         this.openseaSDK = null;
@@ -36,30 +49,61 @@ export default class OpenSeaListing {
     }
 
     addListingToList({contractAddress, tokenId, price, expiration}) {
+
+        for(const asset of this.assets) {
+            const id = `${fixAddress(contractAddress)}:${tokenId}`;
+            const compare = `${fixAddress(asset.contractAddress)}:${asset.tokenId}`;
+
+            if(id === compare) {
+                console.log(id, compare, id === compare);
+                return false;
+            }
+        }
+
         this.assets.push(new OpenSeaAsset({contractAddress, tokenId, price, expiration}));
+        this.waiting++;
+        return true;
     }
 
-    createListing(asset) {
+    createListing(asset, state) {
 
         // Expire this auction one day from now.
         // Note that we convert from the JavaScript timestamp (milliseconds):
         const expirationTime = Math.round(Date.now() / 1000 + 60 * 60 * asset.expiration)
+        console.log("Creating listing now for", asset);
 
-        this.openseaSDK.createSellOrder({
-            asset: {
-                tokenId: asset.tokenId,
-                tokenAddress: asset.contractAddress,
-            },
-            accountAddress: this.wallet.account.address,
-            startAmount: asset.price,
-            // If `endAmount` is specified, the order will decline in value to that amount until `expirationTime`. Otherwise, it's a fixed-price order:
-            endAmount: asset.price,
-            expirationTime
-        })
+        try {
+            this.openseaSDK.createSellOrder({
+                asset: {
+                    tokenId: asset.tokenId,
+                    tokenAddress: asset.contractAddress,
+                },
+                accountAddress: this.wallet.account.address,
+                startAmount: asset.price,
+                // If `endAmount` is specified, the order will decline in value to that amount until `expirationTime`. Otherwise, it's a fixed-price order:
+                endAmount: asset.price,
+                expirationTime
+            }).then((r) => {
+                console.log("Success:", r);
+                this.success++;
+                this.waiting--;
+                state.postOpenSeaListingUpdate();
+            }).catch(e => {
+                console.log("catch:", e);
+                this.failed++;
+                this.waiting--;
+                state.postOpenSeaListingUpdate();
+            })
+        } catch(e) {
+            console.log('error', e);
+            this.failed++;
+            this.waiting--;
+            state.postOpenSeaListingUpdate();
+        }
 
     }
 
-    startListingAssets() {
+    startListingAssets(state) {
 
         if(this.assets.length === 0) {
             console.log("assets length is 0");
@@ -74,9 +118,9 @@ export default class OpenSeaListing {
 
             asset.timeout = setTimeout(() => {
 
-                this.createListing(asset);
+                this.createListing(asset, state);
 
-            }, (i + 1) * 1000);
+            }, OpenSeaListing.getTimerMultiplier() * 1500);
 
         }
 
