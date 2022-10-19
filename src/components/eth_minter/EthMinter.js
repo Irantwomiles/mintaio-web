@@ -788,9 +788,7 @@ function EthMinter({state}) {
     }, [toastInfo]);
 
     return html`
-        <div ref=${globalRef} class="d-flex">
-
-            <${SidebarNav} page="eth-tasks"/>
+        <div ref=${globalRef}>
 
             <div class="p-3 w-100">
 
@@ -1398,7 +1396,6 @@ function EthMinter({state}) {
                     </div>
                 </div>
             </div>
-            
 
             <div id="toast-message" class="toast align-items-center ${toastInfo === null ? '' : toastInfo.class} end-0 top-0 m-3" style="position: absolute" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="d-flex align-items-center justify-content-between py-3 mx-2">

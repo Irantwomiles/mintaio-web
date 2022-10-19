@@ -518,9 +518,7 @@ function Wallets({state}) {
     }, [toastInfo]);
 
     return html`
-        <div ref=${globalRef} class="d-flex" style="position: relative;">
-
-            <${SidebarNav} page="wallets" />
+        <div ref=${globalRef}>
 
             <div class="p-3 w-100">
 

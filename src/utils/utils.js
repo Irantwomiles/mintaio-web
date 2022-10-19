@@ -122,6 +122,17 @@ export function shortedText(text) {
     return text.length > 6 ? text.slice(0, 5) + "..." : text;
 }
 
+export function getFriendlyDate() {
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const currentDate = new Date();
+
+    return `${monthNames[currentDate.getMonth()]} ${currentDate.getDate()}, ${currentDate.getFullYear()}`;
+}
+
+export function getUpcomingMints() {
+    return fetch(`https://mintaio-auth.herokuapp.com/calendar`);
+}
+
 // This doesn't work, because etherscan is returning cached pages and preventing us from getting
 // any other page, other than the first one we fetch. This might work if we used proxies and/or a
 // a reverse proxy to fetch the data.

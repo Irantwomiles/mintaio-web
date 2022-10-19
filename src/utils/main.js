@@ -5,7 +5,7 @@ import OpenSeaBid from "./opensea_bid";
 import OpenSeaSniper from "./opensea_sniper";
 import io from "socket.io-client";
 import Task from "./task";
-import {fixAddress} from "./utils";
+import {fixAddress, getEthPrice, getGasPrices} from "./utils";
 import OpenSeaListing from "./opensea_listing";
 
 class Main {
@@ -32,6 +32,20 @@ class Main {
         this.nftWatchList = [];
         this.quickTaskProfiles = [];
         this.openseaListings = [];
+
+        this.ethDataStream = new BehaviorSubject({
+            ethPrice: '--',
+            maxFee: '--',
+            priorityFee: '--',
+            pendingBlock: '--'
+        });
+
+        this.ethData = {
+            ethPrice: '--',
+            maxFee: '--',
+            priorityFee: '--',
+            pendingBlock: '--'
+        }
 
         this.logs = [];
 
@@ -86,8 +100,42 @@ class Main {
 
         this.disperseABI = [{"constant":false,"inputs":[{"name":"token","type":"address"},{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseTokenSimple","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"token","type":"address"},{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseToken","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"recipients","type":"address[]"},{"name":"values","type":"uint256[]"}],"name":"disperseEther","outputs":[],"payable":true,"stateMutability":"payable","type":"function"}];
 
+        this.sidebarData();
+
+        this.ethDataInterval = setInterval(() => {
+            this.sidebarData();
+        }, 1000 * 8);
+
         console.log("Main state initiated, MintAIO - v0.1-beta");
     }
+
+    async sidebarData() {
+
+        try {
+            const ethPrice = await (await getEthPrice()).json();
+            const gasPrices = await (await getGasPrices()).json();
+
+            this.ethData.ethPrice = ethPrice['USD'];
+            this.ethData.maxFee = gasPrices['estimatedPrices'][0].maxFeePerGas;
+            this.ethData.priorityFee = gasPrices['estimatedPrices'][0].maxPriorityFeePerGas;
+            this.ethData.pendingBlock = gasPrices['pendingBlockNumberVal'];
+
+            this.ethDataStream.next(this.ethData);
+        } catch(e) {
+            console.log("Error:", e);
+
+            this.ethData.ethPrice = '--';
+            this.ethData.maxFee = '--';
+            this.ethData.priorityFee = '--';
+            this.ethData.pendingBlock = '--';
+
+            this.ethDataStream.next(this.ethData);
+        }
+
+
+
+    }
+
 
     /**
      * Create a new opensea listing. There can only be 1 per wallet.

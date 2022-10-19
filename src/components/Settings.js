@@ -137,72 +137,68 @@ function Settings({state}) {
     }
 
     return html`
-        <div class="d-flex">
-            <${SidebarNav} page="settings" />
+        <div class="p-3 w-50">
+            <div>
+                <div class="label">Global RPC</div>
+                <input class="input w-75" placeholder="RPC Endpoint" value=${rpc} onchange=${(e) => {setRpc(e.target.value)}} />
+                <button class="button-primary ms-2" onclick=${updateGlobalRPC}>Update</button>
+            </div>
+            <div class="mt-3">
+                <div class="label">Etherscan API Key</div>
+                <input class="input w-75" placeholder="API Key" value=${etherscan} onchange=${(e) => {setEtherscan(e.target.value)}} />
+                <button class="button-primary ms-2" onclick=${updateEtherscanApi}>Update</button>
+            </div>
+            <div class="mt-3">
+                <div class="label">Discord Webhook</div>
+                <input class="input w-75" placeholder="Discord Webhook URL" value=${webHook} onchange=${(e) => {setWebHook(e.target.value)}} />
+                <button class="button-primary ms-2" onclick=${updateDiscordWebHook}>Update</button>
+                <button class="button-secondary ms-2" onclick=${testDiscordWebHook}>Test</button>
+            </div>
             
-            <div class="p-3 w-50">
-                <div>
-                    <div class="label">Global RPC</div>
-                    <input class="input w-75" placeholder="RPC Endpoint" value=${rpc} onchange=${(e) => {setRpc(e.target.value)}} />
-                    <button class="button-primary ms-2" onclick=${updateGlobalRPC}>Update</button>
-                </div>
-                <div class="mt-3">
-                    <div class="label">Etherscan API Key</div>
-                    <input class="input w-75" placeholder="API Key" value=${etherscan} onchange=${(e) => {setEtherscan(e.target.value)}} />
-                    <button class="button-primary ms-2" onclick=${updateEtherscanApi}>Update</button>
-                </div>
-                <div class="mt-3">
-                    <div class="label">Discord Webhook</div>
-                    <input class="input w-75" placeholder="Discord Webhook URL" value=${webHook} onchange=${(e) => {setWebHook(e.target.value)}} />
-                    <button class="button-primary ms-2" onclick=${updateDiscordWebHook}>Update</button>
-                    <button class="button-secondary ms-2" onclick=${testDiscordWebHook}>Test</button>
-                </div>
-                
-                <hr />
-                
-                <div class="mt-3">
-                    <div class="label">You have used <span style="color: white;">${getStorageSize()} KB / 5,000 KB</span> of your storage.</div>
-                </div>
-
-                <div class="mt-3">
-                    <button class="button-pink me-2" onclick=${downloadLocalData}>Download Data</button>
-                    <button class="button-secondary" onclick=${() => Modal.getOrCreateInstance(document.querySelector('#load-data-modal')).show()}>Import Data</button>
-                </div>
-                
+            <hr />
+            
+            <div class="mt-3">
+                <div class="label">You have used <span style="color: white;">${getStorageSize()} KB / 5,000 KB</span> of your storage.</div>
             </div>
 
-            <div id="load-data-modal" class="modal" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title title">Load Data</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            
-                            <div class="warning-banner mb-3">
-                                This will override all the data you have set. MintAIO is not responsible for any data loss, so make sure to have a backup of all <span style="color: #f58686;">Private Keys</span>!
-                            </div>
-                            
-                            <div>
-                                <textarea class="input w-100" style="height: 10rem;" placeholder="Paste the data you downloaded here" onchange=${(e) => setData(e.target.value)} value=${data} />
-                            </div>
+            <div class="mt-3">
+                <button class="button-pink me-2" onclick=${downloadLocalData}>Download Data</button>
+                <button class="button-secondary" onclick=${() => Modal.getOrCreateInstance(document.querySelector('#load-data-modal')).show()}>Import Data</button>
+            </div>
+            
+        </div>
 
+        <div id="load-data-modal" class="modal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title title">Load Data</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        
+                        <div class="warning-banner mb-3">
+                            This will override all the data you have set. MintAIO is not responsible for any data loss, so make sure to have a backup of all <span style="color: #f58686;">Private Keys</span>!
                         </div>
-                        <div class="modal-footer">
-                            <button class="button-secondary ms-1" onclick=${loadData}>Load Data</button>
+                        
+                        <div>
+                            <textarea class="input w-100" style="height: 10rem;" placeholder="Paste the data you downloaded here" onchange=${(e) => setData(e.target.value)} value=${data} />
                         </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button class="button-secondary ms-1" onclick=${loadData}>Load Data</button>
                     </div>
                 </div>
             </div>
-            
-            <div id="toast-message" class="toast align-items-center ${toastInfo === null ? '' : toastInfo.class} end-0 top-0 m-3" style="position: absolute" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex align-items-center justify-content-between py-3 mx-2">
-                    <div class="toast-body">
-                        ${toastInfo === null ? '' : toastInfo.message}
-                    </div>
-                    <i class="fa-regular fa-circle-xmark" data-bs-dismiss="toast"></i>
+        </div>
+        
+        <div id="toast-message" class="toast align-items-center ${toastInfo === null ? '' : toastInfo.class} end-0 top-0 m-3" style="position: absolute" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex align-items-center justify-content-between py-3 mx-2">
+                <div class="toast-body">
+                    ${toastInfo === null ? '' : toastInfo.message}
                 </div>
+                <i class="fa-regular fa-circle-xmark" data-bs-dismiss="toast"></i>
             </div>
         </div>
     `

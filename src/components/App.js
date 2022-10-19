@@ -12,12 +12,14 @@ import Dashboard from "./dashboard/Dashboard";
 import OpenSeaSniperComp from "./opensea/OpenSeaSniperComp";
 import NFTWatchList from "./dashboard/NFTWatchList";
 import ProfitAndLoss from "./dashboard/ProfitAndLoss";
+import SidebarNav from "./SidebarNav";
 
 function App({state}) {
 
     return html`
-    <div>
-        <${Nav} />
+    <div class="d-flex" style="position: relative;">
+        <${SidebarNav} />
+        
         <${Router}>
             <${Settings} state=${state} path="" />
             <${Wallets} state=${state} path="/wallets" />

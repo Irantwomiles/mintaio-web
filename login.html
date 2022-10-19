@@ -157,12 +157,16 @@
                     body: JSON.stringify({
                         discord_code: code
                     })
-                }).then((res) => {
+                }).then(async (res) => {
 
                     if(res.status === 200) {
 
                         document.querySelector('.loading-action').classList.add('d-none');
                         document.querySelector('.success-action').classList.remove('d-none');
+
+                        const body = await res.json();
+
+                        localStorage.setItem('discord-user', JSON.stringify(body));
 
                         setTimeout(() => {
                             window.location.href = 'https://app.mintbot.click/';
