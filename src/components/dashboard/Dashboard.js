@@ -3,6 +3,7 @@ import {useEffect, useState} from "preact/compat";
 import {getFriendlyDate, getUpcomingMints} from "../../utils/utils";
 import Calendar from "tui-calendar";
 import 'tui-calendar/dist/tui-calendar.min.css';
+import logo from '../../images/mintaio-logo.png';
 
 function getRandomColor() {
     const letters = '0123456789ABCDEF';
@@ -13,81 +14,40 @@ function getRandomColor() {
     return color;
 }
 
-
 function Dashboard({state}) {
 
     const [upcomingMints, setUpcomingMints] = useState([]);
+    const [todaysMints, setTodaysMints] = useState([]);
     const [calendar, setCalendar] = useState(null);
 
     const loadMintingDates = async () => {
+        const data = await state.getUpcomingMintingData();
+        const _todaysMints = [];
 
-        const mintingData = await (await getUpcomingMints()).json();
-        setUpcomingMints(mintingData.data);
+        const date = new Date();
+        const day = date.getDate();
+        const month = date.getMonth() + 1;
 
-        console.log(mintingData.data);
+        for(const d of data) {
+            const mintDate = new Date(d.mintDate);
+            if(mintDate.getDate() === day && (mintDate.getMonth() + 1) === month) {
+                _todaysMints.push(d);
+            }
+        }
+
+        console.log(_todaysMints);
+
+        setTodaysMints(_todaysMints);
+        setUpcomingMints(data);
+    }
+
+    const handleBrokenImage = (event) => {
+        event.target.src = logo;
     }
 
     useEffect(() => {
 
         if(calendar === null || upcomingMints.length === 0) return;
-
-        const _schedules = [
-            {
-                id: '1',
-                //calendarId: '1',
-                title: 'One',
-                category: 'time',
-                start: new Date(new Date().getTime()),
-                end:  new Date(new Date().getTime() + (1000 * 60 * 60 * 2)),
-                isReadOnly: false,    // schedule is read-only
-                bgColor: 'rgba(213,56,217,0.79)',
-                color: 'rgba(255,255,255,0.79)'
-            },
-            {
-                id: '2',
-                //calendarId: '1',
-                title: 'Two',
-                category: 'time',
-                start: new Date(new Date().getTime()),
-                end:  new Date(new Date().getTime() + (1000 * 60 * 60 * 2)),
-                isReadOnly: false,    // schedule is read-only
-                bgColor: 'rgba(42,161,111,0.79)',
-                color: 'rgba(255,255,255,0.79)'
-            },
-            {
-                id: '3',
-                //calendarId: '1',
-                title: 'Three',
-                category: 'time',
-                start: new Date(new Date().getTime()),
-                end:  new Date(new Date().getTime() + (1000 * 60 * 60 * 2)),
-                isReadOnly: false,    // schedule is read-only
-                bgColor: 'rgba(239,125,52,0.79)',
-                color: 'rgba(255,255,255,0.79)'
-            },
-            {
-                id: '4',
-                //calendarId: '1',
-                title: 'Four',
-                category: 'time',
-                start: new Date(new Date().getTime()),
-                end:  new Date(new Date().getTime() + (1000 * 60 * 60 * 2)),
-                isReadOnly: false,    // schedule is read-only
-                bgColor: 'rgba(52,157,166,0.79)',
-                color: 'rgba(255,255,255,0.79)'
-            },
-            {
-                id: '5',
-                //calendarId: '1',
-                title: 'Five',
-                category: 'time',
-                start: new Date(new Date().getTime()),
-                end:  new Date(new Date().getTime() + (1000 * 60 * 60 * 2)),
-                isReadOnly: false,    // schedule is read-only
-                bgColor: 'rgba(162,210,65,0.79)',
-                color: 'rgba(255,255,255,0.79)'
-            }
-        ];
 
         const schedules = [];
 
@@ -132,10 +92,10 @@ function Dashboard({state}) {
 
         const _calendar = new Calendar('#calendar', {
             defaultView: 'month',
-           // calendars: calendars,
             useDetailPopup: true,
             useCreationPopup: true,
-            scheduleView: ['time']
+            scheduleView: ['time'],
+            isReadOnly: true
         })
 
         setCalendar(_calendar);
@@ -157,7 +117,23 @@ function Dashboard({state}) {
             
                 <div class="left-content">
                     
+                    <div>Today's Mints</div>
+                    
                     <div class="today-mints">
+                        
+                        ${
+                            todaysMints.map(mint => (
+                                html`
+                                    <div class="project p-4 col-3 m-2">
+                                        <img src=${mint.twitterProfileImage} onerror=${handleBrokenImage} />
+                                        <div>${mint.name}</div>
+                                    </div>
+                                
+                                `
+                            ))
+        
+                        }
+                        
                     </div>
                     
                     <div id="calendar" class="upcoming-calendar" style="border-radius: 0.5rem;" >

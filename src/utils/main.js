@@ -5,7 +5,7 @@ import OpenSeaBid from "./opensea_bid";
 import OpenSeaSniper from "./opensea_sniper";
 import io from "socket.io-client";
 import Task from "./task";
-import {fixAddress, getEthPrice, getGasPrices} from "./utils";
+import {fixAddress, getEthPrice, getGasPrices, getUpcomingMints} from "./utils";
 import OpenSeaListing from "./opensea_listing";
 
 class Main {
@@ -47,7 +47,7 @@ class Main {
             pendingBlock: '--'
         }
 
-        this.logs = [];
+        this.upcomingMints = [];
 
         this.mintWatchSocket = null;
 
@@ -109,6 +109,16 @@ class Main {
         console.log("Main state initiated, MintAIO - v0.1-beta");
     }
 
+    async getUpcomingMintingData() {
+
+        if(this.upcomingMints.length === 0) {
+            const mintingData = await (await getUpcomingMints()).json();
+            this.upcomingMints = mintingData.data;
+        }
+
+        return this.upcomingMints;
+    }
+
     async sidebarData() {
 
         try {
@@ -135,7 +145,6 @@ class Main {
 
 
     }
-
 
     /**
      * Create a new opensea listing. There can only be 1 per wallet.
