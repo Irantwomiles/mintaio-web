@@ -23,10 +23,17 @@ function OpenSeaSniperComp({state}) {
     const [wallets, setWallets] = useState([]);
     const [selectedWallet, setSelectedWallet] = useState(null);
 
+    const [floorProtection, setFloorProtection] = useState(true);
+    const [updatePrice, setUpdatePrice] = useState(false);
+    const [percentUpdate, setPercentUpdate] = useState(0);
+
     const [contractAddress, setContractAddress] = useState("");
     const [price, setPrice] = useState(0);
     const [maxGas, setMaxGas] = useState("");
     const [priorityFee, setPriorityFee] = useState("");
+
+    const [liveData, setLiveData] = useState([]);
+    const [liveCollection, setLiveCollection] = useState("");
 
     const getCollection = () => {
 
@@ -94,6 +101,10 @@ function OpenSeaSniperComp({state}) {
                     image: result.collection.image_url,
                     traits: result.collection.traits
                 })
+
+                if(result.collection.primary_asset_contracts.length > 0) {
+                    setContractAddress(result.collection.primary_asset_contracts[0].address);
+                }
 
             })
 
@@ -182,7 +193,12 @@ function OpenSeaSniperComp({state}) {
             price: price,
             traits: selectedTraits,
             maxGas: maxGas,
-            priorityFee: priorityFee
+            priorityFee: priorityFee,
+            floorPriceProtection: floorProtection,
+            floorAutoPrice: updatePrice,
+            floorAutoPricePercent: percentUpdate,
+            imageUrl: collectionData.image,
+            name: collectionData.name
         });
 
         Modal.getOrCreateInstance(document.querySelector('#sniper-modal')).hide();
@@ -193,6 +209,28 @@ function OpenSeaSniperComp({state}) {
 
         Toast.getOrCreateInstance(document.querySelector('#toast-message')).show();
     }, [toastInfo]);
+
+    useEffect(() => {
+
+        if(!floorProtection) {
+            setUpdatePrice(false);
+            setPercentUpdate(0);
+        }
+
+    }, [floorProtection]);
+
+    useEffect(() => {
+
+        if(liveCollection.length === 0) return;
+
+        if(state.mintaioSocket === null) {
+            return;
+        }
+
+        console.log(liveCollection);
+        //state.connectOpenSeaListing(liveCollection);
+
+    }, [liveCollection]);
 
     useEffect(() => {
 
@@ -209,9 +247,26 @@ function OpenSeaSniperComp({state}) {
             setWallets(data);
         })
 
+        const handleShowLiveListings = (data) => {
+
+            if(liveCollection.length === 0) {
+                return;
+            }
+
+            if(data.payload.collection.slug === liveCollection) {
+                console.log("Received data:", data);
+                const clone = [...liveData];
+                clone.unshift(data);
+                setLiveData(clone);
+            }
+        }
+
+        state.mintaioSocket.on('opensea-listing', handleShowLiveListings);
+
         return () => {
             walletsStream.unsubscribe();
             sniperStream.unsubscribe();
+            state.mintaioSocket.removeListener(handleShowLiveListings);
         }
 
     }, []);
@@ -232,44 +287,50 @@ function OpenSeaSniperComp({state}) {
                         <div class="material-symbols-outlined icon-green" onclick=${() => {Modal.getOrCreateInstance(document.querySelector('#sniper-modal')).show()}}>add_circle</div>
                     </div>
                     
-                    <hr/>
+                    <hr class="mb-0" />
                     
                     <div class="sniper-list">
 
-                        <div class="sniper-task d-flex align-items-center p-3">
-                            
-                            <img class="me-3" src="https://i.seadn.io/gae/H8jOCJuQokNqGBpkBN5wk1oZwO7LM8bNnrHCaekV2nKjnCqw6UB5oaH8XyNeBDj6bA_n1mjejzhFQUP3O1NfjFLHr3FOaeHcTOOT?w=500&auto=format" />
-                            
-                            <div class="flex-grow-1">
-                                <div class="sniper-top d-flex align-items-center justify-content-between">
-                                    <div class="sniper-info">
-                                        <div class="collection-name">Azuki</div>
-                                        <div class="wallet-name d-flex align-items-center">
-                                            <span class="material-symbols-outlined me-1">wallet</span>
-                                            <span>Mainnet</span>
-                                        </div>
-                                    </div>
+                        ${
+                                tasks.map(t => (
+                                        html`
+                                            <div class="sniper-task d-flex align-items-center p-3 mt-3">
 
-                                    <div class="sniper-actions">
-                                        <span class="material-symbols-outlined icon-white-green">play_circle</span>
-                                        <span class="material-symbols-outlined icon-white-yellow">stop_circle</span>
-                                        <span class="material-symbols-outlined icon-white-red">delete</span>
-                                    </div>
+                                                <img class="me-3" src=${t.imageUrl} />
 
-                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="sniper-top d-flex align-items-center justify-content-between">
+                                                        <div class="sniper-info">
+                                                            <div class="collection-name d-flex align-items-center">${t.name} <span class="material-symbols-outlined icon-light-gray-white ms-2" onclick=${() => setLiveCollection(t.slug)}>visibility</span></div>
+                                                            <div class="wallet-name d-flex align-items-center">
+                                                                <span class="material-symbols-outlined me-1">wallet</span>
+                                                                <span>${t.wallet.name}</span>
+                                                            </div>
+                                                        </div>
 
-                                <div class="sniper-bottom d-flex align-items-center justify-content-between">
-                                    <div class="status bought">Sniped Listing</div>
-                                    <div class="pills">
-                                        <span class="pill p-1 ms-1">0.5ETH</span>
-                                        <span class="pill p-1 ms-1">Floor Protection</span>
-                                        <span class="pill p-1 ms-1">Auto Price</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                        </div>
+                                                        <div class="sniper-actions">
+                                                            <span class="material-symbols-outlined icon-white-green" onclick=${() => {state.startOpenSeaSniper(t.id);}}>play_circle</span>
+                                                            <span class="material-symbols-outlined icon-white-yellow" onclick=${() => {state.stopOpenSeaSniper(t.id);}}>stop_circle</span>
+                                                            <span class="material-symbols-outlined icon-white-red" onclick=${() => {state.deleteOpenSeaSniperTask(t.id)}}>delete</span>
+                                                        </div>
 
+                                                    </div>
+
+                                                    <div class="sniper-bottom d-flex align-items-center justify-content-between">
+                                                        <div class="status bought" style="color: ${t.status.color}">${t.status.message}</div>
+                                                        <div class="pills">
+                                                            <span class="pill p-1 ms-1">${Number.parseFloat(t.price.toString()).toFixed(4)}ETH</span>
+                                                            <span class="pill p-1 ms-1 ${t.floorPriceProtection ? '' : 'd-none'}">Floor Protection</span>
+                                                            <span class="pill p-1 ms-1 ${t.floorAutoPrice ? '' : 'd-none'}">Auto Price</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                     `
+                                ))
+                        }
+                        
                     </div>
                 </div>
 
@@ -288,64 +349,6 @@ function OpenSeaSniperComp({state}) {
 
                 </div>
             </div>
-            
-
-            
-            <div class="d-flex">
-                <button class="button-primary fw-bold" onclick=${() => {Modal.getOrCreateInstance(document.querySelector('#sniper-modal')).show()}}><i class="fa-solid fa-plus"></i> New Sniper</button>
-            </div>
-
-            <hr />
-            
-            ${
-                tasks.map(t => (
-                        html`
-                            <div class="task d-flex justify-content-between align-items-center mt-2">
-                                <div class="col-4">
-                                    <div class="title">
-                                        ${t.slug}
-                                    </div>
-                                    <div class="label">
-                                        <i class="fa-solid fa-wallet me-2"></i>
-                                        <span class="me-4">${t.wallet.name}</span>
-                                        ${t.wallet.account.hasOwnProperty('privateKey') ?
-                                                html`<i class="fa-solid fa-unlock icon-green"></i>` :
-                                                html`<i class="fa-solid fa-lock icon-red"></i>`
-                                        }
-                                    </div>
-                                </div>
-
-                                <div class="label col-1 text-center">
-                                    ${t.price}
-                                    <i class="fa-brands fa-ethereum icon-color mx-1"></i>
-                                </div>
-
-                                <div class="label col-3 text-center" style="color: ${t.status.color}">
-                                    ${t.status.message}
-                                </div>
-
-                                <div class="actions p-2 col-1 text-center">
-                                    <i class="fa-solid fa-circle-play me-2 icon-color start-icon"
-                                       onclick=${() => {
-                                           state.startOpenSeaSniper(t.id);
-                                       }}></i>
-                                    <i class="fa-solid fa-circle-stop me-2 icon-color stop-icon"
-                                       onclick=${() => {
-                                           state.stopOpenSeaSniper(t.id);
-                                       }}></i>
-
-                                    <i class="fa-solid fa-trash icon-color delete-icon"
-                                       onclick=${() => {
-                                           state.deleteOpenSeaSniperTask(t.id)
-                                       }}></i>
-
-                                </div>
-
-                            </div>
-                        `
-                    
-                ))
-            }
             
         </div>
 
@@ -369,7 +372,7 @@ function OpenSeaSniperComp({state}) {
 
                         <div class="${collectionData === null ? 'd-none' : ''}">
 
-                            <div class="d-flex collection-data p-4 mt-2">
+                            <div class="d-flex collection-data p-4 mt-3">
                                 <img style="border-radius: 180px; height: 7rem; width: 7rem;" src=${collectionData === null ? '' : collectionData.image} />
                                 
                                 <div class="flex-grow-1 ms-3">
@@ -437,18 +440,21 @@ function OpenSeaSniperComp({state}) {
                                 </ul>
                             </div>
 
-                            <div>
-                                <input type="checkbox" />
-                                <span>Floor Price Protection</span>
+                            <div class="my-2 d-flex align-items-center">
+                                <input class="me-2" type="checkbox" checked=${floorProtection ? true : false} onchange=${() => setFloorProtection(!floorProtection)} />
+                                <span style="color: #a1a1a1;">Floor Price Protection</span>
+                                <span class="material-symbols-outlined ms-2" style="color: #a1a1a1;" data-bs-toggle="tooltip" data-bs-placement="top" title="Enabling this option would prevent buying if the floor price goes lower than the search price.">info</span>
                             </div>
 
-                            <div>
-                                <input type="checkbox" />
-                                <span>Auto Price</span>
+                            <div class="my-2 ${floorProtection ? 'd-flex align-items-center' : 'd-none d-flex align-items-center'}">
+                                <input class="me-2" type="checkbox" checked=${updatePrice ? true : false} onchange=${() => setUpdatePrice(!updatePrice)} />
+                                <span style="color: #a1a1a1;">Auto Price</span>
+                                <span class="material-symbols-outlined ms-2" style="color: #a1a1a1;" data-bs-toggle="tooltip" data-bs-placement="top" title="Enabling this option would lower your search price to the floor price minus the percent value below and continue searching.">info</span>
                             </div>
                             
-                            <div>
-                                <input type="number" />
+                            <div class="my-2 ${updatePrice ? 'd-flex align-items-center' : 'd-none d-flex align-items-center'}">
+                                <input class="input" type="number" placeholder="Percent Number" onchange=${(e) => setPercentUpdate(e.target.value)} value=${percentUpdate} />
+                                <span class="material-symbols-outlined ms-2" style="color: #a1a1a1;" data-bs-toggle="tooltip" data-bs-placement="top" title="The percent value you wish to lower the floor price by to set as your new price point.">info</span>
                             </div>
                             
                             <div class="d-flex">
@@ -554,7 +560,7 @@ function OpenSeaSniperComp({state}) {
 
                         </div>
                         
-                        <div class="modal-footer px-4">
+                        <div class="modal-footer px-0">
                             <button class="button-outline-cancel" data-bs-dismiss="modal">Cancel</button>
                             <button class="button-primary" onclick=${handleCreateTask}>Create Sniper</button>
                         </div>

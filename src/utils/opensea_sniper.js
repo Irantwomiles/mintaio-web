@@ -34,24 +34,34 @@ class OpenSeaSniper {
 
             const sniper = new OpenSeaSniper({
                 slug: s.slug,
+                name: s.name,
                 contractAddress: s.contractAddress,
                 wallet: wallet,
                 price: s.price,
                 traits: s.traits,
                 maxGas: s.maxGas,
-                priorityFee: s.priorityFee
+                priorityFee: s.priorityFee,
+                imageUrl: s.imageUrl,
+                floorPriceProtection: s.floorPriceProtection,
+                floorAutoPrice: s.floorAutoPrice,
+                floorAutoPricePercent: s.floorAutoPricePercent,
             });
+
+            sniper.id = s.id;
 
             _snipers.push(sniper);
         }
+
+        console.log("loading data");
 
         state.openseaSnipers = _snipers;
         state.openseaSniperStream.next(_snipers);
     }
 
-    constructor({slug, contractAddress, wallet, price, maxGas, priorityFee, traits = []}) {
+    constructor({slug, name = '', contractAddress, wallet, price, maxGas, priorityFee, floorPriceProtection = true, floorAutoPrice = false, floorAutoPricePercent = 0, traits = [], imageUrl = '../../images/mintaio-logo.png'}) {
         this.id = OpenSeaSniper.ID++;
         this.slug = slug;
+        this.name = name;
         this.contractAddress = contractAddress;
         this.price = price;
         this.traits = traits;
@@ -62,9 +72,11 @@ class OpenSeaSniper {
         this.maxGas = maxGas;
         this.priorityFee = priorityFee;
 
-        this.floorPriceProtection = true;
-        this.floorAutoPrice = false;
-        this.floorAutoPricePercent = 0;
+        this.imageUrl = imageUrl;
+
+        this.floorPriceProtection = floorPriceProtection;
+        this.floorAutoPrice = floorAutoPrice;
+        this.floorAutoPricePercent = floorAutoPricePercent;
 
         this.interval = null;
 
@@ -321,6 +333,36 @@ class OpenSeaSniper {
 
                     state.postOpenSeaSniperUpdate();
                     return;
+                }
+
+                if(fetchFloorPrice <= 0 && this.floorPriceProtection) {
+
+                    const collection = await getOpenSeaCollection(this.slug);
+
+                    if(collection.status === 200) {
+                        const data = await collection.json();
+                        const floorPrice = Number.parseFloat(data.collection.stats.floor_price);
+                        const currentPrice = Number.parseFloat(`${this.price}`);
+
+                        if(floorPrice < currentPrice) {
+
+                            if(this.floorAutoPrice) {
+
+                                const updatedPrice = floorPrice - (floorPrice * (this.floorAutoPricePercent / 100));
+                                this.price = updatedPrice;
+
+                                console.log(`Updated ${currentPrice} to ${this.price} due to floor auto price adjustment`);
+
+                            } else {
+                                this.stopFetchingAssets(state);
+                                console.log(`Stopped fetching assets, floor price (${floorPrice}) is lower than search price (${this.price}) and Floor Auto Price is disabled.`);
+                                this.stopped = true;
+                                return;
+                            }
+                        }
+                    }
+
+                    fetchFloorPrice = 50;
                 }
 
                 fetchFloorPrice--;
@@ -651,6 +693,7 @@ class OpenSeaSniper {
         _snipers.push({
             id: this.id,
             slug: this.slug,
+            name: this.name,
             contractAddress: this.contractAddress,
             price: this.price,
             traits: this.traits,
@@ -659,7 +702,8 @@ class OpenSeaSniper {
             floorPriceProtection: this.floorPriceProtection,
             floorAutoPrice: this.floorAutoPrice,
             floorAutoPricePercent: this.floorAutoPricePercent,
-            priorityFee: this.priorityFee
+            priorityFee: this.priorityFee,
+            imageUrl: this.imageUrl
         });
 
         state.addLog(`Saving sniper ${this.id} ${this.slug} ${this.price}`);
@@ -679,6 +723,9 @@ class OpenSeaSniper {
         state.addLog(`Deleting sniper ${this.id} ${this.slug} ${this.price}`);
 
         _snipers = _snipers.filter(t => t.id !== this.id);
+
+        console.log('deleted:', _snipers);
+
         localStorage.setItem('os-snipers', JSON.stringify(_snipers));
     }
 

@@ -356,7 +356,7 @@ input {
 
 .sniper {
 
- .sniper-banner {
+.sniper-banner {
    border-radius: 0.5rem;
    color: white;
    font-size: 2rem;
@@ -364,7 +364,7 @@ input {
    background: linear-gradient(45deg, #4ea0b9, rgba(52, 133, 184, 0.22));
  }
 
-  .main-content {
+.main-content {
 
     .left-content {
       border-radius: 0.5rem;
@@ -863,6 +863,16 @@ hr {
   &:hover {
     cursor: pointer;
     color: $yellow;
+  }
+}
+
+.icon-light-gray-white {
+  color: $light-gray;
+  transition: color 200ms ease-in;
+
+  &:hover {
+    cursor: pointer;
+    color: white;
   }
 }
 
