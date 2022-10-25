@@ -31,6 +31,21 @@ body {
   background-color: $background !important;
 }
 
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: $background-sidebar;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: $background;
+  border: 2px solid $background-sidebar;
+  border-radius: 10px;
+  scrollbar-width: 10px;
+}
+
 input {
   background-color: $background-input;
   border: none;
@@ -173,6 +188,9 @@ input {
 
 .dashboard {
 
+  display: flex;
+  flex-direction: column;
+
   .dashboard-banner {
     border-radius: 0.5rem;
     color: white;
@@ -190,25 +208,243 @@ input {
     }
   }
 
-  .today-mints {
+  .dashboard-content {
 
-    //display: flex;
-    //overflow-y: auto;
-    max-width: 100vw;
+    display: flex;
 
-    background-color: $background-sidebar;
-    border-radius: 0.5rem;
+    .left-content {
+      width: 75%;
+      background-color: $background-sidebar;
+      border-radius: 0.5rem;
 
-    .project {
-      background-color: $background;
+      .today-mints {
+
+        background-color: $background-sidebar;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+
+        .project {
+
+          background-color: $background;
+          min-width: 25rem;
+          max-width: 25rem;
+
+          border-radius: 0.5rem;
+
+          .image-banner {
+
+            border-radius: 0.5rem;
+
+            img {
+              height: 5rem;
+              object-fit: cover;
+              width: 100%;
+              border-radius: 0.5rem;
+            }
+
+          }
+
+          .image {
+            position: absolute;
+            top: 15%;
+            left: 2%;
+
+            img {
+              height: 3.5rem;
+              width: 3.5rem;
+              border: 2px solid white;
+              border-radius: 180px;
+            }
+          }
+
+          .project-name {
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+          }
+
+        }
+      }
+
+      .upcoming-calendar {
+
+        .tui-full-calendar-layout.tui-view-1.tui-view-9.tui-view-12 {
+          background-color: $background !important;
+        }
+
+        .tui-full-calendar-weekday-grid-date {
+          color: $light-gray;
+        }
+
+        .tui-full-calendar-weekday-grid-date.tui-full-calendar-weekday-grid-date-decorator {
+          color: white;
+          background-color: $green;
+        }
+
+        .tui-full-calendar-weekday-grid-line {
+         border-color: $light-gray !important;
+        }
+
+        .tui-full-calendar-month-more {
+          background-color: $background !important;
+        }
+
+        .tui-full-calendar-month-more-title {
+          span {
+            color: white;
+          }
+        }
+
+        .tui-full-calendar-month-dayname-item {
+          span {
+            color: white !important;
+            font-weight: bold;
+          }
+        }
+
+        #calendar > div {
+          border-radius: 0.5rem;
+          border: 1px solid $light-gray;
+
+          .tui-full-calendar-month-dayname {
+            border-top: 0px !important;
+          }
+        }
+
+      }
+    }
+
+    .right-content {
+      width: 25%;
+      background-color: $background-sidebar;
+      border-radius: 0.5rem;
+
+      .minting-live {
+
+        height: 100vh;
+        overflow-y: auto;
+
+        .mint {
+
+          background-color: $background;
+          border-radius: 0.5rem;
+
+          .logo {
+            height: 3rem;
+            width: 3rem;
+            border-radius: 180px;
+            border: 1px solid white;
+          }
+
+          .mint-name {
+            .name {
+              color: white;
+            }
+
+            .time {
+              color: $light-gray;
+              font-size: 0.85rem;
+            }
+          }
+        }
+
+      }
+
+    }
+  }
+}
+
+.sniper {
+
+ .sniper-banner {
+   border-radius: 0.5rem;
+   color: white;
+   font-size: 2rem;
+   font-weight: bold;
+   background: linear-gradient(45deg, #4ea0b9, rgba(52, 133, 184, 0.22));
+ }
+
+  .main-content {
+
+    .left-content {
+      border-radius: 0.5rem;
+      width: 50%;
+      background-color: $background-sidebar;
+
+      .sniper-list {
+
+        .sniper-task {
+
+          background-color: $background;
+          border-radius: 0.5rem;
+
+          img {
+            height: 5rem;
+            width: 5rem;
+            border-radius: 180px;
+          }
+
+          .collection-name {
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+          }
+
+          .wallet-name {
+            color: $light-gray;
+            font-size: 0.85rem;
+          }
+
+          .pill {
+            background-color: $light-gray;
+            color: white;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+          }
+
+          .inactive {
+            color: white;
+          }
+
+          .searching {
+            color: $blue;
+          }
+
+          .found {
+            color: $pink;
+          }
+
+          .bought {
+            color: $green;
+          }
+
+          .error {
+            color: $red;
+          }
+
+        }
+
+      }
+
+    }
+
+    .right-content {
+      border-radius: 0.5rem;
+      width: 50%;
+      background-color: $background-sidebar;
     }
 
   }
+}
 
-  .upcoming-calendar > div {
-    border-radius: 0.5rem;
+.collection-data {
+  background-color: $background-sidebar;
+  border-radius: 0.5rem;
+
+  hr {
+    margin-top: 5px;
+    margin-bottom: 5px;
   }
-
 }
 
 .size-2 {
@@ -581,10 +817,53 @@ hr {
 
 .icon-red {
   color: $red;
+
+  transition: color 200ms ease-in;
+
+  &:hover {
+    cursor: pointer;
+    color: darken($red, 15%);
+  }
 }
 
 .icon-green {
   color: $green;
+  transition: color 200ms ease-in;
+
+  &:hover {
+    cursor: pointer;
+    color: darken($green, 15%);
+  }
+}
+
+.icon-white-green {
+  color: white;
+  transition: color 200ms ease-in;
+
+  &:hover {
+    cursor: pointer;
+    color: $green;
+  }
+}
+
+.icon-white-red {
+  color: white;
+  transition: color 200ms ease-in;
+
+  &:hover {
+    cursor: pointer;
+    color: $red;
+  }
+}
+
+.icon-white-yellow {
+  color: white;
+  transition: color 200ms ease-in;
+
+  &:hover {
+    cursor: pointer;
+    color: $yellow;
+  }
 }
 
 .start-icon {

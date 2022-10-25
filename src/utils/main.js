@@ -18,7 +18,7 @@ class Main {
         this.ethTasksStream = new BehaviorSubject([]);
         this.openseaBidderStream = new BehaviorSubject([]);
         this.openseaSniperStream = new BehaviorSubject([]);
-        this.nftWatchListStream = new BehaviorSubject([]);
+        this.openSeaTransferStream = new BehaviorSubject([]);
         this.quickTaskProfileStream = new BehaviorSubject([]);
         this.openseaListingsStream = new BehaviorSubject([]);
 
@@ -29,7 +29,7 @@ class Main {
         this.ethTasks = [];
         this.openseaBidders = [];
         this.openseaSnipers = [];
-        this.nftWatchList = [];
+        this.openseaTransferData = [];
         this.quickTaskProfiles = [];
         this.openseaListings = [];
 
@@ -49,7 +49,7 @@ class Main {
 
         this.upcomingMints = [];
 
-        this.mintWatchSocket = null;
+        this.mintaioSocket = null;
 
         this.walletsStream.subscribe((data) => {
             this.wallets = data;
@@ -67,7 +67,7 @@ class Main {
             this.openseaSnipers = data;
         });
 
-        this.nftWatchListStream.subscribe((data) => {
+        this.openSeaTransferStream.subscribe((data) => {
             this.nftWatchList = data;
         });
 
@@ -105,6 +105,8 @@ class Main {
         this.ethDataInterval = setInterval(() => {
             this.sidebarData();
         }, 1000 * 8);
+
+        this.connectToMintAIOSocket();
 
         console.log("Main state initiated, MintAIO - v0.1-beta");
     }
@@ -186,44 +188,33 @@ class Main {
         //this.logs.push(`[${new Date().toLocaleString()}][LOG]` + str);
     }
 
-    connectMintWatch() {
-        if(this.mintWatchActive()) {
-            return 'LIVE';
+    connectToMintAIOSocket() {
+        try {
+            this.mintaioSocket = io.connect('http://localhost:3001/');
+        } catch(e) {
+            console.log('e', e);
         }
+
+    }
+
+    connectOpenSeaTransfer() {
+        /*if(this.mintWatchActive()) {
+            return 'LIVE';
+        }*/
 
         // https://mintaio-auth.herokuapp.com/
         // http://localhost:3001/
 
         try {
-            this.mintWatchSocket = io.connect('https://mintaio-auth.herokuapp.com/');
 
-            this.mintWatchSocket.on('nft-watchlist', (data) => {
+            this.mintaioSocket.on('opensea-transferred', (data) => {
+                this.openseaTransferData.unshift(data);
 
-                const _clone = [...this.nftWatchList];
-                const _p = _clone.find(p => p.contractAddress === data['contract_address'].toLowerCase());
-
-                if(typeof _p === 'undefined') {
-                    _clone.push({
-                        contractAddress:  data['contract_address'].toLowerCase(),
-                        name: data.name,
-                        totalSupply: data.totalSupply,
-                        value: data.value
-                    })
-
-                    state.nftWatchListStream.next(_clone);
-                    return;
+                if(this.openseaTransferData.length > 200) {
+                    this.openseaTransferData = this.openseaTransferData.slice(0, 199);
                 }
 
-                _p.contractAddress = data['contract_address'].toLowerCase();
-                _p.name = _p.name === '--' ? data.name : _p.name;
-
-                if(_p.totalSupply === '--' || data.totalSupply !== '--') {
-                    _p.totalSupply = data.totalSupply;
-                }
-
-                _p.value = data.value;
-
-                this.nftWatchListStream.next(_clone);
+                this.openSeaTransferStream.next(this.openseaTransferData);
             });
 
             return 'LIVE';
@@ -238,12 +229,12 @@ class Main {
             return;
         }
 
-        this.mintWatchSocket.disconnect();
-        this.mintWatchSocket = null;
+        this.mintaioSocket.disconnect();
+        this.mintaioSocket = null;
     }
 
     mintWatchActive() {
-        return this.mintWatchSocket !== null;
+        return this.mintaioSocket !== null;
     }
 
     async getContractAbi(contract, network) {

@@ -14,11 +14,27 @@ function getRandomColor() {
     return color;
 }
 
+function getTimePassed(time) {
+    const now = new Date().getTime();
+    const before = new Date(time).getTime();
+
+    const passedTime = Math.floor((now - before) / (1000 * 60));
+
+    if(passedTime === 1) {
+        return 'about 1 minute ago';
+    } else if(passedTime > 1) {
+        return `${passedTime} minutes ago`;
+    } else {
+        return `less than a minute ago`
+    }
+}
+
 function Dashboard({state}) {
 
     const [upcomingMints, setUpcomingMints] = useState([]);
     const [todaysMints, setTodaysMints] = useState([]);
     const [calendar, setCalendar] = useState(null);
+    const [mintingData, setMintingData] = useState([]);
 
     const loadMintingDates = async () => {
         const data = await state.getUpcomingMintingData();
@@ -44,6 +60,9 @@ function Dashboard({state}) {
     const handleBrokenImage = (event) => {
         event.target.src = logo;
     }
+
+    useEffect(() => {
+    }, [mintingData])
 
     useEffect(() => {
 
@@ -102,48 +121,129 @@ function Dashboard({state}) {
 
         loadMintingDates();
 
+        const transferStream = state.openSeaTransferStream.subscribe((data) => {
+            setMintingData([...data]);
+            console.log(data.length);
+        })
+
+        state.connectOpenSeaTransfer();
+
+        return () => {
+            transferStream.unsubscribe();
+        }
+
+
     }, []);
 
     return html`
         
-        <div class="p-3 w-100 dashboard">
+        <div class="p-3 w-100 dashboard view-container">
             
             <div class="dashboard-banner p-4">
                 <div class="banner-date">${getFriendlyDate()}</div>
                 <div>Welcome back, <span>Irantwomiles#1948</span></div>
             </div>
             
-            <div class="dashboard-content">
-            
-                <div class="left-content">
+            <div class="dashboard-content mt-3">
+
+                <div class="left-content p-4 me-2">
                     
-                    <div>Today's Mints</div>
-                    
+                    <div style="color: white; font-weight: bold; font-size: 1.5rem;">Today's Mints</div>
+
                     <div class="today-mints">
-                        
-                        ${
-                            todaysMints.map(mint => (
-                                html`
-                                    <div class="project p-4 col-3 m-2">
-                                        <img src=${mint.twitterProfileImage} onerror=${handleBrokenImage} />
-                                        <div>${mint.name}</div>
-                                    </div>
-                                
-                                `
-                            ))
-        
-                        }
-                        
+                        <div class="project-list d-flex">
+
+                            ${
+                                todaysMints.length > 0 ?
+                                    todaysMints.map(mint => (
+                                            html`
+
+                                                <div class="d-flex" style="border-radius: 0.5rem;">
+                                                    <div class="project p-2 me-2 mb-2">
+                                                        <div style="position: relative;">
+                                                            <div class="image-banner">
+                                                                <img src=${mint.twitterBannerImage}
+                                                                     onerror=${handleBrokenImage}/>
+                                                            </div>
+                                                            <div class="image">
+                                                                <img src=${mint.twitterProfileImage}
+                                                                     onerror=${handleBrokenImage}/>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="project-name mt-2 d-flex justify-content-between align-items-center">
+                                                            <div>${mint.name}</div>
+                                                            <div>
+                                                                <a class="me-1 ${mint.discordUrl !== null && mint.discordUrl.length > 0 ? '' : 'd-none'}"
+                                                                   href=${mint.discordUrl !== null && mint.discordUrl.length > 0 ? `${mint.discordUrl}` : ''}
+                                                                   target="_blank">
+                                                                    <i class="fa-brands fa-discord"
+                                                                       style="color: #7289DA;"></i>
+                                                                </a>
+                                                                <a class="me-1 ${mint.twitterUrl !== null && mint.twitterUrl.length > 0 ? '' : 'd-none'}"
+                                                                   href=${mint.twitterUrl !== null && mint.twitterUrl.length > 0 ? `${mint.twitterUrl}` : ''}
+                                                                   target="_blank">
+                                                                    <i class="fa-brands fa-twitter"
+                                                                       style="color: #00acee;"></i>
+                                                                </a>
+                                                                <a class="me-1 ${mint.osUrl !== null && mint.osUrl.length > 0 ? '' : 'd-none'}"
+                                                                   href=${mint.osUrl !== null && mint.osUrl.length > 0 ? `${mint.osUrl}` : ''}
+                                                                   target="_blank">
+                                                                    <img style="height: 1.3rem; width: 1.3rem;"
+                                                                         src="https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.svg"/>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            `
+                                    ))
+                                :
+                                        html`
+                                        <div class="label">Not mints today</div>
+                                        `
+                            }
+
+                        </div>
                     </div>
+
+                    <hr />
                     
-                    <div id="calendar" class="upcoming-calendar" style="border-radius: 0.5rem;" >
+                    <div class="upcoming-calendar mt-3">
+                        <div style="color: white; font-weight: bold; font-size: 1.5rem;">Upcoming Mints</div>
+                        <div id="calendar"></div>
                     </div>
-                    
+                        
+
                 </div>
                 
-                <div class="right-content">
-                    <div class="upcoming-mints">
+                <div class="right-content p-4">
+
+                    <div style="color: white; font-weight: bold; font-size: 1.5rem;">Minting Live</div>
+                    
+                    <div class="minting-live">
                         
+                        ${
+                            mintingData.map(mint => (
+                                html`
+                                    <div class="mint d-flex p-2 my-2">
+                                        <img class="logo me-2" src=${mint.payload.item.metadata.image_url} onerror=${handleBrokenImage} />
+                                        <div class="d-flex align-items-center justify-content-between w-100">
+                                            <div class="mint-name">
+                                                <div class="name">${mint.payload.item.metadata.name}</div>
+                                                <div class="time">${getTimePassed(mint.sent_at)}</div>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <a class="me-1" href=${mint.payload.item.permalink} target="_blank"><img style="height: 1.3rem; width: 1.3rem;" src="https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.svg" /></a>
+                                                <a class="${mint.payload.transaction !== null ? '' : 'd-none'}" href="https://etherscan.io/tx/${mint.payload.transaction !== null ? mint.payload.transaction.hash : ''}" target="_blank"><img style="height: 1.3rem; width: 1.3rem;" src="https://etherscan.io/images/brandassets/etherscan-logo-circle.png" /></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `
+                            ))
+                        }
+                       
                     </div>
                 </div>
                 

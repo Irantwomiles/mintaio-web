@@ -108,7 +108,7 @@ function SidebarNav() {
                 <span>Dashboard</span>
             </a>
 
-            <a class="sidebar-item ${page === 'dashboard' ? 'active-sidebar' : ''}" href="/dashboard" onclick=${() => setPage("dashboard")}>
+            <a class="sidebar-item ${page === 'nft-manager' ? 'active-sidebar' : ''}" href="/dashboard" onclick=${() => setPage("nft-manager")}>
                 <span class="material-symbols-outlined me-2">photo_library</span>
                 <span>NFT Manager</span>
             </a>
