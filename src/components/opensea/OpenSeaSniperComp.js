@@ -1,12 +1,28 @@
 import {html} from 'htm/preact';
-import {useEffect, useState} from "preact/compat";
+import {useEffect, useState, useRef} from "preact/compat";
 import {Toast, Dropdown, Modal} from 'bootstrap';
 import SidebarNav from "../SidebarNav";
 import {getOpenSeaCollection} from "../../utils/utils.js";
 import OpenSeaSniper from "../../utils/opensea_sniper";
+import logo from "../../images/mintaio-logo.png";
 
 function kFormatter(num) {
     return Math.abs(num) > 999 ? Math.sign(num)*((Math.abs(num)/1000).toFixed(1)) + 'k' : Math.sign(num)*Math.abs(num)
+}
+
+function getTimePassed(time) {
+    const now = new Date().getTime();
+    const before = new Date(time).getTime();
+
+    const passedTime = Math.floor((now - before) / (1000 * 60));
+
+    if(passedTime === 1) {
+        return 'about 1 minute ago';
+    } else if(passedTime > 1) {
+        return `${passedTime} minutes ago`;
+    } else {
+        return `less than a minute ago`
+    }
 }
 
 function OpenSeaSniperComp({state}) {
@@ -34,6 +50,8 @@ function OpenSeaSniperComp({state}) {
 
     const [liveData, setLiveData] = useState([]);
     const [liveCollection, setLiveCollection] = useState("");
+
+    const nameRef = useRef();
 
     const getCollection = () => {
 
@@ -204,6 +222,16 @@ function OpenSeaSniperComp({state}) {
         Modal.getOrCreateInstance(document.querySelector('#sniper-modal')).hide();
     }
 
+    const handleBrokenImage = (event) => {
+        event.target.src = logo;
+    }
+
+    const handleDisableLiveView = () => {
+
+
+
+    }
+
     useEffect(() => {
         if(toastInfo === null) return;
 
@@ -221,14 +249,16 @@ function OpenSeaSniperComp({state}) {
 
     useEffect(() => {
 
-        if(liveCollection.length === 0) return;
 
         if(state.mintaioSocket === null) {
             return;
         }
 
-        console.log(liveCollection);
-        //state.connectOpenSeaListing(liveCollection);
+        nameRef.current = liveCollection;
+
+        state.openseaListingFilter = liveCollection;
+        state.openseaListingData = [];
+        state.openseaLiveListingStream.next([]);
 
     }, [liveCollection]);
 
@@ -247,26 +277,14 @@ function OpenSeaSniperComp({state}) {
             setWallets(data);
         })
 
-        const handleShowLiveListings = (data) => {
-
-            if(liveCollection.length === 0) {
-                return;
-            }
-
-            if(data.payload.collection.slug === liveCollection) {
-                console.log("Received data:", data);
-                const clone = [...liveData];
-                clone.unshift(data);
-                setLiveData(clone);
-            }
-        }
-
-        state.mintaioSocket.on('opensea-listing', handleShowLiveListings);
+        const listingStream = state.openseaLiveListingStream.subscribe((data) => {
+            setLiveData([...data]);
+        })
 
         return () => {
             walletsStream.unsubscribe();
             sniperStream.unsubscribe();
-            state.mintaioSocket.removeListener(handleShowLiveListings);
+            listingStream.unsubscribe();
         }
 
     }, []);
@@ -289,7 +307,7 @@ function OpenSeaSniperComp({state}) {
                     
                     <hr class="mb-0" />
                     
-                    <div class="sniper-list">
+                    <div class="sniper-list" style="height: 100vh; overflow-y: auto;">
 
                         ${
                                 tasks.map(t => (
@@ -336,15 +354,50 @@ function OpenSeaSniperComp({state}) {
 
                 <div class="right-content p-4 ms-1 flex-grow-1">
                     
-                    <div class="sniper-header d-flex align-items-center justify-content-start">
-                        <div style="color: white; font-weight: bold; font-size: 1.5rem;">Listings: <span>Azuki</span></div>
+                    <div class="sniper-header">
+                        <div class="d-flex align-items-center" style="color: white; font-weight: bold; font-size: 1.5rem;">Live: ${liveCollection.length > 0 ? 
+                                html`<span class="ms-2" style="color: #49a58b; font-weight: normal;">${liveCollection}</span>` : html`<span class="ms-2" style="color: #a1a1a1; font-weight: normal;">N/A</span>`}
+                            <span class="material-symbols-outlined ms-auto icon-light-gray-red" onclick=${() => setLiveCollection("")}>visibility_off</span></div>
                     </div>
 
                     <hr/>
 
                     <div class="sniper-listings">
+                        <div class="live-listing">
+                            ${
+                                    liveData.map(mint => (
+                                            html`
+                                    <div class="sniper-task d-flex align-items-center p-3 mb-3">
 
+                                        <img class="me-3" src=${mint.payload.item.metadata.image_url} onerror=${handleBrokenImage} />
 
+                                        <div class="flex-grow-1">
+                                            <div class="sniper-top d-flex align-items-center justify-content-between">
+                                                <div class="sniper-info">
+                                                    <div class="collection-name d-flex align-items-center">${mint.payload.item.metadata.name}</div>
+                                                    <div class="wallet-name">${getTimePassed(mint.sent_at)}</div>
+                                                </div>
+                                                <a class="me-1"
+                                                   href=${mint.payload.item.permalink}
+                                                   target="_blank">
+                                                    <img style="height: 1.85rem; width: 1.85rem;" src="https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.svg"/>
+                                                </a>
+                                            </div>
+
+                                            <div class="sniper-bottom d-flex align-items-center justify-content-end mt-2">
+                                                <div class="pills">
+                                                    <span class="pill p-1">${Number.parseFloat(state.globalWeb3.utils.fromWei(mint.payload.base_price, 'ether')).toFixed(4)}ETH</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                            
+                                `
+                                    ))
+                            }
+                        </div>
+                        
                     </div>
 
                 </div>

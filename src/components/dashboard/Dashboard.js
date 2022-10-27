@@ -35,6 +35,7 @@ function Dashboard({state}) {
     const [todaysMints, setTodaysMints] = useState([]);
     const [calendar, setCalendar] = useState(null);
     const [mintingData, setMintingData] = useState([]);
+    const [userData, setUserData] = useState(null);
 
     const loadMintingDates = async () => {
         const data = await state.getUpcomingMintingData();
@@ -50,8 +51,6 @@ function Dashboard({state}) {
                 _todaysMints.push(d);
             }
         }
-
-        console.log(_todaysMints);
 
         setTodaysMints(_todaysMints);
         setUpcomingMints(data);
@@ -123,10 +122,15 @@ function Dashboard({state}) {
 
         const transferStream = state.openSeaTransferStream.subscribe((data) => {
             setMintingData([...data]);
-            console.log(data.length);
         })
 
         state.connectOpenSeaTransfer();
+
+        const _user = localStorage.getItem('discord-user');
+
+        if(_user !== null) {
+            setUserData(JSON.parse(_user));
+        }
 
         return () => {
             transferStream.unsubscribe();
@@ -141,7 +145,7 @@ function Dashboard({state}) {
             
             <div class="dashboard-banner p-4">
                 <div class="banner-date">${getFriendlyDate()}</div>
-                <div>Welcome back, <span>Irantwomiles#1948</span></div>
+                <div>Welcome back, <span>${userData === null ? 'MintAIO' : userData.username}#${userData === null ? '1234' : userData.discriminator}</span></div>
             </div>
             
             <div class="dashboard-content mt-3">

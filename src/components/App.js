@@ -21,11 +21,11 @@ function App({state}) {
         <${SidebarNav} />
         
         <${Router}>
-            <${Settings} state=${state} path="" />
+            <${Dashboard} state=${state} path="" />
+            <${Settings} state=${state} path="/settings" />
             <${Wallets} state=${state} path="/wallets" />
             <${EthMinter} state=${state} path="/eth-tasks" />
             <${Information} state=${state} path="/info" />
-            <${Dashboard} state=${state} path="/dashboard" />
             <${OpenSeaSniperComp} state=${state} path="/opensea" />
             <${NFTWatchList} state=${state} path="/nft-watchlist" />
             <${ProfitAndLoss} state=${state} path="/profit-tracker" />

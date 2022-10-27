@@ -1,21 +1,29 @@
 import {html} from 'htm/preact';
 import {useEffect, useState} from "preact/compat";
+import logo from '../images/mintaio-logo.png';
 
 function SidebarNav() {
 
+    const [userData, setUserData] = useState(null);
     const [data, setData] = useState({
         ethPrice: '--',
         maxFee: '--',
         priorityFee: '--',
         pendingBlock: '--'
     });
-    const [page, setPage] = useState("settings")
+    const [page, setPage] = useState("dashboard")
 
     useEffect(() => {
 
         const ethDataStream = state.ethDataStream.subscribe((data) => {
             setData(Object.assign({}, data));
         })
+
+        const _user = localStorage.getItem('discord-user');
+
+        if(_user !== null) {
+            setUserData(JSON.parse(_user));
+        }
 
         return () => {
             ethDataStream.unsubscribe();
@@ -94,21 +102,21 @@ function SidebarNav() {
 
             <div class="discord-info">
                 <img class="discord-image"
-                     src="https://cdn.discordapp.com/avatars/200435096770183169/c9516f5d1bbfb462ddc8b03c58937bb9"/>
+                     src=${userData === null ? logo : `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}`} />
                 <div class="discord-user-info">
-                    <div class="discord-name">Irantwomiles#1948Irantwomiles#1948Irantwomiles#1948Irantwomiles#1948</div>
-                    <div id="lifetime" class="discord-role">Lifetime</div>
+                    <div class="discord-name">${userData === null ? 'MintAIO' : userData.username}#${userData === null ? '1234' : userData.discriminator}</div>
+                    <div id="lifetime" class="discord-role">Web Access</div>
                 </div>
             </div>
 
             <hr/>
 
-            <a class="sidebar-item ${page === 'dashboard' ? 'active-sidebar' : ''}" href="/dashboard" onclick=${() => setPage("dashboard")}>
+            <a class="sidebar-item ${page === 'dashboard' ? 'active-sidebar' : ''}" href="/" onclick=${() => setPage("dashboard")}>
                 <span class="material-symbols-outlined me-2">team_dashboard</span>
                 <span>Dashboard</span>
             </a>
 
-            <a class="sidebar-item ${page === 'nft-manager' ? 'active-sidebar' : ''}" href="/dashboard" onclick=${() => setPage("nft-manager")}>
+            <a class="sidebar-item d-none ${page === 'nft-manager' ? 'active-sidebar' : ''}" href="/dashboard" onclick=${() => setPage("nft-manager")}>
                 <span class="material-symbols-outlined me-2">photo_library</span>
                 <span>NFT Manager</span>
             </a>
@@ -133,7 +141,7 @@ function SidebarNav() {
                 <span>Wallets</span>
             </a>
 
-            <a class="sidebar-item ${page === 'settings' ? 'active-sidebar' : ''}" href="/" onclick=${() => setPage("settings")}>
+            <a class="sidebar-item ${page === 'settings' ? 'active-sidebar' : ''}" href="/settings" onclick=${() => setPage("settings")}>
                 <span class="material-symbols-outlined me-2">settings</span>
                 <span>Settings</span>
             </a>

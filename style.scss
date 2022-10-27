@@ -268,7 +268,7 @@ input {
 
       .upcoming-calendar {
 
-        .tui-full-calendar-layout.tui-view-1.tui-view-9.tui-view-12 {
+        .tui-full-calendar-layout {
           background-color: $background !important;
         }
 
@@ -351,6 +351,7 @@ input {
       }
 
     }
+
   }
 }
 
@@ -368,70 +369,74 @@ input {
 
     .left-content {
       border-radius: 0.5rem;
-      width: 50%;
+      width: 65%;
       background-color: $background-sidebar;
 
       .sniper-list {
 
-        .sniper-task {
-
-          background-color: $background;
-          border-radius: 0.5rem;
-
-          img {
-            height: 5rem;
-            width: 5rem;
-            border-radius: 180px;
-          }
-
-          .collection-name {
-            color: white;
-            font-weight: bold;
-            font-size: 1.2rem;
-          }
-
-          .wallet-name {
-            color: $light-gray;
-            font-size: 0.85rem;
-          }
-
-          .pill {
-            background-color: $light-gray;
-            color: white;
-            border-radius: 0.5rem;
-            font-size: 0.85rem;
-          }
-
-          .inactive {
-            color: white;
-          }
-
-          .searching {
-            color: $blue;
-          }
-
-          .found {
-            color: $pink;
-          }
-
-          .bought {
-            color: $green;
-          }
-
-          .error {
-            color: $red;
-          }
-
-        }
-
       }
-
     }
 
     .right-content {
       border-radius: 0.5rem;
-      width: 50%;
+      width: 35%;
       background-color: $background-sidebar;
+    }
+
+    .sniper-task {
+
+      background-color: $background;
+      border-radius: 0.5rem;
+
+      img {
+        height: 5rem;
+        width: 5rem;
+        border-radius: 180px;
+      }
+
+      .collection-name {
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+      }
+
+      .wallet-name {
+        color: $light-gray;
+        font-size: 0.85rem;
+      }
+
+      .pill {
+        background-color: $light-gray;
+        color: white;
+        border-radius: 0.5rem;
+        font-size: 0.85rem;
+      }
+
+      .inactive {
+        color: white;
+      }
+
+      .searching {
+        color: $blue;
+      }
+
+      .found {
+        color: $pink;
+      }
+
+      .bought {
+        color: $green;
+      }
+
+      .error {
+        color: $red;
+      }
+
+    }
+
+    .live-listing {
+      height: 100vh;
+      overflow-y: auto;
     }
 
   }
@@ -873,6 +878,16 @@ hr {
   &:hover {
     cursor: pointer;
     color: white;
+  }
+}
+
+.icon-light-gray-red {
+  color: $light-gray;
+  transition: color 200ms ease-in;
+
+  &:hover {
+    cursor: pointer;
+    color: $red;
   }
 }
 

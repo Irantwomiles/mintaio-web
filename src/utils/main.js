@@ -22,6 +22,8 @@ class Main {
         this.quickTaskProfileStream = new BehaviorSubject([]);
         this.openseaListingsStream = new BehaviorSubject([]);
 
+        this.openseaLiveListingStream = new BehaviorSubject([]);
+
         this.webhook = localStorage.getItem('discordWebHook') === null ? '' : localStorage.getItem('discordWebHook');
 
         this.abi = [];
@@ -32,6 +34,10 @@ class Main {
         this.openseaTransferData = [];
         this.quickTaskProfiles = [];
         this.openseaListings = [];
+
+        // live data coming from websocket
+        this.openseaListingData = [];
+        this.openseaListingFilter = "";
 
         this.ethDataStream = new BehaviorSubject({
             ethPrice: '--',
@@ -107,6 +113,7 @@ class Main {
         }, 1000 * 8);
 
         this.connectToMintAIOSocket();
+        this.connectOpenSeaListing();
 
         console.log("Main state initiated, MintAIO - v0.1-beta");
     }
@@ -190,7 +197,7 @@ class Main {
 
     connectToMintAIOSocket() {
         try {
-            this.mintaioSocket = io.connect('http://localhost:3001/');
+            this.mintaioSocket = io.connect('https://mintaio-auth.herokuapp.com/');
         } catch(e) {
             console.log('e', e);
         }
@@ -215,6 +222,37 @@ class Main {
                 }
 
                 this.openSeaTransferStream.next(this.openseaTransferData);
+            });
+
+            return 'LIVE';
+
+        } catch(e) {
+            return 'OFFLINE'
+        }
+    }
+
+    connectOpenSeaListing() {
+        /*if(this.mintWatchActive()) {
+            return 'LIVE';
+        }*/
+
+        // https://mintaio-auth.herokuapp.com/
+        // http://localhost:3001/
+
+        try {
+
+            this.mintaioSocket.on('opensea-listing', (data) => {
+
+                if(data.payload.collection.slug === this.openseaListingFilter) {
+
+                    this.openseaListingData.unshift(data);
+
+                    if(this.openseaListingData.length > 200) {
+                        this.openseaListingData = this.openseaListingData.slice(0, 199);
+                    }
+
+                    this.openseaLiveListingStream.next(this.openseaListingData);
+                }
             });
 
             return 'LIVE';
