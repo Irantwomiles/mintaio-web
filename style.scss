@@ -357,89 +357,95 @@ input {
 
 .sniper {
 
-.sniper-banner {
-   border-radius: 0.5rem;
-   color: white;
-   font-size: 2rem;
-   font-weight: bold;
-   background: linear-gradient(45deg, #4ea0b9, rgba(52, 133, 184, 0.22));
- }
+  .sniper-banner {
+     border-radius: 0.5rem;
+     color: white;
+     font-size: 2rem;
+     font-weight: bold;
+     background: linear-gradient(45deg, #4ea0b9, rgba(52, 133, 184, 0.22));
 
-.main-content {
-
-    .left-content {
-      border-radius: 0.5rem;
-      width: 65%;
-      background-color: $background-sidebar;
-
-      .sniper-list {
-
-      }
-    }
-
-    .right-content {
-      border-radius: 0.5rem;
-      width: 35%;
-      background-color: $background-sidebar;
-    }
-
-    .sniper-task {
-
-      background-color: $background;
-      border-radius: 0.5rem;
-
-      img {
-        height: 5rem;
-        width: 5rem;
-        border-radius: 180px;
-      }
-
-      .collection-name {
-        color: white;
-        font-weight: bold;
-        font-size: 1.2rem;
-      }
-
-      .wallet-name {
-        color: $light-gray;
-        font-size: 0.85rem;
-      }
-
-      .pill {
-        background-color: $light-gray;
-        color: white;
-        border-radius: 0.5rem;
-        font-size: 0.85rem;
-      }
-
-      .inactive {
-        color: white;
-      }
-
-      .searching {
-        color: $blue;
-      }
-
-      .found {
-        color: $pink;
-      }
-
-      .bought {
-        color: $green;
-      }
-
-      .error {
-        color: $red;
-      }
-
-    }
-
-    .live-listing {
-      height: 100vh;
-      overflow-y: auto;
+    img {
+      height: 5rem;
+      width: 5rem;
     }
 
   }
+
+  .main-content {
+
+      .left-content {
+        border-radius: 0.5rem;
+        width: 65%;
+        background-color: $background-sidebar;
+
+        .sniper-list {
+
+        }
+      }
+
+      .right-content {
+        border-radius: 0.5rem;
+        width: 35%;
+        background-color: $background-sidebar;
+      }
+
+      .sniper-task {
+
+        background-color: $background;
+        border-radius: 0.5rem;
+
+        img {
+          height: 5rem;
+          width: 5rem;
+          border-radius: 180px;
+        }
+
+        .collection-name {
+          color: white;
+          font-weight: bold;
+          font-size: 1.2rem;
+        }
+
+        .wallet-name {
+          color: $light-gray;
+          font-size: 0.85rem;
+        }
+
+        .pill {
+          background-color: $light-gray;
+          color: white;
+          border-radius: 0.5rem;
+          font-size: 0.85rem;
+        }
+
+        .inactive {
+          color: white;
+        }
+
+        .searching {
+          color: $blue;
+        }
+
+        .found {
+          color: $pink;
+        }
+
+        .bought {
+          color: $green;
+        }
+
+        .error {
+          color: $red;
+        }
+
+      }
+
+      .live-listing {
+        height: 100vh;
+        overflow-y: auto;
+      }
+
+    }
 }
 
 .collection-data {
@@ -450,6 +456,64 @@ input {
     margin-top: 5px;
     margin-bottom: 5px;
   }
+}
+
+.mint-bot {
+
+  .mint-banner {
+    border-radius: 0.5rem;
+    color: white;
+    font-size: 1.5rem;
+    background: linear-gradient(45deg, #7a4eaf, rgba(111, 52, 184, 0.22));
+  }
+
+  .task-bar {
+    background-color: $background-sidebar;
+    border-radius: 0.5rem;
+  }
+
+  .left-content {
+    background-color: $background-sidebar;
+    width: 65%;
+    border-radius: 0.5rem;
+
+    .tasks {
+      height: 100vh;
+      overflow-y: auto;
+
+      .task {
+        background-color: $background;
+        border-radius: 0.5rem;
+        padding: 1rem 1rem;
+
+        .actions {
+          background-color: $button-gray-background;
+          border-radius: 0.5rem;
+        }
+
+        .wallet-name {
+          color: $light-gray;
+          font-size: 0.85rem;
+        }
+      }
+
+
+    }
+  }
+
+  .right-content {
+    background-color: $background-sidebar;
+    width: 35%;
+    border-radius: 0.5rem;
+  }
+
+  .pill {
+    background-color: $light-gray;
+    color: white;
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+  }
+
 }
 
 .size-2 {
@@ -803,18 +867,6 @@ hr {
 
 }
 
-.task {
-  background-color: $background-sidebar;
-  border-radius: 0.5rem;
-  padding: 1rem 1rem;
-  filter: drop-shadow(0 0.2rem 0.25rem rgba(42, 42, 42, 0.2));
-  //border: 1px solid darken($light-gray, 35%);
-
-  .actions {
-    background-color: $button-gray-background;
-    border-radius: 0.5rem;
-  }
-}
 
 .task-selected {
   border: 1px solid $pink;

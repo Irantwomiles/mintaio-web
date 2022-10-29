@@ -30,8 +30,6 @@ function EthMinter({state}) {
     contract: 0x4a8C9D751EEAbc5521A68FB080DD7E72E46462aF
      */
 
-    const globalRef = useRef();
-
     const [wallets, setWallets] = useState([]);
     const [tasks, setTasks] = useState([]);
 
@@ -58,18 +56,11 @@ function EthMinter({state}) {
     const [mintMethods, setMintMethods] = useState([]);
     const [readMethods, setReadMethods] = useState([]);
 
-    const [groupsDropdown, setGroupsDropdown] = useState(null);
-    const [networksDropdown, setNetworksDropdown] = useState(null);
-    const [walletsDropdown, setWalletsDropdown] = useState(null);
-    const [mintDropdown, setMintDropdown] = useState(null);
-
     const [loadingAbi, setLoadingAbi] = useState(false);
     const [groups, setGroups] = useState([]);
     const [group, setGroup] = useState("");
     const [selectedGroup, setSelectedGroup] = useState("");
     const [selectedColor, setSelectedColor] = useState('#49a58b');
-
-    const [createGroupModal, setCreateGroupModal] = useState(null);
 
     const [groupedTasks, setGroupedTasks] = useState(null);
     const [toastInfo, setToastInfo] = useState(null);
@@ -221,7 +212,7 @@ function EthMinter({state}) {
         }
 
         state.ethTasksStream.next(_tasks);
-        Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).hide();
+        Modal.getOrCreateInstance(document.querySelector('#create-task-modal')).hide();
 
         setToastInfo({
             message: `Created ${i} tasks.`,
@@ -287,7 +278,7 @@ function EthMinter({state}) {
             class: 'toast-success'
         });
 
-        Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).hide();
+        Modal.getOrCreateInstance(document.querySelector('#create-task-modal')).hide();
 
         state.postTaskUpdate();
     }
@@ -330,7 +321,6 @@ function EthMinter({state}) {
 
         setGroup("");
         setSelectedColor('#49a58b')
-        createGroupModal.hide();
     }
 
     const deleteGroup = (g) => {
@@ -448,7 +438,7 @@ function EthMinter({state}) {
 
     const handleShowCreateTaskModal = () => {
         setEditTask(null);
-        Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).show();
+        Modal.getOrCreateInstance(document.querySelector('#create-task-modal')).show();
     }
 
     const handleSelectedTask = (t) => {
@@ -618,14 +608,6 @@ function EthMinter({state}) {
 
     useEffect(() => {
 
-        setGroupsDropdown(new Dropdown(globalRef.current.querySelector('#groups-dropdown'), {}));
-        setNetworksDropdown(new Dropdown(globalRef.current.querySelector('#networks-dropdown'), {}));
-        setWalletsDropdown(new Dropdown(globalRef.current.querySelector('#wallets-dropdown'), {}));
-        setMintDropdown(new Dropdown(globalRef.current.querySelector('#mint-dropdown'), {}));
-        //setReadDropdown(new Dropdown(globalRef.current.querySelector('#read-dropdown'), {}));
-
-        setCreateGroupModal(Modal.getOrCreateInstance(globalRef.current.querySelector('#create-group-modal')));
-
         const _provider = localStorage.getItem('globalRpc');
         const _ethGroups = localStorage.getItem('eth-groups');
 
@@ -765,7 +747,7 @@ function EthMinter({state}) {
             setCustomHexData(editTask.customHexData);
         }
 
-        Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).show();
+        Modal.getOrCreateInstance(document.querySelector('#create-task-modal')).show();
 
     }, [editTask]);
 
@@ -788,157 +770,124 @@ function EthMinter({state}) {
     }, [toastInfo]);
 
     return html`
-        <div ref=${globalRef}>
+            <div class="p-3 w-100 mint-bot view-container">
 
-            <div class="p-3 w-100">
-
-                <div class="d-flex flex-wrap">
+                <div class="mint-banner d-flex align-items-center justify-content-start p-4">
+                    <div class="ms-4 fw-bold">Ethereum Minting Module</div>
+                </div>
+                
+                <div class="task-bar d-flex flex-wrap p-3 mt-2">
                     <button class="button-primary fw-bold" onclick=${() => {
                         handleShowCreateTaskModal()
                     }}><i class="fa-solid fa-plus"></i> New Task
                     </button>
                     <button class="button-secondary fw-bold ms-2" onclick=${startAllTasks}><i class="fa-solid fa-arrow-up"></i> Start All</button>
+                    <button class="button-orange fw-bold ms-2" onclick=${() => Modal.getOrCreateInstance(document.querySelector('#create-qt-profile-modal')).show()}><i class="fa-solid fa-wind"></i> Quick Tasks</button>
                     
-                    <div class="ms-2">
+                    <div class="ms-auto">
                         <button class="button-pink fw-bold" onclick=${updateGas}><i class="fa-solid fa-gas-pump"></i> Update Gas</button>
                         <input class="input ms-2" style="width: 10rem;" type="number" min="1" step="1" placeholder="Max Gas" value=${updateMaxGas} onchange=${(e) => setUpdateMaxGas(Number.parseInt(e.target.value))} />
                         <input class="input ms-2" style="width: 10rem;" type="number" min="1" step="1" placeholder="Priority Fee" value=${updatePriorityGas} onchange=${(e) => setUpdatePriorityGas(Number.parseInt(e.target.value))} />
                     </div>
 
-                    <button class="button-orange fw-bold ms-auto" onclick=${() => Modal.getOrCreateInstance(document.querySelector('#create-qt-profile-modal')).show()}><i class="fa-solid fa-wind"></i> Quick Tasks</button>
+                    
                 </div>
 
                 <hr/>
+                
+                <div class="main-content d-flex ">
+                    
+                    <div class="left-content p-4 me-1">
+                        <div style="color: white; font-weight: bold; font-size: 1.5rem;">Minting Tasks</div>
+                        <hr />
+                        <div class="tasks">
 
-                <div class="d-flex">
-
-                    <div class="create-group d-flex align-items-center px-2 me-2">
-                        <div class="text-center" onclick=${() => {
-                            createGroupModal.show()
-                        }}>
-                            <div>Create Group</div>
-                            <i class="fa-solid fa-circle-plus"></i>
-                        </div>
-                    </div>
-
-                    ${
-                            groups !== null && groups.length > 0 ?
-                                    html`
-                                        ${
-                                                groups.map(g => (
-                                                        html`
-                                                            <div class="group me-2" style="border-color: ${g.color};">
-                                                                <div class="title m-2 d-flex justify-content-between">
-                                                                    <span>${g.name}</span>
-                                                                    <i class="fa-solid fa-xmark delete-group-icon" onclick=${() => deleteGroup(g)}></i>
-                                                                </div>
-                                                                <div class="d-flex align-items-center justify-content-between m-2">
-                                                                    <div class="label">
-                                                                        ${tasks.filter(t => t.taskGroup === g.name).length}
-                                                                        <span class="ms-1">Task(s)</span>
-                                                                    </div>
-                                                                    <div>
-                                                                        <div class="d-flex justify-content-evenly mb-1">
-                                                                            <i class="fa-solid fa-circle-play icon-color start-icon me-1" onclick=${() => startGroupTasks(g)}></i>
-                                                                            <i class="fa-solid fa-circle-stop icon-color stop-icon" onclick=${() => stopGroupTasks(g)}></i> 
-                                                                        </div>
-
-                                                                        <div class="d-flex justify-content-evenly">
-                                                                            <i class="fa-solid fa-gas-pump icon-color pink-icon me-1" onclick=${() => handleSelectGroupTasks(g)}></i>
-                                                                            <i class="fa-solid fa-trash icon-color delete-icon" onclick=${() => deleteGroupTasks(g)}></i>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        `
-                                                ))
-                                        }
-                                    `
-
-                                    : ''
-                    }
-
-                </div>
-
-                ${
-
-                        groupedTasks === null ? '' :
-
-                                Object.keys(groupedTasks).map(k => (
-                                    html`
-                                        <hr/>
-                                        <div class="${k.length === 0 ? 'd-none' : 'mt-2'}">
-                                            <label class="group-title" style="${k.length === 0 ? 'border: none;' : "border-color: " + groups.find(g => g.name === k)?.color};">${k}</label>
-                                        </div>
-                                        ${
-                                            groupedTasks[k].map((t) => (
-                                                html`
-                                                    <div class="task ${isSelected(t) ? 'task-selected' : ''} d-flex justify-content-between align-items-center mt-2">
-                                                        <div class="col-4">
+                            ${
+                                    tasks.map((t) => (
+                                            html`
+                                                <div class="task ${isSelected(t) ? 'task-selected' : ''}">
+                                                    <div class="top d-flex align-items-center justify-content-between">
+                                                        <div class="wallet-name">
                                                             <div class="title">
                                                                 ${t.contractAddress}
                                                             </div>
-                                                            <div class="label">
-                                                                <i class="fa-solid fa-wallet me-2"></i>
-                                                                <span class="me-4">${t.wallet.name}</span>
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="material-symbols-outlined me-1">wallet</div>
+                                                                <div class="me-2">${t.wallet.name}</div>
                                                                 ${t.wallet.account.hasOwnProperty('privateKey') ?
-                                                                        html`
-                                                                            <i class="fa-solid fa-unlock icon-green"></i>` :
-                                                                        html`<i class="fa-solid fa-lock icon-red"></i>`
+                                                                        html`<span class="material-symbols-outlined icon-green" style="font-size: 1rem;">lock_open</span>` :
+                                                                        html`<span class="material-symbols-outlined icon-red" style="font-size: 1rem;">lock</span>`
                                                                 }
                                                             </div>
                                                         </div>
-    
-                                                        <div class="label col-1 text-center">
-                                                            ${Number.parseFloat(`${t.price * t.amount}`).toFixed(3)}
-                                                            <i class="fa-brands fa-ethereum icon-color mx-1"></i>
-                                                                (${t.amount}x)
-                                                        </div>
-                                                        
-                                                        <div class="label col-1 text-center"><i class="fa-solid fa-gas-pump me-1"></i>
-                                                            ${t.maxGas} + ${t.gasPriority}
-                                                        </div>
-    
-                                                        <div class="label col-1 text-center">${t.network}</div>
 
-                                                        <div class="label col-1 text-center">${t.startMode}</div>
-    
-                                                        <div class="label col-3 text-center" style="color: ${t.status.color}">${t.status.message}</div>
-    
-                                                        <div class="actions p-2 col-1 text-center">
+                                                        <div class="d-flex align-items-center p-1">
+                                                            
                                                             <i class="fa-solid fa-circle-play me-2 icon-color start-icon"
                                                                onclick=${() => {
                                                                    t.start(state)
                                                                }}></i>
-                                                            <i class="fa-solid fa-circle-stop me-2 icon-color stop-icon" 
+                                                            <i class="fa-solid fa-circle-stop me-2 icon-color stop-icon"
                                                                onclick=${() => {
-                                                                t.stop(state)
-                                                            }}></i>
+                                                                   t.stop(state)
+                                                               }}></i>
 
                                                             <i class="fa-solid fa-pen-to-square me-2 icon-color edit-icon"
-                                                                onclick=${() => {
-                                                                    setEditTask(Object.assign({}, t));
-                                                                }}
+                                                               onclick=${() => {
+                                                                   setEditTask(Object.assign({}, t));
+                                                               }}
                                                             ></i>
 
-                                                            <i class="fa-solid fa-gas-pump icon-color pink-icon me-2" onclick=${() => handleSelectedTask(t)}></i>
+                                                            <i class="fa-solid fa-gas-pump icon-color pink-icon me-2"
+                                                               onclick=${() => handleSelectedTask(t)}></i>
 
                                                             <i class="fa-solid fa-trash icon-color delete-icon"
                                                                onclick=${() => {
-                                                                state.deleteEthTask(t.id)
-                                                            }}></i>
+                                                                   state.deleteEthTask(t.id)
+                                                               }}></i>
 
                                                         </div>
-    
+                          
                                                     </div>
-                                                `
-                                            ))
-                                        }
-                                        `
-                                ))
 
+                                                    <div class="bottom d-flex align-items-center justify-content-between">
+                                                        <div style="color: ${t.status.color}">
+                                                            ${t.status.message}
+                                                        </div>
+                                                        
+                                                        <div class="d-flex align-items-center">
 
-                }
+                                                            <div class="pill p-1 ms-1">
+                                                                ${Number.parseFloat(`${t.price * t.amount}`).toFixed(3)}ETH
+                                                                    (${t.amount}x)
+                                                            </div>
+                                                            <div class="pill p-1 ms-1"><i
+                                                                    class="fa-solid fa-gas-pump me-1"></i>
+                                                                ${t.maxGas} + ${t.gasPriority}
+                                                            </div>
+                                                            <div class="pill p-1 ms-1">${t.network}</div>
+                                                            <div class="pill p-1 ms-1">${t.startMode}</div>
+
+                                                        </div>
+       
+                                                    </div>
+                                                </div>
+                                            `
+                                    ))
+                            }
+                            
+                        </div>
+                    </div>
+
+                    <div class="right-content p-4 ms-1">
+                        <div style="color: white; font-weight: bold; font-size: 1.5rem;">Live Mints:</div>
+                        <hr />
+                        
+                        <div class="label text-center">Coming soon</div>
+                        
+                    </div>
+                    
+                </div>
 
             </div>
 
@@ -960,7 +909,7 @@ function EthMinter({state}) {
                                         <button class="button-dropdown dropdown-toggle" type="button"
                                                 id="wallets-dropdown" data-bs-toggle="dropdown" aria-expanded="false"
                                                 onclick=${() => {
-                                                    walletsDropdown.show()
+                                                    Dropdown.getOrCreateInstance(document.querySelector('#wallets-dropdown')).show()
                                                 }}>
                                             Select one or more Wallets
                                         </button>
@@ -992,7 +941,7 @@ function EthMinter({state}) {
                                         <button class="button-dropdown dropdown-toggle" type="button"
                                                 id="networks-dropdown" data-bs-toggle="dropdown" aria-expanded="false"
                                                 onclick=${() => {
-                                                    networksDropdown.show()
+                                                    Dropdown.getOrCreateInstance(document.querySelector('#networks-dropdown')).show()
                                                 }}>
                                             ${network}
                                         </button>
@@ -1015,29 +964,6 @@ function EthMinter({state}) {
                                             </li>
                                         </ul>
                                     </div>
-
-                                    <div class="dropdown ms-1">
-
-                                        <div class="label">Group</div>
-                                        <button class="button-dropdown dropdown-toggle" type="button"
-                                                id="groups-dropdown" data-bs-toggle="dropdown" aria-expanded="false"
-                                                onclick=${() => {
-                                                    groupsDropdown.show()
-                                                }}>
-                                            ${selectedGroup.length > 0 ? selectedGroup : "Select a Group"}
-                                        </button>
-                                        <ul class="dropdown-menu" aria-labelledby="dropdown">
-                                            ${groups.map(g => (
-                                                    html`
-                                                        <li class="dropdown-item" onclick=${() => {
-                                                            setSelectedGroup(g.name)
-                                                        }}>${g.name}
-                                                        </li>
-                                                    `
-                                            ))}
-                                        </ul>
-                                    </div>
-
                                 </div>
 
                                 <div class="d-flex flex-wrap mt-2">
@@ -1081,7 +1007,7 @@ function EthMinter({state}) {
                                         <div class="label">Mint Function</div>
                                         <button class="button-dropdown dropdown-toggle" type="button" id="mint-dropdown"
                                                 data-bs-toggle="dropdown" aria-expanded="false" onclick=${() => {
-                                            mintDropdown.show()
+                                            Dropdown.getOrCreateInstance(document.querySelector('#mint-dropdown')).show()
                                         }}>
                                             ${mintMethod === null ? 'Select a Mint Function' : mintMethod.name}
                                         </button>
@@ -1142,7 +1068,7 @@ function EthMinter({state}) {
                                                     id="modes-dropdown" data-bs-toggle="dropdown"
                                                     aria-expanded="false"
                                                     onclick=${() => {
-                                                        Dropdown.getOrCreateInstance(globalRef.current.querySelector('#modes-dropdown')).show()
+                                                        Dropdown.getOrCreateInstance(document.querySelector('#modes-dropdown')).show()
                                                     }}>
                                                 ${mode}
                                             </button>
@@ -1171,7 +1097,7 @@ function EthMinter({state}) {
                                                     id="read-dropdown"
                                                     data-bs-toggle="dropdown" aria-expanded="false"
                                                     onClick=${() => {
-                                                        Dropdown.getOrCreateInstance(globalRef.current.querySelector('#read-dropdown')).show()
+                                                        Dropdown.getOrCreateInstance(document.querySelector('#read-dropdown')).show()
                                                     }}
                                             >
                                                 ${readMethod === null ? 'Select a Read Function' : readMethod.name}
@@ -1198,7 +1124,7 @@ function EthMinter({state}) {
                                                     id="trigger-dropdown" data-bs-toggle="dropdown"
                                                     aria-expanded="false"
                                                     onclick=${() => {
-                                                Dropdown.getOrCreateInstance(globalRef.current.querySelector('#trigger-dropdown')).show()
+                                                Dropdown.getOrCreateInstance(document.querySelector('#trigger-dropdown')).show()
                                             }}>
                                                 ${getTriggerName()}
                                             </button>
@@ -1281,7 +1207,7 @@ function EthMinter({state}) {
 
                         </div>
                         <div class="modal-footer">
-                            <button class="button-outline-cancel me-2" onclick=${() => {Modal.getOrCreateInstance(globalRef.current.querySelector('#create-task-modal')).hide()}}>Cancel</button>
+                            <button class="button-outline-cancel me-2" onclick=${() => {Modal.getOrCreateInstance(document.querySelector('#create-task-modal')).hide()}}>Cancel</button>
                             <button class="button-secondary ${editTask === null ? 'd-none' : ''}" onclick=${handleUpdateTasks}>Save Task</button>
                             <button class="button-primary ${editTask === null ? '' : 'd-none'}" onclick=${handleCreateTasks}>Create Task</button>
                         </div>
@@ -1406,7 +1332,6 @@ function EthMinter({state}) {
                 </div>
             </div>
             
-        </div>
     `
 }
 
