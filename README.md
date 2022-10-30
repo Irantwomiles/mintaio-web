@@ -1,3 +1,7 @@
+# Deployment notes
+Make sure source maps are not showing. If the source maps are showing, delete the dist file then run the build command again (I know the build command already removes the dist file, just do it again). It has something to do with caching.
+
+
 #TODO
 
 ###Dashboard
@@ -6,13 +10,10 @@
   * Quick Add upcoming hyped mints.
 ###Wallets
   * Allow for even distribution of funds.
-  * Add better error messages for wallets.
   * Rename wallets
 ###OpenSea
   * OpenSea bidder
   * OpenSea quick task
-  * Better UI for the tasks
-  * Option to lower floor price automatically.
   * Option to auto list sniped listing.
 ###Mint Bot
   * There is a bug when delete a tasks in a group or when delete a group with some tasks.
@@ -22,10 +23,7 @@
   * Add x2y2 support
   * Show daily profit by contract address
 ###New Dashboard
-  * Minting Calendar
-    * https://www.alphabot.app/api/projectData?calendar=true&startDate=1664078400000&endDate=1667797200000&selectedMonth=10
-  * News
-    * Need to find Twitter accounts to get NFT news from
+  * Instead of a spam of live mints, just show what's minting per contract
 ###New Stuff
   * Gas calculator
   * Fix refresh requiring auth

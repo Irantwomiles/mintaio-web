@@ -360,13 +360,13 @@ input {
   .sniper-banner {
      border-radius: 0.5rem;
      color: white;
-     font-size: 2rem;
+     font-size: 1.5rem;
      font-weight: bold;
      background: linear-gradient(45deg, #4ea0b9, rgba(52, 133, 184, 0.22));
 
     img {
-      height: 5rem;
-      width: 5rem;
+      height: 2.5rem;
+      width: 2.5rem;
     }
 
   }
@@ -514,6 +514,152 @@ input {
     font-size: 0.85rem;
   }
 
+}
+
+.pnl {
+
+  .pnl-banner {
+    border-radius: 0.5rem;
+    color: white;
+    font-size: 1.5rem;
+    background: linear-gradient(45deg, #af4e7f, rgba(184, 52, 122, 0.22));
+  }
+
+  .pnl-actions {
+    border-radius: 0.5rem;
+    background-color: $background-sidebar;
+  }
+
+  .pnl-section {
+    background-color: $background-sidebar;
+    padding: 1rem 1rem;
+    border-radius: 0.5rem;
+
+    .pnl-header {
+
+      .contract {
+        font-size: 1.15rem;
+        color: white;
+      }
+
+      .mint-cost, .gas-cost, .total-sales {
+        font-size: 0.95rem;
+        color: $light-gray !important;
+        span, i {
+          color: white;
+        }
+      }
+
+      a {
+        cursor: pointer;
+        text-decoration: none;
+      }
+
+    }
+
+    .pnl-token {
+      .token-id, .price, .gas {
+        color: $light-gray;
+      }
+
+      .sold {
+        color: $green;
+      }
+
+      .bought {
+        color: $red;
+      }
+
+      .price, .gas, .sold, .bought {
+        span, i {
+          color: white;
+        }
+      }
+    }
+  }
+
+  .pnl-global {
+
+    .global-info {
+      background-color: $background-sidebar;
+      padding: 0.5rem 0.5rem;
+      border-radius: 0.3rem;
+
+      .value {
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+
+        i {
+          color: $light-gray;
+        }
+      }
+
+      .name {
+        color: $light-gray;
+        font-size: 0.9rem;
+      }
+
+      .up-arrow {
+        color: $green;
+      }
+
+      .down-arrow {
+        color: $red;
+      }
+
+      .red {
+        color: $red !important;
+      }
+
+      .green {
+        color: $green !important;
+      }
+
+    }
+
+  }
+
+}
+
+.wallets {
+
+  .wallet-banner {
+    border-radius: 0.5rem;
+    color: white;
+    font-size: 1.5rem;
+    background: linear-gradient(45deg, #4eaf5e, rgba(52, 184, 129, 0.22));
+  }
+
+  #balance {
+    background: -webkit-linear-gradient(45deg, #cefff3, #ffffff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+  }
+
+  .wallet-actions {
+    background-color: $background-sidebar;
+    border-radius: 0.5rem;
+  }
+
+}
+
+.settings {
+
+    .settings-banner {
+      border-radius: 0.5rem;
+      color: white;
+      font-size: 1.5rem;
+      background: linear-gradient(45deg, #8a8a8a, rgba(211, 211, 211, 0.22));
+    }
+
+    .information-banner {
+      border-radius: 0.5rem;
+      color: white;
+      font-size: 1.5rem;
+      background: linear-gradient(45deg, #6a8b8c, rgba(160, 234, 212, 0.22));
+    }
 }
 
 .size-2 {
@@ -1193,95 +1339,6 @@ hr {
   }
 }
 
-.pnl-section {
-  background-color: $background-sidebar;
-  padding: 2rem 2rem;
-  border-radius: 0.5rem;
-
-  .pnl-header {
-
-    .contract {
-      font-size: 1.15rem;
-      color: white;
-    }
-
-    .mint-cost, .gas-cost, .total-sales {
-      font-size: 0.95rem;
-      color: $light-gray !important;
-      span, i {
-        color: white;
-      }
-    }
-
-    a {
-      cursor: pointer;
-      text-decoration: none;
-    }
-
-  }
-
-  .pnl-token {
-    .token-id, .price, .gas {
-      color: $light-gray;
-    }
-
-    .sold {
-      color: $green;
-    }
-
-    .bought {
-      color: $red;
-    }
-
-    .price, .gas, .sold, .bought {
-      span, i {
-        color: white;
-      }
-    }
-  }
-}
-
-.pnl-global {
-
-  .global-info {
-    background-color: $background-sidebar;
-    padding: 0.5rem 0.5rem;
-    border-radius: 0.3rem;
-
-    .value {
-      color: white;
-      font-weight: bold;
-      font-size: 1.2rem;
-
-      i {
-        color: $light-gray;
-      }
-    }
-
-    .name {
-      color: $light-gray;
-      font-size: 0.9rem;
-    }
-
-    .up-arrow {
-      color: $green;
-    }
-
-    .down-arrow {
-      color: $red;
-    }
-
-    .red {
-      color: $red !important;
-    }
-
-    .green {
-      color: $green !important;
-    }
-
-  }
-
-}
 
 .listing-pill {
   border-radius: 0.5rem;

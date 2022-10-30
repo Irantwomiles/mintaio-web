@@ -520,50 +520,42 @@ function Wallets({state}) {
     return html`
         <div ref=${globalRef}>
 
-            <div class="p-3 w-100">
+            <div class="wallets view-container p-3 w-100">
 
-                <div class="d-flex">
-                    <button class="button-primary fw-bold" onclick=${() => {Modal.getOrCreateInstance(document.querySelector('#create-wallets-modal')).show()}}><i class="fa-solid fa-plus"></i> Create Wallets</button>
-                    <button class="button-secondary fw-bold ms-2" onclick=${() => {walletCreateModal.show()}}><i class="fa-solid fa-arrow-up"></i> Import Wallets</button>
-                    <button class="button-orange fw-bold ms-2" onclick=${() => {Modal.getOrCreateInstance(document.querySelector('#disperse-funds-modal')).show()}}><i class="fa-solid fa-arrow-right-arrow-left"></i> Disperse Funds</button>
-                    
-                    
-                    <div class="total-balance ms-auto">
-                        <div class="label">Total Balance</div>
-                        <div>
+                <div class="wallet-banner d-flex align-items-center justify-content-start p-4">
+                    <div class="ms-4 fw-bold">Wallet Manager</div>
+                    <div class="total-balance ms-auto d-flex align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div id="balance" class="me-2">Balance</div>
                             <i class="fa-brands fa-ethereum icon-color me-1"></i>
-                            <span>${totalBalance} 
+                            <span class="d-flex align-items-center">${totalBalance} 
                                 <span class="dollar-value ms-1 fw-normal ${ethPrice === 0 ? 'd-none' : ''}">($
-                                    ${totalBalance === '--' ? '' : 
-                                    Number.parseFloat(`${Number.parseFloat(`${totalBalance * ethPrice}`)}`).toFixed(2)
+                                    ${totalBalance === '--' ? '' :
+                                            Number.parseFloat(`${Number.parseFloat(`${totalBalance * ethPrice}`)}`).toFixed(2)
                                     })
                                 </span>
                             </span>
                         </div>
                     </div>
+                </div>
+                
+                <div class="wallet-actions d-flex p-3 mt-3">
+                    <button class="button-primary fw-bold" onclick=${() => {Modal.getOrCreateInstance(document.querySelector('#create-wallets-modal')).show()}}><i class="fa-solid fa-plus"></i> Create Wallets</button>
+                    <button class="button-secondary fw-bold ms-2" onclick=${() => {walletCreateModal.show()}}><i class="fa-solid fa-arrow-up"></i> Import Wallets</button>
+                    <button class="button-orange fw-bold ms-2" onclick=${() => {Modal.getOrCreateInstance(document.querySelector('#disperse-funds-modal')).show()}}><i class="fa-solid fa-arrow-right-arrow-left"></i> Disperse Funds</button>
+
+                    <div class="ms-auto d-flex align-items-center">
+                        <button class="button-primary fw-bold d-flex align-items-center me-2" onclick=${() => {massUnlockWallets()}}>
+                            <span class="material-symbols-outlined ms-1" style="font-size: 1rem; font-weight: bold;">lock_open</span> Mass Unlock
+                        </button>
+                        <input class="input" placeholder="Password" type="password" value=${massPassword} onchange=${(e) => {setMassPassword(e.target.value)}} />
+                    </div>
                     
                 </div>
 
                 <hr/>
-
-                <div class="d-flex justify-content-between mb-3">
-                    
-                    <div>
-                        <button class="button-primary fw-bold me-2" onclick=${() => {massUnlockWallets()}}><i class="fa-solid fa-unlock"></i> Mass Unlock</button>
-                        <input class="input" placeholder="Password" type="password" value=${massPassword} onchange=${(e) => {setMassPassword(e.target.value)}} />
-                    </div>
-                    <div class="button-outline-secondary">
-                        <div>
-                            <i class="fa-solid fa-arrows-rotate me-2" onclick=${() => {
-                            state.refreshAllBalance();
-                            getTotalBalance();
-                        }}></i>
-                            Refresh Balances
-                        </div>
-                    </div>
-                </div>
                 
-                <div class="d-flex flex-wrap">
+                <div class="wallet-list d-flex flex-wrap">
                     
                     ${
                         wallets.map((w) => (
@@ -585,10 +577,10 @@ function Wallets({state}) {
 
                                         <div class="d-flex justify-content-between align-items-center">
                                             <button class="button-outline-primary" onclick=${() => copyPrivateKey(w)}>Export</button>
-                                            <div>
-                                                ${w.isLocked() ? html`<i className="fa-solid fa-lock me-2 icon-color-unlock" onclick=${() => {handleOpenUnlockWallet(w)}}></i>` : ''}
+                                            <div class="d-flex align-items-center">
+                                                ${w.isLocked() ? html`<span className="material-symbols-outlined icon-color-unlock" onclick=${() => {handleOpenUnlockWallet(w)}}>lock</span>` : ''}
                                                 
-                                                <i class="fa-solid fa-trash-can icon-color-delete" onclick=${() => setDeleteWallet(w)}></i>
+                                                <span class="material-symbols-outlined icon-color-delete" onclick=${() => setDeleteWallet(w)}>delete</span>
                                             </div>
                                         </div>
                                     </div>

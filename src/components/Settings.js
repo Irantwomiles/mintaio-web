@@ -137,7 +137,14 @@ function Settings({state}) {
     }
 
     return html`
-        <div class="p-3 w-50">
+        <div class="view-container settings p-3 w-100">
+
+            <div class="settings-banner d-flex align-items-center justify-content-start p-4">
+                <div class="ms-4 fw-bold">Settings</div>
+            </div>
+            
+            <hr />
+            
             <div>
                 <div class="label">Global RPC</div>
                 <input class="input w-75" placeholder="RPC Endpoint" value=${rpc} onchange=${(e) => {setRpc(e.target.value)}} />

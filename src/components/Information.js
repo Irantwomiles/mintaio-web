@@ -4,11 +4,13 @@ import SidebarNav from "./SidebarNav.js";
 function Information({state}) {
     return html`
     <div class="d-flex">
-        <${SidebarNav} page="info"/>
-        
-        <div class="p-3 w-100">
-            
-            <h3 class="title">Setup Guide</h3>
+        <div class="settings view-container p-3 w-100">
+
+            <div class="information-banner d-flex align-items-center justify-content-start p-4">
+                <div class="ms-4 fw-bold">Information</div>
+            </div>
+
+            <h3 class="title mt-3">Setup Guide</h3>
             <hr />
 
             <div class="info-section">

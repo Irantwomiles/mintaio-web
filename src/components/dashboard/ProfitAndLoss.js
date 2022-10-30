@@ -402,60 +402,19 @@ function ProfitAndLoss({state}) {
 
     return html`
 
-        <div class="view-container p-3 w-100">
+        <div class="pnl view-container p-3 w-100">
+
+            <div class="pnl-banner d-flex align-items-center justify-content-start p-4">
+                <div class="ms-4 fw-bold">Profit Tracker</div>
+            </div>
             
-            <!--<div class="pnl-section">
-                <div class="pnl-header d-flex justify-content-between">
-                    <div class="contract">0x2eF2780b849F11231558bf9423c141178eC6f34E <i class="fa-solid fa-arrow-up-right-from-square icon-color"></i></div>
-                    <div class="d-flex">
-                        <div class="nav-info mint-cost me-2">Spent <span>0.3</span><i class="fa-brands fa-ethereum ms-1"></i> Minting</div>
-                        <div class="nav-info gas-cost me-2">Spent <span>0.0126489431</span><i class="fa-brands fa-ethereum ms-1"></i> on Gas </div>
-                        <div class="nav-info total-sales">Total of <span>3</span> Sales/Purchases</div>
-                    </div>
-                </div>
-                
-                <hr />
-                
-                <div>
-                    <div class="pnl-token d-flex justify-content-between align-items-center mb-2">
-                        <div class="d-flex align-items-center">
-                            <div class="nav-info token-id me-3">7589</div>
-                            <div class="price me-4">Price: <span>0.05</span><i class="fa-brands fa-ethereum ms-1"></i></div>
-                            <div class="gas me-4">Gas: <span>0.004589</span><i class="fa-brands fa-ethereum ms-1"></i> - (<span>82000</span> / <span>125000</span>)<i class="fa-solid fa-gas-pump ms-1"></i></div>
-                        </div>
-
-                        <div class="sold nav-info ms-4">Sold: <span>0.12</span><i class="fa-brands fa-ethereum ms-1"></i></div>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="pnl-token d-flex justify-content-between align-items-center mb-2">
-                        <div class="d-flex align-items-center">
-                            <div class="nav-info token-id me-3">1458</div>
-                            <div class="price me-4">Price: <span>0.05</span><i class="fa-brands fa-ethereum ms-1"></i></div>
-                            <div class="gas me-4">Gas: <span>Unknown</span></div>
-                        </div>
-
-                        <div class="sold nav-info ms-4">Sold: <span>0.12</span><i class="fa-brands fa-ethereum ms-1"></i></div>
-                    </div>
-
-                    <div class="pnl-token d-flex justify-content-between align-items-center mb-2">
-                        <div class="d-flex align-items-center">
-                            <div class="nav-info token-id me-3">1458</div>
-                            <div class="price me-4">Price: <span>0.05</span><i class="fa-brands fa-ethereum ms-1"></i></div>
-                            <div class="gas me-4">Gas: <span>Unknown</span></div>
-                        </div>
-
-                        <div class="bought nav-info ms-4">Bought: <span>0.12</span><i class="fa-brands fa-ethereum ms-1"></i></div>
-                    </div>
-                </div>
-                
-            </div>-->
-            
-            <div>
+            <div class="mt-3 p-3 pnl-actions d-flex align-items-center">
+                <button class="button-primary fw-bold me-2 d-flex align-items-center" onclick=${checkProfitAndLoss}>                
+                    <span class="material-symbols-outlined">search</span>
+                    Check
+                </button>
                 <input class="input" placeholder="0x123..." type="text" value=${address} onchange=${(e) => {setAddress(e.target.value)}} />
-                <button class="button-primary fw-bold ms-2 me-2" onclick=${checkProfitAndLoss}>Check</button>
-                <i class="${loading ? '' : 'd-none'} fa-solid fa-spinner loading-icon fa-1x" style="color: white;"></i>
+                <i class="${loading ? '' : 'd-none'} fa-solid fa-spinner loading-icon fa-1x ms-2" style="color: white;"></i>
             </div>
             
             <hr />
@@ -516,7 +475,6 @@ function ProfitAndLoss({state}) {
                 </div>
             </div>
             
-            
             ${data.data.map(t => (
                 html`
                     
@@ -524,12 +482,12 @@ function ProfitAndLoss({state}) {
                     
                     <div class="pnl-header d-flex justify-content-between">
                         <div class="contract align-items-center">
-                            <img class="me-2" style="height: 3rem; width: 3rem;" src="${t.collection_image ? t.collection_image : logo}" />
+                            <img class="me-2" style="height: 3rem; width: 3rem; border-radius: 0.5rem;" src="${t.collection_image ? t.collection_image : logo}" />
                             ${t.contractAddress} 
                             <a href="https://etherscan.io/address/${t.contractAddress}" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square ms-2 icon-color"></i></a></div>
                         <div class="d-flex align-items-center">
                             <div class="nav-info mint-cost me-2">Spent <span>${t.totalMintCost}</span><i class="fa-brands fa-ethereum ms-1"></i> Minting</div>
-                            <div class="nav-info gas-cost me-2">Spent <span>${t.totalGasFee}</span><i class="fa-brands fa-ethereum ms-1"></i> on Gas </div>
+                            <div class="nav-info gas-cost">Spent <span>${t.totalGasFee}</span><i class="fa-brands fa-ethereum ms-1"></i> on Gas </div>
                             <div class="nav-info total-sales ${t.hasOwnProperty('totalSales') ? '' : 'd-none'}">Total of <span>${t.hasOwnProperty('totalSales') ? t.totalSales : ''}</span> Sales/Purchases</div>
                         </div>
                     </div>
@@ -539,14 +497,14 @@ function ProfitAndLoss({state}) {
                     <div>
                         ${t.mintedTokens.map(m => (
                             html`
-                            <div class="pnl-token d-flex justify-content-between align-items-center mb-2">
+                            <div class="pnl-token d-flex justify-content-between align-items-center">
                                 <div class="d-flex align-items-center">
                                     <div class="nav-info token-id me-3">${shortedText(m.tokenId)}</div>
-                                    <div class="d-flex align-items-center me-3"><img style="height: 1.5rem; width: 1.5rem;" src=${m.hasOwnProperty('image') ? m.image : '../../images/mintaio-logo.png'} /></div>
+                                    <div class="d-flex align-items-center me-3"><img style="height: 1.5rem; width: 1.5rem; border-radius: 0.5rem;" src=${m.hasOwnProperty('image') ? m.image : '../../images/mintaio-logo.png'} /></div>
                                     <div class="price me-4">Price: <span>${m.value}</span><i class="fa-brands fa-ethereum ms-1"></i></div>
                                     <div class="gas me-4">Gas: <span>${m.gasFee}</span><i class="fa-brands fa-ethereum ms-1"></i></div>
                                     <a class="me-1" href="${m.url}" target="_blank"><img style="height: 1.3rem; width: 1.3rem;" src="https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.svg" /></a>
-                                    <a href="https://etherscan.io/tx/${m.transactionHash}" target="_blank"><img style="height: 1.3rem; width: 1.3rem;" src="https://etherscan.io/images/brandassets/etherscan-logo-circle.png" /></a>
+                                    <a href="https://etherscan.io/tx/${m.transactionHash}" target="_blank"><img style="height: 1.3rem; width: 1.3rem; border-radius: 0.5rem;" src="https://etherscan.io/images/brandassets/etherscan-logo-circle.png" /></a>
                                 </div>
 
                                 <div class="sold nav-info ms-4 ${m.hasOwnProperty('sold') ? '' : 'd-none'}">Sold: <span>${m.hasOwnProperty('sold') ? m.sold : ''}</span><i class="fa-brands fa-ethereum ms-1"></i></div>
@@ -562,9 +520,9 @@ function ProfitAndLoss({state}) {
                                 <div class="pnl-token d-flex justify-content-between align-items-center mb-2">
                                     <div class="d-flex align-items-center">
                                         <div class="nav-info token-id me-3">${shortedText(m.tokenId)}</div>
-                                        <div class="d-flex align-items-center me-3"><img style="height: 1.5rem; width: 1.5rem;" src=${m.hasOwnProperty('image') ? m.image : '../../images/mintaio-logo.png'} /></div>
+                                        <div class="d-flex align-items-center me-3"><img style="height: 1.5rem; width: 1.5rem; border-radius: 0.5rem;" src=${m.hasOwnProperty('image') ? m.image : '../../images/mintaio-logo.png'} /></div>
                                         <div class="gas me-4">Gas: <span>Unknown</span></div>
-                                        <a href="${m.url}" target="_blank"><img style="height: 1.3rem; width: 1.3rem;" src="https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.svg" /></a>
+                                        <a href="${m.url}" target="_blank"><img style="height: 1.3rem; width: 1.3rem; border-radius: 0.5rem;" src="https://storage.googleapis.com/opensea-static/Logomark/Logomark-Blue.svg" /></a>
                                     </div>
 
                                     <div class="sold nav-info ms-4 ${m.event_type}">${m.event_type === 'sold' ? 'Sold' : 'Bought'}: <span>${state.globalWeb3.utils.fromWei(m.salePrice, 'ether')}</span><i class="fa-brands fa-ethereum ms-1"></i></div>

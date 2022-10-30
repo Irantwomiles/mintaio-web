@@ -141,6 +141,11 @@ function SidebarNav() {
                 <span>Wallets</span>
             </a>
 
+            <a class="sidebar-item ${page === 'info' ? 'active-sidebar' : ''}" href="/info" onclick=${() => setPage("info")}>
+                <span class="material-symbols-outlined me-2">info</span>
+                <span>Information</span>
+            </a>
+            
             <a class="sidebar-item ${page === 'settings' ? 'active-sidebar' : ''}" href="/settings" onclick=${() => setPage("settings")}>
                 <span class="material-symbols-outlined me-2">settings</span>
                 <span>Settings</span>

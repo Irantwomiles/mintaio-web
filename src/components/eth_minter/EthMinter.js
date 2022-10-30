@@ -26,7 +26,7 @@ function groupToKey(arr, key, groups) {
 function EthMinter({state}) {
 
     /*
-    wss://eth-mainnet.g.alchemy.com/v2/Q2Ntju4GCSIEphdaYNmBjweqQsfew2ws
+    https://eth-mainnet.g.alchemy.com/v2/Q2Ntju4GCSIEphdaYNmBjweqQsfew2ws
     contract: 0x4a8C9D751EEAbc5521A68FB080DD7E72E46462aF
      */
 
@@ -776,7 +776,7 @@ function EthMinter({state}) {
                     <div class="ms-4 fw-bold">Ethereum Minting Module</div>
                 </div>
                 
-                <div class="task-bar d-flex flex-wrap p-3 mt-2">
+                <div class="task-bar d-flex flex-wrap p-3 mt-3">
                     <button class="button-primary fw-bold" onclick=${() => {
                         handleShowCreateTaskModal()
                     }}><i class="fa-solid fa-plus"></i> New Task
@@ -805,7 +805,7 @@ function EthMinter({state}) {
                             ${
                                     tasks.map((t) => (
                                             html`
-                                                <div class="task ${isSelected(t) ? 'task-selected' : ''}">
+                                                <div class="task mb-3 ${isSelected(t) ? 'task-selected' : ''}">
                                                     <div class="top d-flex align-items-center justify-content-between">
                                                         <div class="wallet-name">
                                                             <div class="title">
