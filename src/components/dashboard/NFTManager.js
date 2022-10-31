@@ -3,14 +3,9 @@ import {useEffect, useState} from "preact/compat";
 import {Toast, Dropdown} from 'bootstrap';
 import logo from '../../images/mintaio-logo.png';
 import {fixAddress, getBatchTokenInfo} from "../../utils/utils";
-import OpenSeaListing from '../../utils/opensea_listing';
 import {Modal, Toast, Dropdown} from 'bootstrap';
 
-function mapByContract(arr) {
-
-}
-
-function NFTDashboard({state}) {
+function NFTManager({state}) {
 
     const [wallets, setWallets] = useState([]);
     const [selectedWallets, setSelectedWallets] = useState([]);
@@ -158,12 +153,15 @@ function NFTDashboard({state}) {
     }, [toastInfo]);
 
     return html`
-        <div class="p-3 w-100">
+        <div class="mint-bot view-container p-3 w-100">
+
+            <div class="nft-manager-banner d-flex align-items-center justify-content-start p-4">
+                <div class="ms-4 fw-bold">NFT Manager</div>
+            </div>
             
-            <div class="d-flex">
+            <div class="task-bar d-flex align-items-center mt-3 p-3">
                 <div class="dropdown me-2">
 
-                    <div class="label">Wallets</div>
                     <button class="button-dropdown dropdown-toggle" id="wallets-dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false"
                             onclick=${() => Dropdown.getOrCreateInstance(document.querySelector('#wallets-dropdown')).show()}>
                         Select Wallet
@@ -184,25 +182,25 @@ function NFTDashboard({state}) {
                 <div class="button-outline-secondary fw-bold mt-auto" onclick=${() => Modal.getOrCreateInstance(document.querySelector('#view-listing-modal')).show()}><i class="fa-solid fa-bars"></i></div>
             </div>
 
-            <div class="d-flex flex-wrap mt-2">
+            <div class="d-flex flex-wrap">
                 ${
-                        selectedWallets.map(w => (
-                                html`
-                                    <div class="selected-wallet me-1" onclick=${() => removeSelectedWallet(w)}>${w.name}
-                                        <i class="fa-solid fa-xmark icon-color ms-2 delete-icon"></i>
-                                    </div>
-                                `
-                        ))
+                    selectedWallets.map(w => (
+                            html`
+                                <div class="selected-wallet me-1 mt-2" onclick=${() => removeSelectedWallet(w)}>${w.name}
+                                    <i class="fa-solid fa-xmark icon-color ms-2 delete-icon"></i>
+                                </div>
+                            `
+                    ))
                 }
             </div>
             
             <hr />
             
-            <div class="d-flex flex-wrap">
+            <div class="d-flex flex-wrap justify-content-between">
                 ${
                         data.map(d => (
                                 html`
-                        <div class="nft me-2 mb-2 ${typeof selectedAssets.find(c => (c.contract.address + ":" + c.tokenId) === (d.contract.address + ":" + d.tokenId)) !== 'undefined' ? 'nft-selected' : ''}" onclick=${() => addAssetToSelection(d)}>
+                        <div class="nft mb-2 ${typeof selectedAssets.find(c => (c.contract.address + ":" + c.tokenId) === (d.contract.address + ":" + d.tokenId)) !== 'undefined' ? 'nft-selected' : ''}" onclick=${() => addAssetToSelection(d)}>
                             <div class="nft-image h-100 m-3">
                                 <img class="w-100 h-100" src=${d.media.length === 0 ? logo : d.media[0].gateway} alt="Image missing" />
                             </div>
@@ -302,4 +300,4 @@ function NFTDashboard({state}) {
     `
 }
 
-export default NFTDashboard;
+export default NFTManager;

@@ -26,9 +26,8 @@ Make sure source maps are not showing. If the source maps are showing, delete th
   * Instead of a spam of live mints, just show what's minting per contract
 ###New Stuff
   * Gas calculator
-  * Fix refresh requiring auth
   * Work on UI for different screen sizes
-  * x2y2 sniper
+  * x2y2 sniper: 24c26e63-ef14-435d-9884-ef047aeda78b
   * Mass listing of NFT's in wallet
 ###Sidebar
   * Discord section

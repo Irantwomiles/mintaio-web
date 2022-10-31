@@ -5,14 +5,13 @@ import Router from 'preact-router';
 
 import Wallets from './Wallets.js';
 import EthMinter from "./eth_minter/EthMinter.js";
-import Nav from "./Nav.js";
 import Settings from "./Settings.js";
 import Information from "./Information.js";
 import Dashboard from "./dashboard/Dashboard";
 import OpenSeaSniperComp from "./opensea/OpenSeaSniperComp";
-import NFTWatchList from "./dashboard/NFTWatchList";
 import ProfitAndLoss from "./dashboard/ProfitAndLoss";
 import SidebarNav from "./SidebarNav";
+import NFTManager from "./dashboard/NFTManager";
 
 function App({state}) {
 
@@ -22,12 +21,12 @@ function App({state}) {
         
         <${Router}>
             <${Dashboard} state=${state} path="" />
+            <${NFTManager} state=${state} path="/nft-manager" />
             <${Settings} state=${state} path="/settings" />
             <${Wallets} state=${state} path="/wallets" />
             <${EthMinter} state=${state} path="/eth-tasks" />
             <${Information} state=${state} path="/info" />
             <${OpenSeaSniperComp} state=${state} path="/opensea" />
-            <${NFTWatchList} state=${state} path="/nft-watchlist" />
             <${ProfitAndLoss} state=${state} path="/profit-tracker" />
         </${Router}>
     </div>
