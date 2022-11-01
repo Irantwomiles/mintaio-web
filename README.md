@@ -16,7 +16,6 @@ Make sure source maps are not showing. If the source maps are showing, delete th
   * OpenSea quick task
   * Option to auto list sniped listing.
 ###Mint Bot
-  * There is a bug when delete a tasks in a group or when delete a group with some tasks.
   * Move starting, stopping, and deleting tasks to the state class (like os sniper)
 ###Profit Tracker
   * Check etherscan for failed transactions so that we can add the gas of those as well to the total gas spent.
@@ -27,12 +26,12 @@ Make sure source maps are not showing. If the source maps are showing, delete th
 ###New Stuff
   * Gas calculator
   * Work on UI for different screen sizes
-  * x2y2 sniper: 24c26e63-ef14-435d-9884-ef047aeda78b
+  * x2y2 sniper: 
+    * 24c26e63-ef14-435d-9884-ef047aeda78b
+    * 57041f4c-c9d5-447d-9d89-5386c96b52a0
+  * Gem.xyz
+    * iMHRYlpIXs3zfcBY1r3iKLdqS2YUuOUs
   * Mass listing of NFT's in wallet
-###Sidebar
-  * Discord section
-    * user image: https://cdn.discordapp.com/avatars/200435096770183169/c9516f5d1bbfb462ddc8b03c58937bb9
-  * Move Sidebar out of each component and into only App. We can keep track of what page we are on using an onclick.
 ###Aptos
   * https://explorer.aptoslabs.com/
   * https://www.topaz.so/

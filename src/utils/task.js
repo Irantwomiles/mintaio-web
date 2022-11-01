@@ -35,6 +35,7 @@ class Task {
 
                 const task = new Task(t.provider, t.contractAddress, wallet, t.price, t.amount, t.maxGas, t.gasPriority, t.gasLimit, t.functionName, t.args, abi);
 
+                task.id = t.id;
                 task.network = t.network;
                 task.taskGroup = t.taskGroup;
                 task.trigger = t.trigger;
