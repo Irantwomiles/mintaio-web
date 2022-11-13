@@ -65,12 +65,30 @@ export function downloadLocalData() {
         }
     })
 
-    console.log(data);
-
     const fileToSave = new Blob([JSON.stringify(data)], {
         type: 'application/json'
     });
-    saveAs(fileToSave, 'filename')
+    saveAs(fileToSave, 'local-data')
+}
+
+export function downloadProjectData() {
+
+    let data = localStorage.getItem('project');
+
+    if(data === null) {
+        console.log("Data is null");
+        return;
+    }
+
+    if(!isJson(data)) {
+        console.log('data is not json');
+        return;
+    }
+
+    const fileToSave = new Blob([data], {
+        type: 'application/json'
+    });
+    saveAs(fileToSave, `project-${JSON.parse(data).slug}`)
 }
 
 export function isJson(str) {
@@ -131,6 +149,25 @@ export function getFriendlyDate() {
 
 export function getUpcomingMints() {
     return fetch(`https://mintaio-auth.herokuapp.com/calendar`);
+}
+
+export function getTimePassed(time) {
+    const now = new Date().getTime();
+    const before = new Date(time).getTime();
+
+    const passedTime = Math.floor((now - before) / (1000 * 60));
+
+    if(passedTime === 1) {
+        return 'about 1 minute ago';
+    } else if(passedTime > 1) {
+        return `${passedTime} minutes ago`;
+    } else {
+        return `less than a minute ago`
+    }
+}
+
+export function kFormatter(num) {
+    return Math.abs(num) > 999 ? Math.sign(num)*((Math.abs(num)/1000).toFixed(1)) + 'k' : Math.sign(num)*Math.abs(num)
 }
 
 // This doesn't work, because etherscan is returning cached pages and preventing us from getting

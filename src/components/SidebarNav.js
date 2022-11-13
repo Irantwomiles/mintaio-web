@@ -72,7 +72,12 @@ function SidebarNav() {
 
             <a class="sidebar-item ${page === 'opensea' ? 'active-sidebar' : ''}" href="/opensea" onclick=${() => setPage("opensea")}>
                 <span class="material-symbols-outlined me-2">track_changes</span>
-                <span>OpenSea</span>
+                <span>Sniping</span>
+            </a>
+
+            <a class="sidebar-item d-none ${page === 'opensea-bidder' ? 'active-sidebar' : ''}" href="/opensea-bidder" onclick=${() => setPage("opensea-bidder")}>
+                <span class="material-symbols-outlined me-2">gavel</span>
+                <span>Mass Bidding</span>
             </a>
 
             <a class="sidebar-item ${page === 'wallets' ? 'active-sidebar' : ''}" href="/wallets" onclick=${() => setPage("wallets")}>

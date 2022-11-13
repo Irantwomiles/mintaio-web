@@ -537,7 +537,7 @@ function Wallets({state}) {
                 }}><i class="fa-solid fa-plus"></i> Create Wallets
                 </button>
                 <button class="button-secondary fw-bold ms-2" onclick=${() => {
-                    Modal.getOrCreateInstance(document.querySelector('#new-wallet-modal').show())
+                    Modal.getOrCreateInstance(document.querySelector('#new-wallet-modal')).show()
                 }}><i class="fa-solid fa-arrow-up"></i> Import Wallets
                 </button>
                 <button class="button-orange fw-bold ms-2" onclick=${() => {

@@ -1,29 +1,8 @@
 import {html} from 'htm/preact';
 import {useEffect, useState, useRef} from "preact/compat";
 import {Toast, Dropdown, Modal} from 'bootstrap';
-import SidebarNav from "../SidebarNav";
-import {getOpenSeaCollection} from "../../utils/utils.js";
-import OpenSeaSniper from "../../utils/opensea_sniper";
+import {getOpenSeaCollection, kFormatter, getTimePassed} from "../../utils/utils.js";
 import logo from "../../images/mintaio-logo.png";
-
-function kFormatter(num) {
-    return Math.abs(num) > 999 ? Math.sign(num)*((Math.abs(num)/1000).toFixed(1)) + 'k' : Math.sign(num)*Math.abs(num)
-}
-
-function getTimePassed(time) {
-    const now = new Date().getTime();
-    const before = new Date(time).getTime();
-
-    const passedTime = Math.floor((now - before) / (1000 * 60));
-
-    if(passedTime === 1) {
-        return 'about 1 minute ago';
-    } else if(passedTime > 1) {
-        return `${passedTime} minutes ago`;
-    } else {
-        return `less than a minute ago`
-    }
-}
 
 function OpenSeaSniperComp({state}) {
 
@@ -583,8 +562,9 @@ function OpenSeaSniperComp({state}) {
                                                                         <li class="dropdown-item" onclick=${() => {
                                                                             addTrait(`${trait.toLowerCase()}|m|${t.toLowerCase()}`)
                                                                         }}>${t}
-                                                                            ${Number.parseFloat(((collectionData.traits[trait][t] / collectionData.totalSupply) * 100) + "").toFixed(2)}
-                                                                                %
+                                                                            <span class="ms-2">(${Number.parseFloat(((collectionData.traits[trait][t] / collectionData.totalSupply) * 100) + "").toFixed(2)}
+                                                                                %)
+                                                                            </span>
                                                                         </li>
                                                                     `
                                                             ))}

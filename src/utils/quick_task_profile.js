@@ -48,8 +48,6 @@ class QuickTaskProfile {
         })
 
         localStorage.setItem('qt-profiles', JSON.stringify(profiles));
-        state.addLog(`Saved QuickTask profile ${p.name}.`);
-
     }
 
 }

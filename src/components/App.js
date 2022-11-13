@@ -12,6 +12,7 @@ import OpenSeaSniperComp from "./opensea/OpenSeaSniperComp";
 import ProfitAndLoss from "./dashboard/ProfitAndLoss";
 import SidebarNav from "./SidebarNav";
 import NFTManager from "./dashboard/NFTManager";
+import OpenSeaBidder from "./opensea/OpenSeaBidder";
 
 function App({state}) {
 
@@ -27,6 +28,7 @@ function App({state}) {
             <${EthMinter} state=${state} path="/eth-tasks" />
             <${Information} state=${state} path="/info" />
             <${OpenSeaSniperComp} state=${state} path="/opensea" />
+            <${OpenSeaBidder} state=${state} path="/opensea-bidder" />
             <${ProfitAndLoss} state=${state} path="/profit-tracker" />
         </${Router}>
     </div>

@@ -7,6 +7,7 @@ import io from "socket.io-client";
 import Task from "./task";
 import {fixAddress, getEthPrice, getGasPrices, getUpcomingMints} from "./utils";
 import OpenSeaListing from "./opensea_listing";
+import OpenSeaProject from "./opensea_project";
 
 class Main {
 
@@ -21,8 +22,8 @@ class Main {
         this.openSeaTransferStream = new BehaviorSubject([]);
         this.quickTaskProfileStream = new BehaviorSubject([]);
         this.openseaListingsStream = new BehaviorSubject([]);
-
         this.openseaLiveListingStream = new BehaviorSubject([]);
+        this.openseaProjectStatus = new BehaviorSubject(null);
 
         this.webhook = localStorage.getItem('discordWebHook') === null ? '' : localStorage.getItem('discordWebHook');
 
@@ -34,6 +35,7 @@ class Main {
         this.openseaTransferData = [];
         this.quickTaskProfiles = [];
         this.openseaListings = [];
+        this.openseaProjectFetcher = new OpenSeaProject();
 
         // live data coming from websocket
         this.openseaListingData = [];
@@ -197,7 +199,7 @@ class Main {
 
     connectToMintAIOSocket() {
         try {
-            this.mintaioSocket = io.connect('https://mintaio-auth.herokuapp.com/');
+            //this.mintaioSocket = io.connect('https://mintaio-auth.herokuapp.com/');
         } catch(e) {
             console.log('e', e);
         }
@@ -211,6 +213,8 @@ class Main {
 
         // https://mintaio-auth.herokuapp.com/
         // http://localhost:3001/
+
+        if(this.mintaioSocket === null) return;
 
         try {
 
@@ -238,6 +242,8 @@ class Main {
 
         // https://mintaio-auth.herokuapp.com/
         // http://localhost:3001/
+
+        if(this.mintaioSocket === null) return;
 
         try {
 
@@ -726,6 +732,30 @@ class Main {
         }
 
         sniper.stopFetchingAssets(this);
+    }
+
+    startBidding() {
+        const wallet = this.wallets.find(w => w.name === 'Mainnet');
+        const openseaBidder = new OpenSeaBid(this, wallet);
+        openseaBidder.start();
+    }
+
+    fetchProject(slug) {
+        if(this.openseaProjectFetcher.isRunning()) {
+            console.log("Already running");
+            return;
+        }
+
+        this.openseaProjectFetcher.startFetchingAssets(this, slug);
+    }
+
+    stopFetchingProject() {
+        if(!this.openseaProjectFetcher.isRunning()) {
+            console.log("Not running");
+            return;
+        }
+
+        this.openseaProjectFetcher.stopFetchingAssets(this);
     }
 }
 
