@@ -44,7 +44,7 @@ export default class OpenSeaListing {
 
         this.openseaSDK = new OpenSeaSDK(this.walletProvider, {
             networkName: Network.Main,
-            apiKey: 'e6cc4c87a86740de959622f78c8bca8a'
+            apiKey: 'd81bee3e75c64ae79541373f4c32295b'
         });
     }
 

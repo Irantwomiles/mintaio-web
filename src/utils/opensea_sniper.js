@@ -307,7 +307,8 @@ class OpenSeaSniper {
 
         let keyIndex = 0;
 
-        const keys = ["2f603e64a3ea42f9b0cb39466ca036df", "a97239276ae0463297a18436a424c676", "d81bee3e75c64ae79541373f4c32295b", "b0fb08d7c8f049009ef4b32440d2c4cc"];
+        //"b0fb08d7c8f049009ef4b32440d2c4cc"
+        const keys = ["2f603e64a3ea42f9b0cb39466ca036df", "a97239276ae0463297a18436a424c676", "d81bee3e75c64ae79541373f4c32295b"];
         const activeKey = keys[keyIndex];
 
         this.status = {
@@ -547,6 +548,8 @@ class OpenSeaSniper {
 
     async fillOrder(state, tokenId) {
 
+        console.log(this)
+
         // Stop sending transaction if wallet is locked.
         if(this.wallet.isLocked()) {
             this.status = {
@@ -585,9 +588,10 @@ class OpenSeaSniper {
 
                 this.walletProvider = new HDWalletProvider([fixAddress(this.wallet.account.privateKey)], rpc, 0, 1);
 
+                // e6cc4c87a86740de959622f78c8bca8a
                 this.openseaSDK = new OpenSeaSDK(this.walletProvider, {
                     networkName: Network.Main,
-                    apiKey: 'e6cc4c87a86740de959622f78c8bca8a'
+                    apiKey: 'd81bee3e75c64ae79541373f4c32295b'
                 });
             }
 
@@ -600,6 +604,8 @@ class OpenSeaSniper {
                     message: `Found order`,
                     color: OpenSeaSniper.PINK
                 };
+
+                console.log("order:", order);
 
                 state.snipeDebugMessage(this.slug, this.price, order, 'https://discord.com/api/webhooks/1009917503000019004/HJG-m8J5FBL7ok6N-KzXS1cJK7eFEbffhkS_2f9uWR2U3OU1QjdKIWcDQw6i7QG1Z29U');
 

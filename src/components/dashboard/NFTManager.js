@@ -58,6 +58,7 @@ function NFTManager({state}) {
             const filtered = result.filter(r => r.ownedNfts.length > 0).map(d => d.ownedNfts);
             const flat = [].concat(...filtered);
             setData(flat);
+            console.log(flat);
         }).catch(e => {
             console.log(e);
         })
@@ -131,6 +132,8 @@ function NFTManager({state}) {
             return;
         }
 
+        console.log("State change", state);
+
         const walletsStream = state.walletsStream.subscribe((data) => {
             setWallets(data);
         })
@@ -196,13 +199,13 @@ function NFTManager({state}) {
             
             <hr />
             
-            <div class="d-flex flex-wrap justify-content-between">
+            <div class="d-flex flex-wrap">
                 ${
                         data.map(d => (
                                 html`
-                        <div class="nft mb-2 ${typeof selectedAssets.find(c => (c.contract.address + ":" + c.tokenId) === (d.contract.address + ":" + d.tokenId)) !== 'undefined' ? 'nft-selected' : ''}" onclick=${() => addAssetToSelection(d)}>
+                        <div class="nft mb-2 me-2 ${typeof selectedAssets.find(c => (c.contract.address + ":" + c.tokenId) === (d.contract.address + ":" + d.tokenId)) !== 'undefined' ? 'nft-selected' : ''}" onclick=${() => addAssetToSelection(d)}>
                             <div class="nft-image h-100 m-3">
-                                <img class="w-100 h-100" src=${d.media.length === 0 ? logo : d.media[0].gateway} alt="Image missing" />
+                                <img class="w-100 h-100" src=${d.media.length === 0 ? logo : d.media[0].thumbnail} alt="Image missing" />
                             </div>
                             <div class="mx-3">
                                 <div class="title">${d.title.length === 0 ? html`<span style="color: #f58686;">Missing</span>` : d.title}</div>

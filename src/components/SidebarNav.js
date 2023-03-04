@@ -102,7 +102,7 @@ function SidebarNav() {
 
                         <div class="d-flex align-items-center justify-content-center mx-1 my-1">
                             <span class="material-symbols-outlined" style="color: #ADEBD5;">local_gas_station</span>
-                            <span style="color: white;">${data.maxFee}</span>
+                            <span style="color: white;">${data.baseFee}</span>
                         </div>
 
                         <div class="d-flex align-items-center justify-content-center mx-1 my-1">

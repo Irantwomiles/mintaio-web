@@ -263,9 +263,20 @@ function ProfitAndLoss({state}) {
 
                         const seller_fee = Number.parseInt(sale.sellerFee.seller_fees[Object.keys(sale.sellerFee.seller_fees)[0]]);
                         const os_fee = Number.parseInt(sale.sellerFee.opensea_fees[Object.keys(sale.sellerFee.opensea_fees)[0]]);
-                        const _fee = (isNaN(seller_fee) ? os_fee : seller_fee + os_fee) / 100;
+                        let _fee = 0;
+
+                        if(!isNaN(seller_fee) && !isNaN(os_fee)) {
+                            _fee = (os_fee + seller_fee) / 100;
+                        } else if(isNaN(seller_fee) && !isNaN(os_fee)) {
+                            _fee = os_fee / 100;
+                        } else if(!isNaN(seller_fee) && isNaN(os_fee)) {
+                            _fee = seller_fee / 100;
+                        }
+
                         const _initPrice = Number.parseFloat(asset.sold);
+
                         const _finalPrice = _initPrice - (_initPrice / _fee);
+
                         globalMarketFees += _initPrice / _fee;
 
                         asset.image = assetSold.image;
@@ -391,8 +402,8 @@ function ProfitAndLoss({state}) {
     }
 
     useEffect(() => {
-        //checkProfitAndLoss('0x2ef2780b849f11231558bf9423c141178ec6f34e');
-    }, [])
+        console.log("Data", data);
+    }, [data])
 
     useEffect(() => {
         if(toastInfo === null) return;

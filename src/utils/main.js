@@ -112,7 +112,7 @@ class Main {
 
         this.ethDataInterval = setInterval(() => {
             this.sidebarData();
-        }, 1000 * 8);
+        }, 1000 * 15);
 
         this.connectToMintAIOSocket();
         this.connectOpenSeaListing();
@@ -137,9 +137,9 @@ class Main {
             const gasPrices = await (await getGasPrices()).json();
 
             this.ethData.ethPrice = ethPrice['USD'];
-            this.ethData.maxFee = gasPrices['estimatedPrices'][0].maxFeePerGas;
-            this.ethData.priorityFee = gasPrices['estimatedPrices'][0].maxPriorityFeePerGas;
-            this.ethData.pendingBlock = gasPrices['pendingBlockNumberVal'];
+            this.ethData.baseFee = gasPrices['baseFeePerGas'].toString().split(".")[0];
+            this.ethData.priorityFee = gasPrices['maxPrice'];
+            this.ethData.pendingBlock = gasPrices['pendingBlockNumberValue'];
 
             this.ethDataStream.next(this.ethData);
         } catch(e) {

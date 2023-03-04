@@ -51,7 +51,7 @@ export function getEthPrice() {
 }
 
 export function getGasPrices() {
-    return fetch('https://blocknative-api.herokuapp.com/data');
+    return fetch('https://api.blocknative.com/gasprices/latest-block');
 }
 
 export function downloadLocalData() {
