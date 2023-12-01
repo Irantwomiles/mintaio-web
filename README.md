@@ -1,3 +1,8 @@
+# About
+MintAIO was a Ethereum based bot that helped users manage wallets, mint NFT's, and view portfolios in a Web Application or a Electron App.
+
+This app was developed using PreactJS and deployed on AWS with authentication being handled by Discords OAuth2.0.
+
 # Deployment notes
 Make sure source maps are not showing. If the source maps are showing, delete the dist file then run the build command again (I know the build command already removes the dist file, just do it again). It has something to do with caching.
 
